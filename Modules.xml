@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+
+<Root>
+  <Module  name = "BooBuilds"
+    movie       = "BooBuilds\BooBuilds.swf"
+    flags       = "GMF_CFG_STORE_USER_CONFIG | GMF_DONT_UNLOAD"
+    depth_layer = "Top"
+    sub_depth   = "2"
+    variable    = "BooBuilds"
+    criteria    = "BooBuilds &amp;&amp; (guimode &amp; (GUIMODEFLAGS_INPLAY | GUIMODEFLAGS_ENABLEALLGUI))"
+    config_name = "BooBuilds_Data"
+  />
+</Root>
