@@ -544,12 +544,12 @@ class com.boobuilds.BuildList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("AddGroupAbove", m_parent, null, null, "New Group name", "");
-			m_editDialog.Show(Delegate.create(this, AddGroupAboveCB));
+			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
+			m_editGroupDialog.Show(Delegate.create(this, AddGroupAboveCB));
 		}
 	}
 	
-	private function AddGroupAboveCB(newName:String):Void
+	private function AddGroupAboveCB(newName:String, newColour:String):Void
 	{
 		if (newName != null && m_currentGroup != null)
 		{
@@ -567,7 +567,7 @@ class com.boobuilds.BuildList implements ITabPane
 			if (duplicateFound == false)
 			{
 				var newID:String = BuildGroup.GetNextID(m_groups);
-				var newGroup:BuildGroup = new BuildGroup(newID, newName);
+				var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
 				var indx:Number = FindGroupIndex(m_currentGroup.GetID());
 				m_groups.splice(indx, 0, newGroup);
 				DrawList();
@@ -583,12 +583,12 @@ class com.boobuilds.BuildList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("AddGroupBelow", m_parent, null, null, "New Group name", "");
-			m_editDialog.Show(Delegate.create(this, AddGroupBelowCB));
+			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
+			m_editGroupDialog.Show(Delegate.create(this, AddGroupBelowCB));
 		}
 	}
 	
-	private function AddGroupBelowCB(newName:String):Void
+	private function AddGroupBelowCB(newName:String, newColour:String):Void
 	{
 		if (newName != null && m_currentGroup != null)
 		{
@@ -606,7 +606,7 @@ class com.boobuilds.BuildList implements ITabPane
 			if (duplicateFound == false)
 			{
 				var newID:String = BuildGroup.GetNextID(m_groups);
-				var newGroup:BuildGroup = new BuildGroup(newID, newName);
+				var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
 				var indx:Number = FindGroupIndex(m_currentGroup.GetID());
 				m_groups.splice(indx + 1, 0, newGroup);
 				DrawList();

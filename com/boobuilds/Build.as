@@ -63,6 +63,10 @@ class com.boobuilds.Build
 	private var m_weapons:Array;
 	private var m_costume:Array;
 	private var m_unequipPassives:Array;
+	private var m_unequipSkillsInterval:Number;
+	private var m_unequipSkillsCounter:Number;
+	private var m_unequipPassivesInterval:Number;
+	private var m_unequipPassivesCounter:Number;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -1026,6 +1030,55 @@ class com.boobuilds.Build
 	
 	private function ApplySkills():Void
 	{
+		// Remove all shortcuts
+		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
+		{
+			var slotID:Number = GetSkillSlotID(indx);
+			Shortcut.RemoveFromShortcutBar(slotID);
+		}
+		
+		m_unequipSkillsCounter = 0;
+		m_unequipSkillsInterval = setInterval(Delegate.create(this, ShortRemovedCB), 20);
+	}
+	
+	private function ShortRemovedCB():Void
+	{
+		++m_unequipSkillsCounter;
+		var empty:Boolean = AreShortcutsEmpty();
+		if (empty == true)
+		{
+			clearInterval(m_unequipSkillsInterval);
+			m_unequipSkillsCounter = 0;
+			m_unequipSkillsInterval = -1;
+			
+			AddShortcuts();
+		}
+		else
+		{
+			if (m_unequipSkillsCounter > 200)
+			{
+				clearInterval(m_unequipSkillsInterval);
+				DebugWindow.Log(DebugWindow.Error, "Failed to unequip skills");
+			}
+		}
+	}
+	
+	private function AreShortcutsEmpty():Boolean
+	{
+		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
+		{
+			var slotID:Number = GetSkillSlotID(indx);
+			if (Shortcut.m_ShortcutList[slotID] != null)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
+	private function AddShortcuts():Void
+	{
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
 			var featID:Number = GetSkill(indx);
@@ -1036,116 +1089,71 @@ class com.boobuilds.Build
 				var skillName:String = featData.m_Name;
 				
 				var slotID:Number = GetSkillSlotID(indx);
-				var shortcut:ShortcutData = Shortcut.m_ShortcutList[slotID];
-				if (shortcut == null || shortcut.m_SpellId != spellId)
-				{
-					var duplicateSlotID:Number = FindDuplicateSkillSlot(spellId);
-					if (duplicateSlotID != -1)
-					{
-						Shortcut.MoveShortcut(duplicateSlotID, GetSkillSlotID(indx));
-					}
-					else
-					{
-						Shortcut.AddSpell(slotID, spellId);
-					}
-				}
+				Shortcut.AddSpell(slotID, spellId);
 			}
-		}
+		}		
 	}
 	
-	private function FindDuplicateSkillSlot(spellID:Number):Number
+	private function IsBasicAbility(featData:FeatData):Boolean
 	{
-		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
+		if (featData.m_SpellType == _global.Enums.SpellItemType.eBuilderAbility)
 		{
-			var slotID:Number = GetSkillSlotID(indx);
-			var shortcut:ShortcutData = Shortcut.m_ShortcutList[slotID];
-			if (shortcut != null)
-			{
-				if (shortcut.m_SpellId == spellID)
-				{
-					return slotID;
-				}
-			}
+			return true;
 		}
 		
-		return -1;
+		return false;
 	}
 	
 	private function ApplyPassives():Void
 	{
-		var duplicatesFound:Boolean = false;
-		m_unequipPassives = new Array();
+		// Remove all passives
 		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
 		{
-			m_unequipPassives.push(false);
-		}
-			
-		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
-		{
-			var featID:Number = GetPassive(indx);
-			var featData:FeatData = FeatInterface.m_FeatList[featID];
-			if (featData != null)
-			{
-				var spellId:Number = featData.m_Spell;
-				var skillName:String = featData.m_Name;
-				
-				var passiveID:Number = Spell.GetPassiveAbility(indx);
-				if (passiveID != spellId)
-				{
-					var duplicateSlotID:Number = FindDuplicatePassiveSlot(spellId);
-					if (duplicateSlotID != -1)
-					{
-						duplicatesFound = true;
-						m_unequipPassives[duplicateSlotID] = true;
-					}
-				}
-			}
+			Spell.UnequipPassiveAbility(indx);
 		}
 		
-		if (duplicatesFound)
-		{		
-			SpellBase.SignalPassiveRemoved.Connect(PassiveUnequipCB, this);
-			for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
-			{
-				if (m_unequipPassives[indx] == true)
-				{
-					Spell.UnequipPassiveAbility(indx);
-				}
-			}
+		m_unequipPassivesCounter = 0;
+		m_unequipPassivesInterval = setInterval(Delegate.create(this, PassiveRemovedCB), 20);
+	}
+	
+	private function PassiveRemovedCB():Void
+	{
+		++m_unequipPassivesCounter;
+		var empty:Boolean = ArePassivesEmpty();
+		if (empty == true)
+		{
+			clearInterval(m_unequipPassivesInterval);
+			m_unequipPassivesCounter = 0;
+			m_unequipPassivesInterval = -1;
+			
+			AddPassives();
 		}
 		else
 		{
-			EquipPassives();
+			if (m_unequipPassivesCounter > 200)
+			{
+				clearInterval(m_unequipPassivesInterval);
+				m_unequipPassivesCounter = 0;
+				m_unequipPassivesInterval = -1;
+				DebugWindow.Log(DebugWindow.Error, "Failed to unequip passives");
+			}
 		}
 	}
 	
-	private function PassiveUnequipCB(slotID:Number):Void
+	private function ArePassivesEmpty():Boolean
 	{
-		m_unequipPassives[slotID] = false;
-		
-		var unequipFinished:Boolean = true;
 		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
 		{
-			if (m_unequipPassives[indx] == true)
+			if (SpellBase.m_PassivesList[indx] != null)
 			{
-				unequipFinished = false;
-				break;
+				return false;
 			}
-		}		
-		
-		if (unequipFinished == true)
-		{
-			setTimeout(Delegate.create(this, PassiveUnequipComplete), 10);
 		}
+		
+		return true;
 	}
-	
-	private function PassiveUnequipComplete():Void
-	{
-		SpellBase.SignalPassiveRemoved.Disconnect(PassiveUnequipCB, this);
-		EquipPassives();
-	}
-	
-	private function EquipPassives():Void
+		
+	private function AddPassives():Void
 	{
 		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
 		{
@@ -1161,21 +1169,6 @@ class com.boobuilds.Build
 		}
 	}
 
-	private function FindDuplicatePassiveSlot(spellID:Number):Number
-	{
-		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
-		{
-			var passiveID:Number = Spell.GetPassiveAbility(indx);
-			var shortcutData:SpellData = Spell.m_PassivesList[passiveID];
-			if (shortcutData.m_Id == spellID)
-			{
-				return indx;
-			}
-		}
-		
-		return -1;
-	}
-	
 	private function EquipWeapon(gear:GearItem, slot:Number):Boolean
 	{
 		if (gear != null)
