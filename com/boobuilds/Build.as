@@ -1,5 +1,6 @@
 import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
+import com.boobuilds.ErrorWindow;
 import com.boobuilds.GearItem;
 import com.Utils.Archive;
 import com.GameInterface.FeatData;
@@ -16,6 +17,7 @@ import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipDataProvider;
 import com.Utils.ID32;
 import mx.utils.Delegate;
+import com.Utils.StringUtils;
 /**
  * There is no copyright on this code
  *
@@ -67,6 +69,10 @@ class com.boobuilds.Build
 	private var m_unequipSkillsCounter:Number;
 	private var m_unequipPassivesInterval:Number;
 	private var m_unequipPassivesCounter:Number;
+	private var m_equipWeaponsInterval:Number;
+	private var m_equipWeaponsCounter:Number;
+	private var m_equipWeaponItem:GearItem;
+	private var m_equipWeaponSlot:Number;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -80,6 +86,9 @@ class com.boobuilds.Build
 		m_gear = new Array();
 		m_weapons = new Array();
 		m_costume = new Array();
+		m_unequipSkillsInterval = -1;
+		m_unequipPassivesInterval = -1;
+		m_equipWeaponsInterval = -1;
 		InitialiseArray(m_skills, MAX_SKILLS);
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
@@ -238,9 +247,34 @@ class com.boobuilds.Build
 
 	public function Apply():Void
 	{
+		var doWeapons:Boolean = false;
+		var weaponCount:Number = 0;
+		for (var indx:Number = 0; indx < m_weapons.length; ++indx)
+		{
+			if (GetWeapon(indx) != null)
+			{
+				++weaponCount;
+			}
+		}
+		
+		if (weaponCount > 0 && EquippedWeaponsAreSame() != true)
+		{
+			if (AvailableBagSpace() < 2)
+			{
+				ErrorWindow.Log("You must have two free bag slots to equip this build!");
+				return;
+			}
+			
+			doWeapons = true;
+		}
+		
 		ApplyPassives();
 		ApplySkills();
-		//ApplyWeapons();
+		
+		if (doWeapons == true)
+		{
+			ApplyWeapons();
+		}
 	}
 	
 	public function Refresh():Void
@@ -693,7 +727,7 @@ class com.boobuilds.Build
 		var buildItems:Array = new Array();
 		for (var i:Number = 0; i < tmpBuildItems.length; ++i)
 		{
-			var thisItem:String = tmpBuildItems[i].split(" ").join("");
+			var thisItem:String = StringUtils.Strip(tmpBuildItems[i]);
 			if (thisItem != "-")
 			{
 				buildItems.push(thisItem);
@@ -965,7 +999,16 @@ class com.boobuilds.Build
 					SetWeapon(i, gear);
 				}
 			}
-		}		
+		}
+		
+		for ( var i:Number = 0 ; i < positions.length; ++i )
+		{
+			if (GetWeapon(i) == null)
+			{
+				ClearWeapons();
+				break;
+			}
+		}
 	}
 	
 	private function SetCurrentCostume():Void
@@ -1030,6 +1073,12 @@ class com.boobuilds.Build
 	
 	private function ApplySkills():Void
 	{
+		if (m_unequipSkillsInterval != -1)
+		{
+			clearInterval(m_unequipSkillsInterval);
+			m_unequipSkillsInterval = -1;
+		}
+		
 		// Remove all shortcuts
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
@@ -1058,7 +1107,7 @@ class com.boobuilds.Build
 			if (m_unequipSkillsCounter > 200)
 			{
 				clearInterval(m_unequipSkillsInterval);
-				DebugWindow.Log(DebugWindow.Error, "Failed to unequip skills");
+				ErrorWindow.Log("Failed to unequip skills");
 			}
 		}
 	}
@@ -1106,6 +1155,12 @@ class com.boobuilds.Build
 	
 	private function ApplyPassives():Void
 	{
+		if (m_unequipPassivesInterval != -1)
+		{
+			clearInterval(m_unequipPassivesInterval);
+			m_unequipPassivesInterval = -1;
+		}
+		
 		// Remove all passives
 		for (var indx:Number = 0; indx < MAX_PASSIVES; ++indx)
 		{
@@ -1135,7 +1190,7 @@ class com.boobuilds.Build
 				clearInterval(m_unequipPassivesInterval);
 				m_unequipPassivesCounter = 0;
 				m_unequipPassivesInterval = -1;
-				DebugWindow.Log(DebugWindow.Error, "Failed to unequip passives");
+				ErrorWindow.Log("Failed to unequip passives");
 			}
 		}
 	}
@@ -1169,43 +1224,174 @@ class com.boobuilds.Build
 		}
 	}
 
-	private function EquipWeapon(gear:GearItem, slot:Number):Boolean
+	private function ApplyWeapons():Void
+	{
+		if (m_equipWeaponsInterval != -1)
+		{
+			clearInterval(m_equipWeaponsInterval);
+			m_equipWeaponsInterval = -1;
+		}
+		
+		UnequipWeapon(0);
+	}
+	
+	private function UnequipWeapon(slot:Number):Void
+	{
+		m_equipWeaponSlot = slot;
+		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		charInv.UseItem(GetWeaponSlotID(m_equipWeaponSlot));
+		
+		// wait until both weapons are unequipped
+		m_equipWeaponsCounter = 0;
+		m_equipWeaponsInterval = setInterval(Delegate.create(this, WeaponUnequippedCB), 20);
+	}
+	
+	private function WeaponUnequippedCB():Void
+	{
+		++m_equipWeaponsCounter;
+		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		if (charInv.GetItemAt(GetWeaponSlotID(m_equipWeaponSlot)) == null)
+		{
+			clearInterval(m_equipWeaponsInterval);
+			m_equipWeaponsCounter = 0;
+			m_equipWeaponsInterval = -1;
+			
+			if (m_equipWeaponSlot == 0)
+			{
+				UnequipWeapon(1);
+			}
+			else
+			{
+				m_equipWeaponItem = GetWeapon(0);
+				m_equipWeaponSlot = 0;
+				EquipWeapon(GetWeapon(0), 0);
+				m_equipWeaponsCounter = 0;
+				m_equipWeaponsInterval = setInterval(Delegate.create(this, WeaponEquippedCB), 20);
+			}
+		}
+		else
+		{
+			if (m_equipWeaponsCounter > 100)
+			{
+				clearInterval(m_equipWeaponsInterval);
+				m_equipWeaponsCounter = 0;
+				m_equipWeaponsInterval = -1;
+				ErrorWindow.Log("Failed to unequip weapons");
+			}
+		}
+		
+	}
+	
+	private function EquipWeapon(gear:GearItem, slot:Number):Void
 	{
 		if (gear != null)
 		{
-			var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot];
-			var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
-			var charInv:Inventory = new Inventory(charInvId);
-			var item:InventoryItem = charInv.GetItemAt(positions[slot]);
-			if (!gear.isMatch(item))
+			var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+			var bagInv:Inventory = new Inventory(bagInvId);
+			var obj:Object = GearItem.FindExactGearItem(bagInv, gear, false);
+			if (obj != null)
 			{
-				// check that it isn't the 2nd weapon
-				var secondWeaponIndx:Number = (slot + 1) % 2;
-				item = charInv.GetItemAt(positions[secondWeaponIndx]);
-				if (gear.isMatch(item))
-				{
-					// use the item to move it into the bags
-					charInv.AddItem(charInvId, positions[slot], positions[secondWeaponIndx]);
-				}
-				else
-				{
-					var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
-					var bagInv:Inventory = new Inventory(bagInvId);
-					var itemIndex:Number = GearItem.FindGearItem(bagInv, gear);
-					if (itemIndex != null)
-					{
-						//bagInv.UseItem(itemIndex);
-						charInv.AddItem(bagInvId, itemIndex, positions[slot]);
-					}
-					else
-					{
-						DebugWindow.Log("Couldn't find item " + gear.toString());
-					}
-				}
+				var itemSlot:Number = obj.indx;
+				var foundItem = obj.item;
+				var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+				var charInv:Inventory = new Inventory(charInvId);
+				charInv.AddItem(bagInvId, itemSlot, GetWeaponSlotID(slot));
 			}
+			else
+			{
+				ErrorWindow.Log("Couldn't find weapon " + gear.GetName());
+			}
+		}
+	}
+
+	private function WeaponEquippedCB():Void
+	{
+		++m_equipWeaponsCounter;
+		var equipped:Boolean = IsWeaponEquipped(m_equipWeaponItem, m_equipWeaponSlot);
+		if (equipped == true)
+		{
+			clearInterval(m_equipWeaponsInterval);
+			m_equipWeaponsCounter = 0;
+			m_equipWeaponsInterval = -1;
+			
+			EquipWeapon(GetWeapon(1), 1);
+		}
+		else
+		{
+			if (m_equipWeaponsCounter > 100)
+			{
+				clearInterval(m_equipWeaponsInterval);
+				m_equipWeaponsCounter = 0;
+				m_equipWeaponsInterval = -1;
+				ErrorWindow.Log("Failed to equip weapon " + m_equipWeaponItem.GetName());
+			}
+		}
+		
+	}
+	
+	private function IsWeaponSameType(inItem:InventoryItem, slot:Number):Boolean
+	{
+		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		var item:InventoryItem = charInv.GetItemAt(GetWeaponSlotID(1));
+		if (item != null && inItem != null && inItem.m_RealType != null && inItem.m_RealType == item.m_RealType)
+		{
+			return true;
 		}
 		
 		return false;
 	}
-
+	
+	private function EquippedWeaponsAreSame():Boolean
+	{
+		if (IsWeaponEquipped(GetWeapon(0), 0) == true && IsWeaponEquipped(GetWeapon(1), 1) == true)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private function IsWeaponEquipped(gear:GearItem, slot:Number):Boolean
+	{
+		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		var obj:Object = GearItem.FindExactGearItem(charInv, gear, false);
+		if (obj != null && obj.indx == GetWeaponSlotID(slot))
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private function GetWeaponSlotID(slot:Number):Number
+	{
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot];
+		return positions[slot];
+	}
+	
+	private function AvailableBagSpace():Number
+	{
+		var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var bagInv:Inventory = new Inventory(bagInvId);
+		var bagSlot:Number = bagInv.GetFirstFreeItemSlot();
+		if (bagSlot == -1)
+		{
+			return 0;
+		}
+		
+		var spaces:Number = 1;
+		for (var indx:Number = bagSlot + 1; indx < bagInv.GetMaxItems(); ++indx)
+		{
+			if (bagInv.GetItemAt(indx) == null)
+			{
+				++spaces;
+			}
+		}
+		
+		return spaces;
+	}
 }

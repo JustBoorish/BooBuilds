@@ -78,7 +78,7 @@ class com.boobuilds.BuildWindow
 		m_buttonHeight = m_buttonWidth;
 		m_margin = 6;
 		m_titleHeight = 30;
-		var maxRows:Number = 2;
+		var maxRows:Number = 3;
 		m_maxWidth = m_buttonWidth * (Build.MAX_SKILLS + 1) + (Build.MAX_SKILLS + 3) * m_margin;
 		m_maxHeight = m_buttonHeight * maxRows + (maxRows + 1) * m_margin + m_titleHeight;
 		DrawFrame();
@@ -88,8 +88,8 @@ class com.boobuilds.BuildWindow
 		CreateIcons(Build.PASSIVE_PREFIX, Build.MAX_PASSIVES, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 		//++row;
 		//CreateIcons(Build.GEAR_PREFIX, Build.MAX_GEAR, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
-		//++row;
-		//CreateIcons(Build.WEAPON_PREFIX, Build.MAX_WEAPONS, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
+		++row;
+		CreateIcons(Build.WEAPON_PREFIX, Build.MAX_WEAPONS, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 		//++row;
 		//CreateIcons(Build.COSTUME_PREFIX, Build.MAX_COSTUME - 1, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 	}
@@ -222,18 +222,18 @@ class com.boobuilds.BuildWindow
 		
 		if (gear != null)
 		{
-			indx = GearItem.FindGearItem(charInv, gear);
-			if (indx > -1)
+			var obj:Object = GearItem.FindExactGearItem(charInv, gear, false);
+			if (obj != null)
 			{
-				item = charInv.GetItemAt(indx);
+				item = charInv.GetItemAt(obj.indx);
 				invId = charInvId;
 			}
 			else
 			{
-				indx = GearItem.FindGearItem(bagInv, gear);
-				if (indx > -1)
+				obj = GearItem.FindExactGearItem(bagInv, gear, false);
+				if (obj != null)
 				{
-					item = bagInv.GetItemAt(indx);
+					item = bagInv.GetItemAt(obj.indx);
 					invId = bagInvId;
 				}
 			}
@@ -352,8 +352,7 @@ class com.boobuilds.BuildWindow
 	
 	private function WeaponPressed(indx:Number, x:Number, y:Number, frameStyle:Number):Void
 	{
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot,
-								_global.Enums.ItemEquipLocation.e_Wear_Aux_WeaponSlot];
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot];
 
 		if (indx >= 0 && indx < positions.length)
 		{

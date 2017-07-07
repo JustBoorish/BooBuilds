@@ -58,6 +58,11 @@ class com.boobuilds.GearItem
 		return m_iconPath;
 	}
 	
+	public function GetNumPips():Number
+	{
+		return m_numPips;
+	}
+	
 	public static function FromString(str:String):GearItem
 	{
 		var ret:GearItem = null;
@@ -80,7 +85,7 @@ class com.boobuilds.GearItem
 	
 	public function isMatch(item:InventoryItem):Boolean
 	{
-		if (item != null && item.m_Name == m_Name && DefaultPositionMatches(item.m_DefaultPosition, m_defaultPosition))
+		if (item != null && item.m_Name == m_Name && item.m_Pips == m_numPips && DefaultPositionMatches(item.m_DefaultPosition, m_defaultPosition))
 		{
 			return true;
 		}
@@ -190,46 +195,67 @@ class com.boobuilds.GearItem
 		return -1;
 	}
 	
-	public static function FindExactGearItem(inventory:Inventory, inItem:String, numPips:Number, dontCheckBound:Boolean):Number
+	public static function FindExactGearItem(inventory:Inventory, inItem:GearItem, dontCheckBound:Boolean):Object
 	{
 		var exactItems:Array = new Array();
-		
+		var exactIndices:Array = new Array();
+
 		var maxItems:Number = inventory.GetMaxItems();
 		for (var i:Number = 0; i < maxItems; ++i)
 		{
 			var item:InventoryItem = inventory.GetItemAt(i);
 			if (item != null && (dontCheckBound == true || item.m_IsBoundToPlayer == true))
 			{
-				if (item.m_Name == inItem && item.m_Pips == numPips)
+				if (item.m_Name == inItem.GetName() && item.m_Pips == inItem.GetNumPips())
 				{
-					exactItems.push(i);
+					exactItems.push(item);
+					exactIndices.push(i);
 				}
 			}
 		}
 		
-		if (exactItems.length > 0)
+		return ChooseBestItem(exactItems, exactIndices);
+	}
+
+	private static function ChooseBestItem(exactItems:Array, exactIndices:Array):Object
+	{
+		if (exactItems.length == 0)
 		{
-			return exactItems[0];
+			return null;
 		}
 		
-		return null;
+		var bestXP:Number = 0;
+		var bestIndx:Number = null;
+		
+		for (var indx:Number = 0; indx < exactItems.length; ++indx)
+		{
+			var item:InventoryItem = exactItems[indx];
+			if (item.m_XP > bestXP)
+			{
+				bestXP = item.m_XP;
+				bestIndx = indx;
+			}
+		}
+		
+		
+		var ret:Object = null;
+		if (bestIndx != null)
+		{
+			ret = new Object();
+			ret.indx = exactIndices[bestIndx];
+			ret.item = exactItems[bestIndx];
+		}
+		
+		return ret;
 	}
 	
-	public static function DefaultPositionMatches(itemPosition:Number, defaultPosition:Number):Boolean
+	private static function DefaultPositionMatches(itemPosition:Number, defaultPosition:Number):Boolean
 	{
 		var ret:Boolean = false;
 		
 		if (itemPosition != null && defaultPosition != null)
 		{
 			if (itemPosition == defaultPosition)
-			{
-				ret = true;
-			}
-			else if (itemPosition == _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot && defaultPosition == _global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot)
-			{
-				ret = true;
-			}
-			else if (itemPosition == _global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot && defaultPosition == _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot)
 			{
 				ret = true;
 			}

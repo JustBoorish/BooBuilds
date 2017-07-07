@@ -4,6 +4,7 @@ import com.boobuilds.BuildWindow;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditGroupDialog;
+import com.boobuilds.ErrorWindow;
 import com.boobuilds.ITabPane;
 import com.boobuilds.ImportBuildDialog;
 import com.boobuilds.ModalBase;
@@ -290,6 +291,10 @@ class com.boobuilds.BuildList implements ITabPane
 				Build.SwapOrders(thisBuild, swapBuild);
 				DrawList();
 			}
+			else
+			{
+				ErrorWindow.Log("Cannot move the top build in a group upwards");				
+			}
 		}
 	}
 	
@@ -303,6 +308,10 @@ class com.boobuilds.BuildList implements ITabPane
 			{
 				Build.SwapOrders(thisBuild, swapBuild);
 				DrawList();
+			}
+			else
+			{
+				ErrorWindow.Log("Cannot move the top build in a group upwards");				
 			}
 		}
 	}
@@ -353,6 +362,14 @@ class com.boobuilds.BuildList implements ITabPane
 					m_builds[newID] = newBuild;
 					DrawList();
 				}
+				else
+				{
+					ErrorWindow.Log("Import failed.  Build string corrupt!");				
+				}
+			}
+			else
+			{
+				ErrorWindow.Log("Import failed.  A build with this name already exists in this build group");				
 			}
 		}
 			
@@ -390,6 +407,10 @@ class com.boobuilds.BuildList implements ITabPane
 			{
 				m_currentBuild.SetName(newName);
 				DrawList();
+			}
+			else
+			{
+				ErrorWindow.Log("Rename failed. A build with this name exists in this build group");
 			}
 		}
 			
@@ -492,9 +513,13 @@ class com.boobuilds.BuildList implements ITabPane
 				var newBuild:Build = new Build(newID, newName, null, newOrder, m_currentGroup.GetID());
 				newBuild.SetCurrentSkills();
 				newBuild.SetCurrentPassives();
-				//newBuild.SetCurrentWeapons();
+				newBuild.SetCurrentWeapons();
 				m_builds[newID] = newBuild;
 				DrawList();
+			}
+			else
+			{
+				ErrorWindow.Log("Create build failed.  Name already exists");				
 			}
 		}
 			
@@ -532,6 +557,10 @@ class com.boobuilds.BuildList implements ITabPane
 				m_currentGroup.SetName(newName);
 				m_currentGroup.SetColourName(newColour);
 				DrawList();
+			}
+			else
+			{
+				ErrorWindow.Log("Edit group failed.  Name already exists");				
 			}
 		}
 			
@@ -572,6 +601,10 @@ class com.boobuilds.BuildList implements ITabPane
 				m_groups.splice(indx, 0, newGroup);
 				DrawList();
 			}
+			else
+			{
+				ErrorWindow.Log("Add group failed.  Name already exists");				
+			}
 		}
 			
 		m_currentGroup = null;
@@ -610,6 +643,10 @@ class com.boobuilds.BuildList implements ITabPane
 				var indx:Number = FindGroupIndex(m_currentGroup.GetID());
 				m_groups.splice(indx + 1, 0, newGroup);
 				DrawList();
+			}
+			else
+			{
+				ErrorWindow.Log("Add group failed.  Name already exists");				
 			}
 		}
 			

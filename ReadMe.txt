@@ -14,3 +14,13 @@ PLEASE NOTE: Make sure you restart your client after installing this add-on. Alw
 *** How to uninstall ***
 
 Delete the BooBuilds directory from \Data\Gui\Custom\Flash\
+
+
+Change Log
+
+Version 1.1
+Added support for switching weapons
+Fixed a bug when switching builds with basic abilites in different places
+
+Version 1.0
+Initial release supporting skills and passives only
