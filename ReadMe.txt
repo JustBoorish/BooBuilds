@@ -18,9 +18,12 @@ Delete the BooBuilds directory from \Data\Gui\Custom\Flash\
 
 Change Log
 
+Version 1.2
+Added loading builds from the chat command line
+
 Version 1.1
 Added support for switching weapons
-Fixed a bug when switching builds with basic abilites in different places
+Fixed a bug when switching builds with basic abilities in different places
 
 Version 1.0
 Initial release supporting skills and passives only

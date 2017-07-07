@@ -84,6 +84,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_groups:Array;
 	private var m_redrawInterval:Number;
 	private var m_redrawCount:Number;
+	private var m_loadBuildDV:DistributedValue;
 	
 	//On Load
 	function onLoad():Void
@@ -122,12 +123,17 @@ class com.boobuilds.Controller extends MovieClip
 		SetDefaults();
 		
 		Localisation.SetLocalisation();
-	}
+		
+		m_loadBuildDV = DistributedValue.Create("BooBuilds_LoadBuild");
+		m_loadBuildDV.SetValue("");
+}
 	
 	function OnModuleActivated(config:Archive):Void
 	{
 		Settings.SetVersion(m_version);
 		Settings.SetArchive(config);
+		
+		m_loadBuildDV.SignalChanged.Connect(LoadBuildCmd, this);
 		
 		if (Character.GetClientCharacter().GetName() != m_characterName)
 		{
@@ -166,6 +172,7 @@ class com.boobuilds.Controller extends MovieClip
 	function OnModuleDeactivated():Archive
 	{
 		SaveSettings();
+		m_loadBuildDV.SignalChanged.Disconnect(LoadBuildCmd, this);
 		var ret:Archive = Settings.GetArchive();
 		//DebugWindow.Log("BooBuilds OnModuleDeactivated: " + ret.toString());
 		return ret;
@@ -403,6 +410,25 @@ class com.boobuilds.Controller extends MovieClip
 		}
 		
 		return pt;
+	}
+	
+	private function LoadBuildCmd():Void
+	{
+		if (Character.GetClientCharacter().IsInCombat() != true)
+		{
+			var buildName:String = m_loadBuildDV.GetValue();
+			
+			for (var id:String in m_builds)
+			{
+				var thisBuild:Build = m_builds[id];
+				if (thisBuild != null)
+				{
+					setTimeout(Delegate.create(this, function() { thisBuild.Apply(); }), 20);
+				}
+			}
+		}
+
+		m_loadBuildDV.SetValue("");
 	}
 	
 	private function ToggleCombat(inCombat:Boolean):Void
