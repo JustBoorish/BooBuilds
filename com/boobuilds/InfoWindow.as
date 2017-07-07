@@ -1,5 +1,5 @@
 import com.boobuilds.DebugWindow;
-import com.boobuilds.ErrorWindow;
+import com.boobuilds.InfoWindow;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 /**
@@ -18,58 +18,75 @@ import caurina.transitions.Tweener;
  * 
  * Author: Boorish
  */
-class com.boobuilds.ErrorWindow
+class com.boobuilds.InfoWindow
 {
-	private static var m_instance:ErrorWindow;
+	private static var m_instance:InfoWindow;
 	
 	private var m_name:String;
 	private var m_parent:MovieClip;
 	private var m_errorCount:Number;
-	private var m_lastError:MovieClip;
+	private var m_lastMsg:MovieClip;
 	
-	public function ErrorWindow(name:String, parent:MovieClip) 
+	public function InfoWindow(name:String, parent:MovieClip) 
 	{
 		m_name = name;
 		m_parent = parent;
 		m_errorCount = 0;
 	}
 
-	public static function CreateInstance(parent:MovieClip):ErrorWindow
+	public static function CreateInstance(parent:MovieClip):InfoWindow
 	{
 		if (m_instance == null)
 		{
-			m_instance = new ErrorWindow("ErrorWindow", parent);
+			m_instance = new InfoWindow("ErrorWindow", parent);
 		}
 		
 		return m_instance;
 	}
 	
-	public static function Log(msg:String):Void
+	public static function LogError(msg:String):Void
 	{
 		if (m_instance != null)
 		{
-			m_instance.LogError(msg);
+			m_instance.LogErrorMsg(msg);
 		}
 	}
 	
-	private function LogError(msg:String):Void
+	public static function LogInfo(msg:String):Void
+	{
+		if (m_instance != null)
+		{
+			m_instance.LogInfoMsg(msg);
+		}
+	}
+	
+	private function LogInfoMsg(msg:String):Void
+	{
+		DebugWindow.Log(DebugWindow.Info, msg);
+		LogCommonMsg(msg, 0xFFFFFF);
+	}
+	
+	private function LogErrorMsg(msg:String):Void
 	{
 		DebugWindow.Log(DebugWindow.Error, msg);
-
-		
-		if (m_lastError != null)
+		LogCommonMsg(msg, 0xFF0000);
+	}
+	
+	private function LogCommonMsg(msg:String, colour:Number):Void
+	{
+		if (m_lastMsg != null)
 		{
-			Tweener.removeTweens(m_lastError);
-			m_lastError.removeMovieClip();
+			Tweener.removeTweens(m_lastMsg);
+			m_lastMsg.removeMovieClip();
 		}
 		
 		++m_errorCount;
-		m_lastError = CreateError(msg);
-		m_lastError._alpha = 100;
-		Tweener.addTween(m_lastError, { _alpha:0, time:3, transition:"easeInQuint" } );
+		m_lastMsg = CreateMsg(msg, colour);
+		m_lastMsg._alpha = 100;
+		Tweener.addTween(m_lastMsg, { _alpha:0, time:3, transition:"easeInQuint" } );
 	}
 	
-	private function CreateError(msg:String):MovieClip
+	private function CreateMsg(msg:String, colour:Number):MovieClip
 	{
 		var error_mc:MovieClip = m_parent.createEmptyMovieClip("ErrorMsg" + m_errorCount, m_parent.getNextHighestDepth());
 		
@@ -77,7 +94,7 @@ class com.boobuilds.ErrorWindow
 		textFormat.align = "left";
 		textFormat.font = "arial";
 		textFormat.size = 20;
-		textFormat.color = 0xFF0000;
+		textFormat.color = colour;
 		textFormat.bold = true;
 			
 		var labelExtents:Object = Text.GetTextExtent(msg, textFormat, error_mc);

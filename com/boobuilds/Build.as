@@ -1,6 +1,6 @@
 import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
-import com.boobuilds.ErrorWindow;
+import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
 import com.Utils.Archive;
 import com.GameInterface.FeatData;
@@ -73,6 +73,7 @@ class com.boobuilds.Build
 	private var m_equipWeaponsCounter:Number;
 	private var m_equipWeaponItem:GearItem;
 	private var m_equipWeaponSlot:Number;
+	private var m_logAfterSkills:Boolean;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -261,7 +262,7 @@ class com.boobuilds.Build
 		{
 			if (AvailableBagSpace() < 2)
 			{
-				ErrorWindow.Log("You must have two free bag slots to equip this build!");
+				InfoWindow.LogError("You must have two free bag slots to equip this build!");
 				return;
 			}
 			
@@ -269,11 +270,17 @@ class com.boobuilds.Build
 		}
 		
 		ApplyPassives();
-		ApplySkills();
 		
 		if (doWeapons == true)
 		{
+			m_logAfterSkills = false;
+			ApplySkills();
 			ApplyWeapons();
+		}
+		else
+		{
+			m_logAfterSkills = true;
+			ApplySkills();
 		}
 	}
 	
@@ -663,11 +670,17 @@ class com.boobuilds.Build
 		}
 	}
 	
-	public function toString():String
+	public function toExportString():String
 	{
 		var ret:String = "BD" + SEPARATOR + "-" + SEPARATOR + "VER" + SEPARATOR + "-" + SEPARATOR + "1.0" + SEPARATOR;
 		ret = ret + GetArrayString("SK", m_skills);
 		ret = ret + GetArrayString("PS", m_passives);
+		return ret;
+	}
+	
+	public function toString():String
+	{
+		var ret:String = toExportString();
 		ret = ret + GetArrayGearItemString("GR", m_gear);
 		ret = ret + GetArrayGearItemString("WP", m_weapons);
 		ret = ret + GetArrayGearItemString("CO", m_costume);
@@ -1107,7 +1120,7 @@ class com.boobuilds.Build
 			if (m_unequipSkillsCounter > 200)
 			{
 				clearInterval(m_unequipSkillsInterval);
-				ErrorWindow.Log("Failed to unequip skills");
+				InfoWindow.LogError("Failed to unequip skills");
 			}
 		}
 	}
@@ -1140,7 +1153,12 @@ class com.boobuilds.Build
 				var slotID:Number = GetSkillSlotID(indx);
 				Shortcut.AddSpell(slotID, spellId);
 			}
-		}		
+		}
+		
+		if (m_logAfterSkills == true)
+		{
+			InfoWindow.LogInfo("Build loaded");
+		}
 	}
 	
 	private function IsBasicAbility(featData:FeatData):Boolean
@@ -1190,7 +1208,7 @@ class com.boobuilds.Build
 				clearInterval(m_unequipPassivesInterval);
 				m_unequipPassivesCounter = 0;
 				m_unequipPassivesInterval = -1;
-				ErrorWindow.Log("Failed to unequip passives");
+				InfoWindow.LogError("Failed to unequip passives");
 			}
 		}
 	}
@@ -1264,11 +1282,7 @@ class com.boobuilds.Build
 			}
 			else
 			{
-				m_equipWeaponItem = GetWeapon(0);
-				m_equipWeaponSlot = 0;
 				EquipWeapon(GetWeapon(0), 0);
-				m_equipWeaponsCounter = 0;
-				m_equipWeaponsInterval = setInterval(Delegate.create(this, WeaponEquippedCB), 20);
 			}
 		}
 		else
@@ -1278,7 +1292,7 @@ class com.boobuilds.Build
 				clearInterval(m_equipWeaponsInterval);
 				m_equipWeaponsCounter = 0;
 				m_equipWeaponsInterval = -1;
-				ErrorWindow.Log("Failed to unequip weapons");
+				InfoWindow.LogError("Failed to unequip weapons");
 			}
 		}
 		
@@ -1298,10 +1312,15 @@ class com.boobuilds.Build
 				var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 				var charInv:Inventory = new Inventory(charInvId);
 				charInv.AddItem(bagInvId, itemSlot, GetWeaponSlotID(slot));
+				
+				m_equipWeaponItem = GetWeapon(slot);
+				m_equipWeaponSlot = slot;
+				m_equipWeaponsCounter = 0;
+				m_equipWeaponsInterval = setInterval(Delegate.create(this, WeaponEquippedCB), 20);
 			}
 			else
 			{
-				ErrorWindow.Log("Couldn't find weapon " + gear.GetName());
+				InfoWindow.LogError("Couldn't find weapon " + gear.GetName());
 			}
 		}
 	}
@@ -1316,7 +1335,14 @@ class com.boobuilds.Build
 			m_equipWeaponsCounter = 0;
 			m_equipWeaponsInterval = -1;
 			
-			EquipWeapon(GetWeapon(1), 1);
+			if (m_equipWeaponSlot == 0)
+			{
+				EquipWeapon(GetWeapon(1), 1);
+			}
+			else
+			{
+				InfoWindow.LogInfo("Build loaded");
+			}
 		}
 		else
 		{
@@ -1325,7 +1351,7 @@ class com.boobuilds.Build
 				clearInterval(m_equipWeaponsInterval);
 				m_equipWeaponsCounter = 0;
 				m_equipWeaponsInterval = -1;
-				ErrorWindow.Log("Failed to equip weapon " + m_equipWeaponItem.GetName());
+				InfoWindow.LogError("Failed to equip weapon " + m_equipWeaponItem.GetName());
 			}
 		}
 		

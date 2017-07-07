@@ -4,7 +4,7 @@ import com.boobuilds.BuildWindow;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditGroupDialog;
-import com.boobuilds.ErrorWindow;
+import com.boobuilds.InfoWindow;
 import com.boobuilds.ITabPane;
 import com.boobuilds.ImportBuildDialog;
 import com.boobuilds.ModalBase;
@@ -72,6 +72,7 @@ class com.boobuilds.BuildList implements ITabPane
 		m_itemPopup.AddSeparator();
 		m_itemPopup.AddItem("Export", Delegate.create(this, ExportBuild));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameBuild));
+		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateBuild));
 		m_itemPopup.AddItem("Move Up", Delegate.create(this, MoveBuildUp));
 		m_itemPopup.AddItem("Move Down", Delegate.create(this, MoveBuildDown));
 		m_itemPopup.AddSeparator();
@@ -293,7 +294,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Cannot move the top build in a group upwards");				
+				InfoWindow.LogError("Cannot move the top build in a group upwards");				
 			}
 		}
 	}
@@ -311,7 +312,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Cannot move the top build in a group upwards");				
+				InfoWindow.LogError("Cannot move the top build in a group upwards");				
 			}
 		}
 	}
@@ -322,7 +323,7 @@ class com.boobuilds.BuildList implements ITabPane
 		if (m_currentBuild != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("ExportBuild", m_parent, "Select all the text below", "and press Ctrl+C to copy", m_currentBuild.GetName(), m_currentBuild.toString());
+			m_editDialog = new EditDialog("ExportBuild", m_parent, "Select all the text below", "and press Ctrl+C to copy", m_currentBuild.GetName(), m_currentBuild.toExportString());
 			m_editDialog.Show();
 		}
 	}
@@ -364,12 +365,12 @@ class com.boobuilds.BuildList implements ITabPane
 				}
 				else
 				{
-					ErrorWindow.Log("Import failed.  Build string corrupt!");				
+					InfoWindow.LogError("Import failed.  Build string corrupt!");				
 				}
 			}
 			else
 			{
-				ErrorWindow.Log("Import failed.  A build with this name already exists in this build group");				
+				InfoWindow.LogError("Import failed.  A build with this name already exists in this build group");				
 			}
 		}
 			
@@ -410,13 +411,26 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Rename failed. A build with this name exists in this build group");
+				InfoWindow.LogError("Rename failed. A build with this name exists in this build group");
 			}
 		}
 			
 		m_currentBuild = null;
 	}
 	
+	private function UpdateBuild(buildID:String):Void
+	{
+		m_currentBuild = m_builds[buildID];
+		if (m_currentBuild != null)
+		{
+			m_currentBuild.SetCurrentSkills();
+			m_currentBuild.SetCurrentPassives();
+			m_currentBuild.SetCurrentWeapons();
+			DrawList();
+			InfoWindow.LogInfo("Build updated");
+		}
+	}
+		
 	private function DeleteBuild(buildID:String):Void
 	{
 		m_currentBuild = m_builds[buildID];
@@ -519,7 +533,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Create build failed.  Name already exists");				
+				InfoWindow.LogError("Create build failed.  Name already exists");				
 			}
 		}
 			
@@ -560,7 +574,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Edit group failed.  Name already exists");				
+				InfoWindow.LogError("Edit group failed.  Name already exists");				
 			}
 		}
 			
@@ -603,7 +617,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Add group failed.  Name already exists");				
+				InfoWindow.LogError("Add group failed.  Name already exists");				
 			}
 		}
 			
@@ -646,7 +660,7 @@ class com.boobuilds.BuildList implements ITabPane
 			}
 			else
 			{
-				ErrorWindow.Log("Add group failed.  Name already exists");				
+				InfoWindow.LogError("Add group failed.  Name already exists");				
 			}
 		}
 			

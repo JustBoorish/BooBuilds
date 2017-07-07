@@ -7,7 +7,7 @@ import com.boobuilds.BuildSelector;
 import com.boobuilds.ButtonPopup;
 import com.boobuilds.Controller;
 import com.boobuilds.DebugWindow;
-import com.boobuilds.ErrorWindow;
+import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.CreateTab;
 import com.boobuilds.Localisation;
@@ -68,7 +68,7 @@ class com.boobuilds.Controller extends MovieClip
 	
 	private var m_version:String = "1.1";
 	private var m_debug:DebugWindow = null;
-	private var m_error:ErrorWindow = null;
+	private var m_info:InfoWindow = null;
 	private var m_icon:BIcon;
 	private var m_mc:MovieClip;
 	private var m_defaults:Object;
@@ -93,7 +93,7 @@ class com.boobuilds.Controller extends MovieClip
 		Settings.SetVersion(m_version);
 		
 		m_mc = this;
-		m_error = ErrorWindow.CreateInstance(m_mc);
+		m_info = InfoWindow.CreateInstance(m_mc);
 		
 		m_clientCharacter = Character.GetClientCharacter();
 		
