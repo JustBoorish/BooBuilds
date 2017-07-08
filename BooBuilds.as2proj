@@ -70,6 +70,8 @@
     <compile path="com\boobuilds\OKDialog.as" />
     <compile path="com\boobuilds\EditDialog.as" />
     <compile path="com\boobuilds\ImportBuildDialog.as" />
+    <compile path="com\boobuilds\OptionsTab.as" />
+    <compile path="com\boobuilds\InfoWindow.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

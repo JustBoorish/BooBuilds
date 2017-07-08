@@ -224,7 +224,7 @@ class com.boobuilds.GearItem
 			return null;
 		}
 		
-		var bestXP:Number = 0;
+		var bestXP:Number = -1;
 		var bestIndx:Number = null;
 		
 		for (var indx:Number = 0; indx < exactItems.length; ++indx)

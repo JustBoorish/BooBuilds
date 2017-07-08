@@ -78,18 +78,18 @@ class com.boobuilds.BuildWindow
 		m_buttonHeight = m_buttonWidth;
 		m_margin = 6;
 		m_titleHeight = 30;
-		var maxRows:Number = 3;
-		m_maxWidth = m_buttonWidth * (Build.MAX_SKILLS + 1) + (Build.MAX_SKILLS + 3) * m_margin;
+		var maxRows:Number = 4;
+		m_maxWidth = m_buttonWidth * (Build.MAX_GEAR + 1) + (Build.MAX_GEAR + 3) * m_margin + 30;
 		m_maxHeight = m_buttonHeight * maxRows + (maxRows + 1) * m_margin + m_titleHeight;
 		DrawFrame();
 		
 		CreateIcons(Build.SKILL_PREFIX, Build.MAX_SKILLS, m_titleHeight + m_margin);
 		var row:Number = 1;
 		CreateIcons(Build.PASSIVE_PREFIX, Build.MAX_PASSIVES, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
-		//++row;
-		//CreateIcons(Build.GEAR_PREFIX, Build.MAX_GEAR, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 		++row;
 		CreateIcons(Build.WEAPON_PREFIX, Build.MAX_WEAPONS, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
+		++row;
+		CreateIcons(Build.GEAR_PREFIX, Build.MAX_GEAR, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 		//++row;
 		//CreateIcons(Build.COSTUME_PREFIX, Build.MAX_COSTUME - 1, m_titleHeight + m_margin * (row + 1) + m_buttonHeight * row);
 	}
@@ -239,6 +239,11 @@ class com.boobuilds.BuildWindow
 			}
 		}
 
+		if (item == null)
+		{
+			DebugWindow.Log(DebugWindow.Info, "Not found: " + gear.toString());
+		}
+		
 		if (item != null)
 		{
 			DebugWindow.Log(DebugWindow.Info, gear.toString());

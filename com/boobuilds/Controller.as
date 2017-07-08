@@ -9,7 +9,7 @@ import com.boobuilds.Controller;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
-import com.boobuilds.CreateTab;
+import com.boobuilds.OptionsTab;
 import com.boobuilds.Localisation;
 import com.boobuilds.Settings;
 import com.boobuilds.SkillMenu;
@@ -27,6 +27,7 @@ import com.GameInterface.Log;
 import com.GameInterface.Lore;
 import com.Utils.Archive;
 import com.Utils.Signal;
+import com.Utils.StringUtils;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
 import org.aswing.ASWingUtils;
@@ -79,6 +80,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_buttonBar:MovieClip;
 	private var m_yBottom:Number;
 	private var m_configWindow:TabWindow;
+	private var m_optionsTab:OptionsTab;
 	private var m_selectorWindow:BuildSelector;
 	private var m_builds:Object;
 	private var m_groups:Array;
@@ -150,6 +152,7 @@ class com.boobuilds.Controller extends MovieClip
 			}
 			
 			m_settings = Settings.Load(m_settingsPrefix, m_defaults);
+			OptionsTab.Load(m_settings);
 			LoadBuildGroups();
 			LoadBuilds();
 			
@@ -185,6 +188,8 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[Settings.Y] = 600;
 		m_defaults[BIcon.ICON_X] = -1;
 		m_defaults[BIcon.ICON_Y] = -1;
+		m_defaults[OptionsTab.DISABLE_WEAPONS] = 0;
+		m_defaults[OptionsTab.DISABLE_TALISMANS] = 0;
 	}
 	
 	private function SetDefaultGroups():Void
@@ -296,9 +301,16 @@ class com.boobuilds.Controller extends MovieClip
 			m_settings[Settings.Y] = pt.y;
 		}
 		
+		if (m_optionsTab != null)
+		{
+			m_optionsTab.SetSettings(m_settings);
+			m_optionsTab.Save();
+		}
+		
 		var pt:Object = m_icon.GetCoords();
 		m_settings[BIcon.ICON_X] = pt.x;
 		m_settings[BIcon.ICON_Y] = pt.y;
+		Settings.Save(m_settingsPrefix, m_settings, m_defaults);
 		SaveBuildGroups();
 		SaveBuilds();
 	}
@@ -354,15 +366,17 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_configWindow == null)
 		{
-			//var createTab:CreateTab = new CreateTab("CreateDelete", m_settings);
+			m_optionsTab = new OptionsTab("Options");
 			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed));
 			m_configWindow.AddTab("Builds", buildList);
-			//m_configWindow.AddTab("Create / Delete", createTab);
+			m_configWindow.AddTab("Options", m_optionsTab);
+			m_optionsTab.SetSettings(m_settings);
 			m_configWindow.SetVisible(true);
 		}
 		else
 		{
+			m_optionsTab.SetSettings(m_settings);
 			m_configWindow.ToggleVisible();
 		}
 		
@@ -375,22 +389,6 @@ class com.boobuilds.Controller extends MovieClip
 	private function ToggleDebugVisible():Void
 	{
 		DebugWindow.ToggleVisible();
-		
-		/*
-		var buildWindow:BuildWindow = new BuildWindow("buildy", m_mc);
-		buildWindow.SetCoords(Stage.width / 2, Stage.height / 2);
-		buildWindow.SetBuild(Build.FromCurrent("current", null));
-		*/
-		/*
-		var popup:PopupMenu = new PopupMenu(m_mc, "Popup", 6);
-		popup.AddItem("Use");
-		popup.AddItem("Edit");
-		popup.AddItem("Export");
-		popup.AddItem("Move");
-		popup.Rebuild();
-		popup.SetCoords(Stage.width / 2, Stage.height / 2);
-		popup.SetVisible(true);
-		*/
 	}	
 	
 	private function GetPopupHeight(height:Number):Number
@@ -414,18 +412,32 @@ class com.boobuilds.Controller extends MovieClip
 	
 	private function LoadBuildCmd():Void
 	{
-		if (Character.GetClientCharacter().IsInCombat() != true)
+		var buildName:String = m_loadBuildDV.GetValue();
+		if (buildName != null)
 		{
-			var buildName:String = m_loadBuildDV.GetValue();
-			
-			for (var id:String in m_builds)
+			buildName = StringUtils.Strip(buildName);
+		}
+		
+		if (buildName == null || buildName == "")
+		{
+			InfoWindow.LogError("Cannot load build with blank name");
+		}
+
+		var buildFound:Boolean = false;
+		for (var id:String in m_builds)
+		{
+			var thisBuild:Build = m_builds[id];
+			if (thisBuild != null)
 			{
-				var thisBuild:Build = m_builds[id];
-				if (thisBuild != null)
-				{
-					setTimeout(Delegate.create(this, function() { thisBuild.Apply(); }), 20);
-				}
+				buildFound = true;
+				setTimeout(Delegate.create(this, function() { thisBuild.Apply(); }), 20);
+				break;
 			}
+		}
+		
+		if (buildFound == false)
+		{
+			InfoWindow.LogError("Cannot find build " + buildName);
 		}
 
 		m_loadBuildDV.SetValue("");

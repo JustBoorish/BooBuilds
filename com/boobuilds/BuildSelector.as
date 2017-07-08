@@ -105,13 +105,10 @@ class com.boobuilds.BuildSelector
 	
 	private function BuildCallback(buildID:String):Void
 	{
-		if (Character.GetClientCharacter().IsInCombat() != true)
+		var thisBuild:Build = m_builds[buildID];
+		if (thisBuild != null)
 		{
-			var thisBuild:Build = m_builds[buildID];
-			if (thisBuild != null)
-			{
-				thisBuild.Apply();
-			}
+			thisBuild.Apply();
 		}
 		
 		m_menu.SetVisible(false);

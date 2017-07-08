@@ -53,6 +53,9 @@ class com.boobuilds.Build
 	public static var MAX_WEAPONS:Number = 2;
 	public static var MAX_COSTUME:Number = 9;
 	private static var SEPARATOR = "%";
+	
+	private static var m_disableWeapons:Boolean = false;
+	private static var m_disableTalismans:Boolean = false;
 
 	private var m_id:String;
 	private var m_name:String;
@@ -73,7 +76,12 @@ class com.boobuilds.Build
 	private var m_equipWeaponsCounter:Number;
 	private var m_equipWeaponItem:GearItem;
 	private var m_equipWeaponSlot:Number;
+	private var m_equipTalismansInterval:Number;
+	private var m_equipTalismansCounter:Number;
+	private var m_equipTalismanItem:GearItem;
+	private var m_equipTalismanSlot:Number;
 	private var m_logAfterSkills:Boolean;
+	private var m_logAfterWeapons:Boolean;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -216,6 +224,16 @@ class com.boobuilds.Build
 		}
 	}
 	
+	public static function SetWeaponsDisabled(newValue:Boolean):Void
+	{
+		m_disableWeapons = newValue;
+	}
+	
+	public static function SetTalismansDisabled(newValue:Boolean):Void
+	{
+		m_disableTalismans = newValue;
+	}
+	
 	public function GetID():String
 	{
 		return m_id;
@@ -248,39 +266,84 @@ class com.boobuilds.Build
 
 	public function Apply():Void
 	{
-		var doWeapons:Boolean = false;
-		var weaponCount:Number = 0;
-		for (var indx:Number = 0; indx < m_weapons.length; ++indx)
+		if (Character.GetClientCharacter().IsInCombat() != true)
 		{
-			if (GetWeapon(indx) != null)
+			var doWeapons:Boolean = false;
+			var doTalismans:Boolean = false;
+			if (m_disableWeapons != true)
 			{
-				++weaponCount;
-			}
-		}
-		
-		if (weaponCount > 0 && EquippedWeaponsAreSame() != true)
-		{
-			if (AvailableBagSpace() < 2)
-			{
-				InfoWindow.LogError("You must have two free bag slots to equip this build!");
-				return;
+				var weaponCount:Number = 0;
+				for (var indx:Number = 0; indx < m_weapons.length; ++indx)
+				{
+					if (GetWeapon(indx) != null)
+					{
+						++weaponCount;
+					}
+				}
+				
+				if (weaponCount > 0 && EquippedWeaponsAreSame() != true)
+				{
+					if (AvailableBagSpace() < 2)
+					{
+						InfoWindow.LogError("You must have two free bag slots to equip this build!");
+						return;
+					}
+					
+					doWeapons = true;
+				}
 			}
 			
-			doWeapons = true;
-		}
-		
-		ApplyPassives();
-		
-		if (doWeapons == true)
-		{
-			m_logAfterSkills = false;
-			ApplySkills();
-			ApplyWeapons();
+			if (m_disableTalismans != true)
+			{
+				doTalismans = true;
+				var talismanCount:Number = 0;
+				for (var indx:Number = 0; indx < m_gear.length; ++indx)
+				{
+					if (GetGear(indx) != null)
+					{
+						++talismanCount;
+					}
+				}
+				
+				if (talismanCount < 1)
+				{
+					doTalismans = false;
+				}
+			}
+			
+			ApplyPassives();
+			
+			if (doWeapons == true && doTalismans == true)
+			{
+				m_logAfterSkills = false;
+				m_logAfterWeapons = true;
+				ApplySkills();
+				ApplyWeapons();
+				ApplyTalismans();
+			}
+			else if (doWeapons == false && doTalismans == true)
+			{
+				m_logAfterSkills = false;
+				m_logAfterWeapons = false;
+				ApplySkills();
+				ApplyTalismans();
+			}
+			else if (doWeapons == true && doTalismans == false)
+			{
+				m_logAfterSkills = false;
+				m_logAfterWeapons = true;
+				ApplySkills();
+				ApplyWeapons();
+			}
+			else
+			{
+				m_logAfterSkills = true;
+				ApplySkills();
+			}
 		}
 		else
 		{
-			m_logAfterSkills = true;
-			ApplySkills();
+			InfoWindow.LogError("Cannot load a build while in combat");
 		}
 	}
 	
@@ -970,20 +1033,25 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function GetGearSlotID(indx:Number):Number
+	{
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Chakra_7, _global.Enums.ItemEquipLocation.e_Chakra_4, _global.Enums.ItemEquipLocation.e_Chakra_5, _global.Enums.ItemEquipLocation.e_Chakra_6,
+								_global.Enums.ItemEquipLocation.e_Chakra_1, _global.Enums.ItemEquipLocation.e_Chakra_2, _global.Enums.ItemEquipLocation.e_Chakra_3, _global.Enums.ItemEquipLocation.e_Aegis_Talisman_1];
+		return positions[indx];
+	}
+	
 	private function SetCurrentGear():Void
 	{
 		var inventoryID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharID().GetInstance());
 		var inventory:Inventory = new Inventory(inventoryID);
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Chakra_7, _global.Enums.ItemEquipLocation.e_Chakra_4, _global.Enums.ItemEquipLocation.e_Chakra_5, _global.Enums.ItemEquipLocation.e_Chakra_6,
-								_global.Enums.ItemEquipLocation.e_Chakra_1, _global.Enums.ItemEquipLocation.e_Chakra_2, _global.Enums.ItemEquipLocation.e_Chakra_3, _global.Enums.ItemEquipLocation.e_Aegis_Talisman_1];
-		for ( var i:Number = 0 ; i < positions.length; ++i )
+		for ( var i:Number = 0 ; i < MAX_GEAR; ++i )
 		{
 			SetGear(i, null);
 			
-			var item:InventoryItem = inventory.GetItemAt(positions[i]);
+			var item:InventoryItem = inventory.GetItemAt(GetGearSlotID(i));
 			if (item != null)
 			{
-				var tooltipData:TooltipData = TooltipDataProvider.GetInventoryItemTooltip(inventoryID, positions[i]);
+				var tooltipData:TooltipData = TooltipDataProvider.GetInventoryItemTooltip(inventoryID, GetGearSlotID(i));
 				var gear:GearItem = GearItem.GetGearItem(item, tooltipData);
 				if (gear != null)
 				{
@@ -997,15 +1065,14 @@ class com.boobuilds.Build
 	{
 		var inventoryID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharID().GetInstance());
 		var inventory:Inventory = new Inventory(inventoryID);
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot];
-		for ( var i:Number = 0 ; i < positions.length; ++i )
+		for ( var i:Number = 0 ; i < MAX_WEAPONS; ++i )
 		{
 			SetWeapon(i, null);
 			
-			var item:InventoryItem = inventory.GetItemAt(positions[i]);
+			var item:InventoryItem = inventory.GetItemAt(GetWeaponSlotID(i));
 			if (item != null)
 			{
-				var tooltipData:TooltipData = TooltipDataProvider.GetInventoryItemTooltip(inventoryID, positions[i]);
+				var tooltipData:TooltipData = TooltipDataProvider.GetInventoryItemTooltip(inventoryID, GetWeaponSlotID(i));
 				var gear:GearItem = GearItem.GetGearItem(item, tooltipData);
 				if (gear != null)
 				{
@@ -1014,7 +1081,7 @@ class com.boobuilds.Build
 			}
 		}
 		
-		for ( var i:Number = 0 ; i < positions.length; ++i )
+		for ( var i:Number = 0 ; i < MAX_WEAPONS; ++i )
 		{
 			if (GetWeapon(i) == null)
 			{
@@ -1063,16 +1130,20 @@ class com.boobuilds.Build
 			}
 		}		
 	}
-	
+
+	public function UpdateFromCurrent():Void
+	{
+		SetCurrentSkills();
+		SetCurrentPassives();
+		SetCurrentGear();
+		SetCurrentWeapons();
+		//SetCurrentCostume();
+	}
 	
 	public static function FromCurrent(id:String, name:String, parent:Build, order:Number, groupID:String):Build
 	{
 		var ret:Build = new Build(id, name, parent, order, groupID);
-		ret.SetCurrentSkills();
-		ret.SetCurrentPassives();
-		ret.SetCurrentGear();
-		ret.SetCurrentWeapons();
-		ret.SetCurrentCostume();
+		ret.UpdateFromCurrent();
 		return ret;
 	}
 	
@@ -1341,7 +1412,11 @@ class com.boobuilds.Build
 			}
 			else
 			{
-				InfoWindow.LogInfo("Build loaded");
+		
+				if (m_logAfterWeapons == true)
+				{
+					InfoWindow.LogInfo("Build loaded");
+				}
 			}
 		}
 		else
@@ -1397,6 +1472,103 @@ class com.boobuilds.Build
 	{
 		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_First_WeaponSlot, _global.Enums.ItemEquipLocation.e_Wear_Second_WeaponSlot];
 		return positions[slot];
+	}
+	
+	private function ApplyTalismans():Void
+	{
+		if (m_equipTalismansInterval != -1)
+		{
+			clearInterval(m_equipTalismansInterval);
+			m_equipTalismansInterval = -1;
+		}
+		
+		EquipTalisman(GetGear(0), 0);
+	}
+	
+	private function EquipTalisman(gear:GearItem, slot:Number):Void
+	{
+		var equipped:Boolean = false;
+		if (gear != null)
+		{
+			equipped = IsTalismanEquipped(gear, slot);
+		}
+		
+		if (gear != null && equipped == false)
+		{
+			var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+			var bagInv:Inventory = new Inventory(bagInvId);
+			var obj:Object = GearItem.FindExactGearItem(bagInv, gear, false);
+			if (obj != null)
+			{
+				var itemSlot:Number = obj.indx;
+				bagInv.UseItem(itemSlot);
+				
+				m_equipTalismanItem = GetGear(slot);
+				m_equipTalismanSlot = slot;
+				m_equipTalismansCounter = 0;
+				m_equipTalismansInterval = setInterval(Delegate.create(this, TalismanEquippedCB), 20);
+			}
+			else
+			{
+				InfoWindow.LogError("Couldn't find talisman " + gear.GetName());
+			}
+		}
+		else
+		{
+			if (slot < MAX_GEAR)
+			{
+				EquipTalisman(GetGear(slot + 1), slot + 1);
+			}
+			else
+			{
+				InfoWindow.LogInfo("Build loaded");
+			}
+		}
+	}
+
+	private function TalismanEquippedCB():Void
+	{
+		++m_equipTalismansCounter;
+		var equipped:Boolean = IsTalismanEquipped(m_equipTalismanItem, m_equipTalismanSlot);
+		if (equipped == true)
+		{
+			clearInterval(m_equipTalismansInterval);
+			m_equipTalismansCounter = 0;
+			m_equipTalismansInterval = -1;
+			
+			if (m_equipTalismanSlot < MAX_GEAR)
+			{
+				EquipTalisman(GetGear(m_equipTalismanSlot + 1), m_equipTalismanSlot + 1);
+			}
+			else
+			{
+				InfoWindow.LogInfo("Build loaded");
+			}
+		}
+		else
+		{
+			if (m_equipTalismansCounter > 100)
+			{
+				clearInterval(m_equipTalismansInterval);
+				m_equipTalismansCounter = 0;
+				m_equipTalismansInterval = -1;
+				InfoWindow.LogError("Failed to equip talisman " + m_equipTalismanItem.GetName());
+			}
+		}
+		
+	}
+	
+	private function IsTalismanEquipped(gear:GearItem, slot:Number):Boolean
+	{
+		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		var obj:Object = GearItem.FindExactGearItem(charInv, gear, false);
+		if (obj != null && obj.indx == GetGearSlotID(slot))
+		{
+			return true;
+		}
+		
+		return false;
 	}
 	
 	private function AvailableBagSpace():Number

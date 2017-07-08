@@ -254,13 +254,10 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function ApplyBuild(buildID:String):Void
 	{
-		if (Character.GetClientCharacter().IsInCombat() != true)
+		var thisBuild:Build = m_builds[buildID];
+		if (thisBuild != null)
 		{
-			var thisBuild:Build = m_builds[buildID];
-			if (thisBuild != null)
-			{
-				thisBuild.Apply();
-			}
+			thisBuild.Apply();
 		}
 	}
 	
@@ -423,9 +420,7 @@ class com.boobuilds.BuildList implements ITabPane
 		m_currentBuild = m_builds[buildID];
 		if (m_currentBuild != null)
 		{
-			m_currentBuild.SetCurrentSkills();
-			m_currentBuild.SetCurrentPassives();
-			m_currentBuild.SetCurrentWeapons();
+			m_currentBuild.UpdateFromCurrent();
 			DrawList();
 			InfoWindow.LogInfo("Build updated");
 		}
@@ -524,10 +519,7 @@ class com.boobuilds.BuildList implements ITabPane
 			{
 				var newID:String = Build.GetNextID(m_builds);
 				var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-				var newBuild:Build = new Build(newID, newName, null, newOrder, m_currentGroup.GetID());
-				newBuild.SetCurrentSkills();
-				newBuild.SetCurrentPassives();
-				newBuild.SetCurrentWeapons();
+				var newBuild:Build = Build.FromCurrent(newID, newName, null, newOrder, m_currentGroup.GetID());
 				m_builds[newID] = newBuild;
 				DrawList();
 			}
