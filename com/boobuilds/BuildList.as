@@ -3,6 +3,7 @@ import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildWindow;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
+import com.boobuilds.EditBuildDialog;
 import com.boobuilds.EditGroupDialog;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.ITabPane;
@@ -13,6 +14,7 @@ import com.boobuilds.TreePanel;
 import com.boobuilds.ScrollPane;
 import com.boobuilds.YesNoDialog;
 import com.boobuilds.OKDialog;
+import com.boobuilds.OptionsTab;
 import com.GameInterface.Game.Character;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
@@ -50,13 +52,16 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_yesNoDialog:YesNoDialog;
 	private var m_okDialog:OKDialog;
 	private var m_editGroupDialog:EditGroupDialog;
+	private var m_editBuildDialog:EditBuildDialog;
 	private var m_importBuildDialog:ImportBuildDialog;
+	private var m_settings:Object;
 	
-	public function BuildList(name:String, groups:Array, builds:Object)
+	public function BuildList(name:String, groups:Array, builds:Object, settings:Object)
 	{
 		m_name = name;
 		m_groups = groups;
 		m_builds = builds;
+		m_settings = settings;
 	}
 
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
@@ -245,6 +250,12 @@ class com.boobuilds.BuildList implements ITabPane
 			m_editGroupDialog = null;
 		}
 		
+		if (m_editBuildDialog != null)
+		{
+			m_editBuildDialog.Unload();
+			m_editBuildDialog = null;
+		}
+		
 		if (m_importBuildDialog != null)
 		{
 			m_importBuildDialog.Unload();
@@ -420,12 +431,63 @@ class com.boobuilds.BuildList implements ITabPane
 		m_currentBuild = m_builds[buildID];
 		if (m_currentBuild != null)
 		{
-			m_currentBuild.UpdateFromCurrent();
-			DrawList();
-			InfoWindow.LogInfo("Build updated");
+			UnloadDialogs();
+			
+			var includeWeapons:Boolean = true;
+			if (m_currentBuild.AreWeaponsEmpty())
+			{
+				includeWeapons = false;
+			}
+			
+			var includeTalismans:Boolean = true;
+			if (m_currentBuild.AreGearEmpty())
+			{
+				includeTalismans = false;
+			}
+			
+			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_currentBuild.GetName(), includeWeapons, includeTalismans);
+			m_editBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
-		
+	
+	private function UpdateBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
+	{
+		if (newName != null && newName != "" && m_currentBuild != null)
+		{
+			var duplicateFound:Boolean = false;
+			for (var indx:String in m_builds)
+			{
+				var thisBuild:Build = m_builds[indx];
+				if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+				{
+					duplicateFound = true;
+				}
+			}
+			
+			if (duplicateFound == false)
+			{
+				m_currentBuild.UpdateFromCurrent();
+				
+				if (includeWeapons != true)
+				{
+					m_currentBuild.ClearWeapons();
+				}
+				if (includeTalismans != true)
+				{
+					m_currentBuild.ClearGear();
+				}
+
+				DrawList();
+			}
+			else
+			{
+				InfoWindow.LogError("Update build failed.  Name already exists");				
+			}
+		}
+			
+		m_currentBuild = null;
+	}
+	
 	private function DeleteBuild(buildID:String):Void
 	{
 		m_currentBuild = m_builds[buildID];
@@ -496,12 +558,25 @@ class com.boobuilds.BuildList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("CreateBuild", m_parent, null, null, "Build name", "");
-			m_editDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
+			
+			var includeWeapons:Boolean = true;
+			if (m_settings[OptionsTab.DISABLE_WEAPONS] == 1)
+			{
+				includeWeapons = false;
+			}
+			
+			var includeTalismans:Boolean = true;
+			if (m_settings[OptionsTab.DISABLE_TALISMANS] == 1)
+			{
+				includeTalismans = false;
+			}
+			
+			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, "", includeWeapons, includeTalismans);
+			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(newName:String):Void
+	private function CreateCurrentBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
 	{
 		if (newName != null && newName != "" && m_currentGroup != null)
 		{
@@ -520,6 +595,14 @@ class com.boobuilds.BuildList implements ITabPane
 				var newID:String = Build.GetNextID(m_builds);
 				var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
 				var newBuild:Build = Build.FromCurrent(newID, newName, null, newOrder, m_currentGroup.GetID());
+				if (includeWeapons != true)
+				{
+					newBuild.ClearWeapons();
+				}
+				if (includeTalismans != true)
+				{
+					newBuild.ClearGear();
+				}
 				m_builds[newID] = newBuild;
 				DrawList();
 			}

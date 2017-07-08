@@ -367,8 +367,8 @@ class com.boobuilds.Controller extends MovieClip
 		if (m_configWindow == null)
 		{
 			m_optionsTab = new OptionsTab("Options");
-			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds);
-			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed));
+			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds, m_settings);
+			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", buildList);
 			m_configWindow.AddTab("Options", m_optionsTab);
 			m_optionsTab.SetSettings(m_settings);

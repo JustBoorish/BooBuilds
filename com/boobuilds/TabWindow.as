@@ -3,6 +3,7 @@ import com.boobuilds.IconButton;
 import com.boobuilds.ITabPane;
 import com.boobuilds.TabStrip;
 import com.Utils.Text;
+import com.GameInterface.DistributedValue;
 import caurina.transitions.Tweener;
 import flash.filters.GlowFilter;
 import flash.geom.Matrix;
@@ -38,8 +39,9 @@ class com.boobuilds.TabWindow
 	private var m_tabStrip:TabStrip;
 	private var m_tabs:Array;
 	private var m_firstTime:Boolean;
+	private var m_helpIcon:MovieClip;
 	
-	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, closedCallback:Function) 
+	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, closedCallback:Function, helpIcon:String) 
 	{
 		m_name = title;
 		m_parent = parent;
@@ -62,7 +64,7 @@ class com.boobuilds.TabWindow
 		m_textFormat.color = 0xFFFFFF;
 		m_textFormat.bold = false;
 		
-		DrawFrame();
+		DrawFrame(helpIcon);
 	}
 	
 	public function AddTab(name:String, tab:ITabPane):Void
@@ -167,7 +169,7 @@ class com.boobuilds.TabWindow
 		}
 	}
 	
-	private function DrawFrame():Void
+	private function DrawFrame(helpIcon:String):Void
 	{
 		var radius:Number = 8;
 		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
@@ -252,6 +254,30 @@ class com.boobuilds.TabWindow
 		cross.moveTo(buttonRadius + crossRadius, buttonRadius - crossRadius);
 		cross.lineTo(buttonRadius - crossRadius, buttonRadius + crossRadius);
 		
+		if (helpIcon != null)
+		{
+			m_helpIcon = configWindow.attachMovie(helpIcon, "HelpIcon", configWindow.getNextHighestDepth());
+			m_helpIcon._width = 14;
+			m_helpIcon._height = 14;
+			m_helpIcon._y = titleHeight / 2 - m_helpIcon._height / 2;
+			m_helpIcon._x = buttonBack._x - m_helpIcon._width - 10;
+
+			var helpHover:MovieClip = m_helpIcon.createEmptyMovieClip(m_name + "HelpHover", m_helpIcon.getNextHighestDepth());
+			DrawCircle(helpHover, 6 / m_helpIcon._xscale * 100, 0x6bcdf0, 80);
+			helpHover._alpha = 0;
+		
+			m_helpIcon.onRollOver = Proxy.create(this, function() { helpHover._alpha = 0; Tweener.addTween(helpHover, { _alpha:60, time:0.5, transition:"linear" } ); } );
+			m_helpIcon.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(helpHover); helpHover._alpha = 0; } );
+			m_helpIcon.onPress = Proxy.create(this, function() { Tweener.removeTweens(helpHover); helpHover._alpha = 0; this.onHelpPress(); } );
+		}
+		
 		m_tabStrip = new TabStrip(configWindow, m_name + "TabStrip", 10, titleHeight + 10, m_maxWidth - 20, m_maxHeight - titleHeight - 20, Delegate.create(this, TabPressed), 0);
-	}	
+	}
+	
+	private function onHelpPress():Void
+	{
+		var newURL:String = "https://tswact.wordpress.com/boobuilds/";
+		DistributedValue.SetDValue("WebBrowserStartURL", newURL);
+		DistributedValue.SetDValue("web_browser", true);
+	}
 }

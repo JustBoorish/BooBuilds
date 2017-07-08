@@ -649,6 +649,19 @@ class com.boobuilds.Build
 		return false;
 	}
 	
+	public function AreGearEmpty():Boolean
+	{
+		for (var indx:Number = 0; indx < MAX_GEAR; ++indx)
+		{
+			if (m_gear[indx] != null)
+			{
+				return false;
+			}
+		}
+		
+		return true;
+	}
+	
 	public function IsWeaponSet(indx:Number):Boolean
 	{
 		if (indx >= 0 && indx < MAX_WEAPONS)
@@ -657,6 +670,19 @@ class com.boobuilds.Build
 		}
 		
 		return false;
+	}
+	
+	public function AreWeaponsEmpty():Boolean
+	{
+		for (var indx:Number = 0; indx < MAX_WEAPONS; ++indx)
+		{
+			if (m_weapons[indx] != null)
+			{
+				return false;
+			}
+		}
+		
+		return true;
 	}
 	
 	public function IsCostumeSet(indx:Number):Boolean

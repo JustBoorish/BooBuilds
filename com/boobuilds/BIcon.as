@@ -219,7 +219,7 @@ class com.boobuilds.BIcon
 				myPoint.x = _root.compass._x - 250;
 				myPoint.y = _root.compass._y + 0;
 				_root.localToGlobal(myPoint);
-				_root.boodecks.globalToLocal(myPoint);
+				_root.boobuilds.globalToLocal(myPoint);
 				m_icon._x = myPoint.x;
 				m_icon._y = myPoint.y;
 				clearInterval(m_CompassCheckTimerID);

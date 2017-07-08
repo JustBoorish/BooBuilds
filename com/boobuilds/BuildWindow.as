@@ -239,7 +239,7 @@ class com.boobuilds.BuildWindow
 			}
 		}
 
-		if (item == null)
+		if (item == null && gear != null)
 		{
 			DebugWindow.Log(DebugWindow.Info, "Not found: " + gear.toString());
 		}
