@@ -152,7 +152,7 @@ class com.boobuilds.Controller extends MovieClip
 			}
 			
 			m_settings = Settings.Load(m_settingsPrefix, m_defaults);
-			OptionsTab.Load(m_settings);
+			OptionsTab.ApplyOptions(m_settings);
 			LoadBuildGroups();
 			LoadBuilds();
 			
@@ -190,6 +190,7 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[BIcon.ICON_Y] = -1;
 		m_defaults[OptionsTab.DISABLE_WEAPONS] = 0;
 		m_defaults[OptionsTab.DISABLE_TALISMANS] = 0;
+		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 	}
 	
 	private function SetDefaultGroups():Void

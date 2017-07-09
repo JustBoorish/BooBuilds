@@ -16,6 +16,7 @@ import com.boobuilds.YesNoDialog;
 import com.boobuilds.OKDialog;
 import com.boobuilds.OptionsTab;
 import com.GameInterface.Game.Character;
+import com.Utils.StringUtils;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
 /**
@@ -55,6 +56,7 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_editBuildDialog:EditBuildDialog;
 	private var m_importBuildDialog:ImportBuildDialog;
 	private var m_settings:Object;
+	private var m_buildLoading:Boolean;
 	
 	public function BuildList(name:String, groups:Array, builds:Object, settings:Object)
 	{
@@ -62,6 +64,7 @@ class com.boobuilds.BuildList implements ITabPane
 		m_groups = groups;
 		m_builds = builds;
 		m_settings = settings;
+		m_buildLoading = false;
 	}
 
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
@@ -265,10 +268,25 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function ApplyBuild(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
-		if (thisBuild != null)
+		if (m_buildLoading == true)
 		{
-			thisBuild.Apply();
+			InfoWindow.LogError("Please wait until previous build load completes");
+		}
+		else
+		{
+			var thisBuild:Build = m_builds[buildID];
+			if (thisBuild != null)
+			{
+				m_buildLoading = true;
+				var timeout:Number = 3000;
+				if (thisBuild.AreWeaponsEmpty() && thisBuild.AreGearEmpty())
+				{
+					timeout = 1000;
+				}
+				
+				setTimeout(Delegate.create(this, function() { this.m_buildLoading = false; }), timeout);
+				thisBuild.Apply();
+			}
 		}
 	}
 	
@@ -349,7 +367,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function ImportBuildCB(newName:String, buildString:String):Void
 	{
-		if (newName != null && newName != "" && buildString != null && buildString != "" && m_currentGroup != null)
+		var nameValid:Boolean = IsValidName(newName, "build");
+		if (nameValid == true && buildString != null && buildString != "" && m_currentGroup != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:String in m_builds)
@@ -398,8 +417,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function RenameBuildCB(newName:String):Void
 	{
-		DebugWindow.Log(DebugWindow.Info, "Rename " + m_currentBuild.GetName() + " to be " + newName);
-		if (newName != null && newName != "" && m_currentBuild != null && newName != m_currentBuild.GetName())
+		var nameValid:Boolean = IsValidName(newName, "build");
+		if (nameValid == true && m_currentBuild != null && newName != m_currentBuild.GetName())
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:String in m_builds)
@@ -452,7 +471,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function UpdateBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
 	{
-		if (newName != null && newName != "" && m_currentBuild != null)
+		var nameValid:Boolean = IsValidName(newName, "build");
+		if (nameValid == true && newName != "" && m_currentBuild != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:String in m_builds)
@@ -476,7 +496,7 @@ class com.boobuilds.BuildList implements ITabPane
 				{
 					m_currentBuild.ClearGear();
 				}
-
+				
 				DrawList();
 			}
 			else
@@ -578,7 +598,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function CreateCurrentBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
 	{
-		if (newName != null && newName != "" && m_currentGroup != null)
+		var nameValid:Boolean = IsValidName(newName, "build");
+		if (nameValid == true && newName != "" && m_currentGroup != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:String in m_builds)
@@ -628,7 +649,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function EditGroupCB(newName:String, newColour:String):Void
 	{
-		if (newName != null && m_currentGroup != null && newColour != null)
+		var nameValid:Boolean = IsValidName(newName, "group");
+		if (nameValid == true && m_currentGroup != null && newColour != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:Number = 0; indx < m_groups.length; ++indx)
@@ -669,7 +691,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function AddGroupAboveCB(newName:String, newColour:String):Void
 	{
-		if (newName != null && m_currentGroup != null)
+		var nameValid:Boolean = IsValidName(newName, "group");
+		if (nameValid == true && m_currentGroup != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:Number = 0; indx < m_groups.length; ++indx)
@@ -712,7 +735,8 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function AddGroupBelowCB(newName:String, newColour:String):Void
 	{
-		if (newName != null && m_currentGroup != null)
+		var nameValid:Boolean = IsValidName(newName, "group");
+		if (nameValid == true && m_currentGroup != null)
 		{
 			var duplicateFound:Boolean = false;
 			for (var indx:Number = 0; indx < m_groups.length; ++indx)
@@ -765,5 +789,42 @@ class com.boobuilds.BuildList implements ITabPane
 		}
 		
 		return -1;
+	}
+	
+	private function IsValidName(newName:String, nameType:String):Boolean
+	{
+		var valid:Boolean = true;
+		
+		if (newName == null || StringUtils.Strip(newName) == "")
+		{
+			InfoWindow.LogError("Cannot have a blank " + nameType + " name");
+			return false;
+		}
+		
+		if (IsNameGotChar(newName, nameType, "%") == true)
+		{
+			valid = false;
+		}
+		if (IsNameGotChar(newName, nameType, "~") == true)
+		{
+			valid = false;
+		}
+		if (IsNameGotChar(newName, nameType, "|") == true)
+		{
+			valid = false;
+		}
+		
+		return valid;
+	}
+	
+	private function IsNameGotChar(newName:String, nameType:String, charType:String):Boolean
+	{
+		if (newName.indexOf(charType) != -1)
+		{
+			InfoWindow.LogError("Cannot have character " + charType + " in " + nameType + " names");
+			return true;
+		}
+		
+		return false;
 	}
 }

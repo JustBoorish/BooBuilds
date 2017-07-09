@@ -1,5 +1,6 @@
 import com.Utils.Archive;
 import com.Utils.Colors;
+import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 /**
@@ -36,8 +37,8 @@ class com.boobuilds.BuildGroup
 	public function BuildGroup(id:String, name:String, colourName:String)
 	{
 		m_id = id;
-		m_name = name;
 		m_colourName = colourName;
+		SetName(name);
 	}
 
 	public static function GetNextID(groups:Array):String
@@ -73,7 +74,14 @@ class com.boobuilds.BuildGroup
 	
 	public function SetName(newName:String):Void
 	{
-		m_name = newName;
+		if (newName == null)
+		{
+			m_name = "";
+		}
+		else
+		{
+			m_name = StringUtils.Strip(newName);
+		}
 	}
 	
 	public function GetColourName():String

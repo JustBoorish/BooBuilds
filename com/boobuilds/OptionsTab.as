@@ -1,8 +1,10 @@
 import com.Utils.Archive;
 import com.boobuilds.ITabPane;
 import com.boobuilds.Build;
+import com.boobuilds.BuildGroup;
 import com.boobuilds.Checkbox;
 import com.boobuilds.DebugWindow;
+import com.boobuilds.MenuPanel;
 import com.Utils.Text;
 import mx.utils.Delegate;
 /**
@@ -25,6 +27,12 @@ class com.boobuilds.OptionsTab implements ITabPane
 {
 	public static var DISABLE_WEAPONS:String = "WEAPONS_DISABLED";
 	public static var DISABLE_TALISMANS:String = "TALISMANS_DISABLED";
+	public static var INVENTORY_THROTTLE:String = "INVENTORY_THROTTLE";
+	
+	private static var THROTTLE_MODE0:String = "Default";
+	private static var THROTTLE_MODE1:String = "Slow";
+	private static var THROTTLE_MODE2:String = "Slower";
+	private static var THROTTLE_MODE3:String = "Slowest";
 	
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;
@@ -35,6 +43,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_settings:Object;
 	private var m_disableWeapons:Checkbox;
 	private var m_disableTalismans:Checkbox;
+	private var m_menu:MenuPanel;
+	private var m_throttleX:Number;
+	private var m_throttleY:Number;
+	private var m_throttleMode:String;
 	
 	public function OptionsTab(title:String)
 	{
@@ -74,6 +86,9 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				m_disableTalismans.SetChecked(true);
 			}
+			
+			m_throttleMode = GetThrottleMode();
+			RebuildMenu();
 		}
 		
 		m_frame._visible = visible;
@@ -113,10 +128,13 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				m_settings[DISABLE_WEAPONS] = 0;
 			}
+			
+			SetThrottleMode();
+			ApplyOptions(m_settings);
 		}
 	}
 	
-	public static function Load(settings:Object):Void
+	public static function ApplyOptions(settings:Object):Void
 	{
 		if (settings != null)
 		{
@@ -137,6 +155,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				Build.SetTalismansDisabled(false);
 			}
+			
+			if (settings[INVENTORY_THROTTLE] != null)
+			{
+				Build.SetInventoryThrottleMode(settings[INVENTORY_THROTTLE]);
+			}
 		}
 	}
 	
@@ -146,6 +169,58 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	public function StopDrag():Void
 	{
+	}
+	
+	private function GetThrottleMode():String
+	{
+		var throttleMode:Number = 0;
+		if (m_settings != null)
+		{
+			if (m_settings[INVENTORY_THROTTLE] != null)
+			{
+				var tempMode:Number = m_settings[INVENTORY_THROTTLE];
+				if (tempMode > 0 && tempMode < 4)
+				{
+					throttleMode = tempMode;
+				}
+			}
+		}
+		
+		switch (throttleMode)
+		{
+			case 0:
+				return THROTTLE_MODE0;
+			case 1:
+				return THROTTLE_MODE1;
+			case 2:
+				return THROTTLE_MODE2;
+			case 3:
+				return THROTTLE_MODE3;
+			default:
+				return THROTTLE_MODE0;
+		}
+	}
+	
+	private function SetThrottleMode():Void
+	{
+		if (m_settings != null)
+		{
+			var throttleMode:Number = 0;
+			if (m_throttleMode == THROTTLE_MODE1)
+			{
+				throttleMode = 1;
+			}
+			else if (m_throttleMode == THROTTLE_MODE2)
+			{
+				throttleMode = 2;
+			}
+			else if (m_throttleMode == THROTTLE_MODE3)
+			{
+				throttleMode = 3;
+			}
+			
+			m_settings[INVENTORY_THROTTLE] = throttleMode;
+		}
 	}
 	
 	private function DrawFrame():Void
@@ -184,8 +259,59 @@ class com.boobuilds.OptionsTab implements ITabPane
 
 		m_disableWeapons = new Checkbox("DisableWeaponsText", m_frame, 20, 20, checkSize, Delegate.create(this, ToggleWeapons), false);
 		m_disableTalismans = new Checkbox("DisableTalismansText", m_frame, 20, 50, checkSize, Delegate.create(this, ToggleTalismans), false);
+		
+		text = "Throttle";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		var throttleModeText:TextField = m_frame.createTextField("DisableTalismansText", m_frame.getNextHighestDepth(), 25 + checkSize, 80, extents.width, extents.height);
+		throttleModeText.embedFonts = true;
+		throttleModeText.selectable = false;
+		throttleModeText.antiAliasType = "advanced";
+		throttleModeText.autoSize = true;
+		throttleModeText.border = false;
+		throttleModeText.background = false;
+		throttleModeText.setNewTextFormat(textFormat);
+		throttleModeText.text = text;
+
+		BuildMenu(m_frame, 40 + checkSize + extents.width, 80);
 	}
 	
+	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
+	{
+		m_throttleX = x;
+		m_throttleY = y;
+		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		m_menu = new MenuPanel(modalMC, "ThrottleMenu", 4, colours[0], colours[1]);
+		var subMenu:MenuPanel = new MenuPanel(modalMC, "ThrottlePanel", 4, colours[0], colours[1]);
+		AddItem(subMenu, THROTTLE_MODE0, colours);
+		AddItem(subMenu, THROTTLE_MODE1, colours);
+		AddItem(subMenu, THROTTLE_MODE2, colours);
+		AddItem(subMenu, THROTTLE_MODE3, colours);
+		m_menu.AddSubMenu(m_throttleMode, subMenu, colours[0], colours[1]);
+		
+		var pt:Object = m_menu.GetDimensions(x, y, true, 0, 0, modalMC.width, modalMC.height);
+		m_menu.Rebuild();
+		m_menu.RebuildSubmenus();
+		m_menu.SetVisible(true);
+	}
+	
+	private function AddItem(subMenu:MenuPanel, name:String, colours:Array):Void
+	{
+		subMenu.AddItem(name, Delegate.create(this, ThrottleChanged), colours[0], colours[1]);
+	}
+	
+	private function ThrottleChanged(throttleName:String):Void
+	{
+		m_throttleMode = throttleName;
+		setTimeout(Delegate.create(this, RebuildMenu), 10);
+	}
+	
+	private function RebuildMenu():Void
+	{
+		m_menu.Unload();
+		BuildMenu(m_frame, m_throttleX, m_throttleY);
+		Save();
+	}
+		
 	private function ToggleWeapons(isChecked:Boolean):Void
 	{
 		Build.SetWeaponsDisabled(isChecked);

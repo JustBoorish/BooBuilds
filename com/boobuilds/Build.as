@@ -3,6 +3,10 @@ import com.boobuilds.DebugWindow;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
 import com.Utils.Archive;
+import com.GameInterface.GearManager;
+import com.GameInterface.GearData;
+import com.GameInterface.GearDataAbility;
+import com.GameInterface.GearDataItem;
 import com.GameInterface.FeatData;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.Spell;
@@ -56,6 +60,7 @@ class com.boobuilds.Build
 	
 	private static var m_disableWeapons:Boolean = false;
 	private static var m_disableTalismans:Boolean = false;
+	private static var m_inventoryThrottleMode:Number = 0;
 
 	private var m_id:String;
 	private var m_name:String;
@@ -80,13 +85,15 @@ class com.boobuilds.Build
 	private var m_equipTalismansCounter:Number;
 	private var m_equipTalismanItem:GearItem;
 	private var m_equipTalismanSlot:Number;
+	private var m_applyWeaponsAfterTalismans:Boolean;
 	private var m_logAfterSkills:Boolean;
-	private var m_logAfterWeapons:Boolean;
+	private var m_logAfterTalismans:Boolean;
+	private var m_inventoryUseCounter:Number;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
 		m_id = id;
-		m_name = name;
+		SetName(name);
 		m_parent = parent;
 		m_group = group;
 		m_order = order;
@@ -261,7 +268,14 @@ class com.boobuilds.Build
 	
 	public function SetName(newName:String):Void
 	{
-		m_name = newName;
+		if (newName == null)
+		{
+			m_name = "";
+		}
+		else
+		{
+			m_name = StringUtils.Strip(newName);
+		}		
 	}
 
 	public function Apply():Void
@@ -311,27 +325,26 @@ class com.boobuilds.Build
 				}
 			}
 			
+			m_inventoryUseCounter = 0;
 			ApplyPassives();
 			
 			if (doWeapons == true && doTalismans == true)
 			{
 				m_logAfterSkills = false;
-				m_logAfterWeapons = true;
+				m_logAfterTalismans = false;
 				ApplySkills();
-				ApplyWeapons();
-				ApplyTalismans();
+				ApplyTalismans(doWeapons);
 			}
 			else if (doWeapons == false && doTalismans == true)
 			{
 				m_logAfterSkills = false;
-				m_logAfterWeapons = false;
+				m_logAfterTalismans = true;
 				ApplySkills();
-				ApplyTalismans();
+				ApplyTalismans(doWeapons);
 			}
 			else if (doWeapons == true && doTalismans == false)
 			{
 				m_logAfterSkills = false;
-				m_logAfterWeapons = true;
 				ApplySkills();
 				ApplyWeapons();
 			}
@@ -1356,6 +1369,7 @@ class com.boobuilds.Build
 		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 		var charInv:Inventory = new Inventory(charInvId);
 		charInv.UseItem(GetWeaponSlotID(m_equipWeaponSlot));
+		++m_inventoryUseCounter;
 		
 		// wait until both weapons are unequipped
 		m_equipWeaponsCounter = 0;
@@ -1375,11 +1389,12 @@ class com.boobuilds.Build
 			
 			if (m_equipWeaponSlot == 0)
 			{
-				UnequipWeapon(1);
+				DoNextInventoryAction(Delegate.create(this, function() { this.UnequipWeapon(1); }));
 			}
 			else
 			{
-				EquipWeapon(GetWeapon(0), 0);
+				var nextWeapon:GearItem = GetWeapon(0);
+				DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 0); }));
 			}
 		}
 		else
@@ -1409,6 +1424,8 @@ class com.boobuilds.Build
 				var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 				var charInv:Inventory = new Inventory(charInvId);
 				charInv.AddItem(bagInvId, itemSlot, GetWeaponSlotID(slot));
+				++m_inventoryUseCounter;
+				DebugWindow.Log(DebugWindow.Info, "Adding " + gear.GetName());
 				
 				m_equipWeaponItem = GetWeapon(slot);
 				m_equipWeaponSlot = slot;
@@ -1434,15 +1451,12 @@ class com.boobuilds.Build
 			
 			if (m_equipWeaponSlot == 0)
 			{
-				EquipWeapon(GetWeapon(1), 1);
+				var nextWeapon:GearItem = GetWeapon(1);
+				DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 1); }));
 			}
 			else
 			{
-		
-				if (m_logAfterWeapons == true)
-				{
-					InfoWindow.LogInfo("Build loaded");
-				}
+				InfoWindow.LogInfo("Build loaded");
 			}
 		}
 		else
@@ -1500,8 +1514,9 @@ class com.boobuilds.Build
 		return positions[slot];
 	}
 	
-	private function ApplyTalismans():Void
+	private function ApplyTalismans(doWeapons:Boolean):Void
 	{
+		m_applyWeaponsAfterTalismans = doWeapons;
 		if (m_equipTalismansInterval != -1)
 		{
 			clearInterval(m_equipTalismansInterval);
@@ -1528,6 +1543,7 @@ class com.boobuilds.Build
 			{
 				var itemSlot:Number = obj.indx;
 				bagInv.UseItem(itemSlot);
+				++m_inventoryUseCounter;
 				
 				m_equipTalismanItem = GetGear(slot);
 				m_equipTalismanSlot = slot;
@@ -1547,7 +1563,17 @@ class com.boobuilds.Build
 			}
 			else
 			{
-				InfoWindow.LogInfo("Build loaded");
+				if (m_applyWeaponsAfterTalismans == true)
+				{
+					DoNextInventoryAction(Delegate.create(this, ApplyWeapons));
+				}
+				else
+				{
+					if (m_logAfterTalismans == true)
+					{
+						InfoWindow.LogInfo("Build loaded");
+					}
+				}
 			}
 		}
 	}
@@ -1564,11 +1590,23 @@ class com.boobuilds.Build
 			
 			if (m_equipTalismanSlot < MAX_GEAR)
 			{
-				EquipTalisman(GetGear(m_equipTalismanSlot + 1), m_equipTalismanSlot + 1);
+				var nextSlot:Number = m_equipTalismanSlot + 1;
+				var nextGear:GearItem = GetGear(nextSlot);
+				DoNextInventoryAction(Delegate.create(this, function() { this.EquipTalisman(nextGear, nextSlot); }));
 			}
 			else
 			{
-				InfoWindow.LogInfo("Build loaded");
+				if (m_applyWeaponsAfterTalismans == true)
+				{
+					DoNextInventoryAction(Delegate.create(this, ApplyWeapons));
+				}
+				else
+				{
+					if (m_logAfterTalismans == true)
+					{
+						InfoWindow.LogInfo("Build loaded");
+					}
+				}
 			}
 		}
 		else
@@ -1595,6 +1633,42 @@ class com.boobuilds.Build
 		}
 		
 		return false;
+	}
+	
+	public static function SetInventoryThrottleMode(newValue:Number):Void
+	{
+		m_inventoryThrottleMode = newValue;
+	}
+	
+	private function DoNextInventoryAction(callback:Function):Void
+	{
+		var shortTimeout:Number = 20;
+		var longTimeout:Number = 2000;
+		
+		if (m_inventoryThrottleMode == 1)
+		{
+			shortTimeout = 300;
+			longTimeout = 300;
+		}
+		else if (m_inventoryThrottleMode == 2)
+		{
+			shortTimeout = 400;
+			longTimeout = 400;
+		}
+		else if (m_inventoryThrottleMode == 3)
+		{
+			shortTimeout = 500;
+			longTimeout = 500;
+		}
+		
+		var timeout:Number = shortTimeout;
+		if (m_inventoryUseCounter > 5)
+		{
+			timeout = longTimeout;
+			m_inventoryUseCounter = 0;
+		}
+		
+		setTimeout(callback, timeout);
 	}
 	
 	private function AvailableBagSpace():Number

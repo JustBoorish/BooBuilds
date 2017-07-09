@@ -20,6 +20,11 @@ Change Log
 
 Version 1.2
 Added loading builds from the chat command line
+Added talisman switching
+Put in throttle for weapon and talisman switch speed
+Fixed bug where weapons with zero xp were not switching
+Added the help page
+Made weapon and talisman switching optional
 
 Version 1.1
 Added support for switching weapons
