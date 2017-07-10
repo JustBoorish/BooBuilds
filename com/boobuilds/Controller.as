@@ -188,8 +188,6 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[Settings.Y] = 600;
 		m_defaults[BIcon.ICON_X] = -1;
 		m_defaults[BIcon.ICON_Y] = -1;
-		m_defaults[OptionsTab.DISABLE_WEAPONS] = 0;
-		m_defaults[OptionsTab.DISABLE_TALISMANS] = 0;
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 	}
 	
@@ -421,14 +419,14 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (buildName == null || buildName == "")
 		{
-			InfoWindow.LogError("Cannot load build with blank name");
+			return;
 		}
 
 		var buildFound:Boolean = false;
 		for (var id:String in m_builds)
 		{
 			var thisBuild:Build = m_builds[id];
-			if (thisBuild != null)
+			if (thisBuild != null && thisBuild.GetName() == buildName)
 			{
 				buildFound = true;
 				setTimeout(Delegate.create(this, function() { thisBuild.Apply(); }), 20);

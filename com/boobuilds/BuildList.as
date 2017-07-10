@@ -513,8 +513,16 @@ class com.boobuilds.BuildList implements ITabPane
 		m_currentBuild = m_builds[buildID];
 		if (m_currentBuild != null)
 		{
-			m_builds[buildID] = null;
+			RemoveBuild(m_currentBuild);
 			DrawList();
+		}
+	}
+	
+	private function RemoveBuild(build:Build):Void
+	{
+		if (build != null)
+		{
+			m_builds[build.GetID()] = null;
 		}
 	}
 	
@@ -561,7 +569,7 @@ class com.boobuilds.BuildList implements ITabPane
 					var thisBuild:Build = m_builds[thisID];
 					if (thisBuild != null && thisBuild.GetGroup() == thisGroup.GetID())
 					{
-						m_builds[thisID] = null;
+						RemoveBuild(thisBuild);
 					}
 				}
 				
@@ -579,19 +587,7 @@ class com.boobuilds.BuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			var includeWeapons:Boolean = true;
-			if (m_settings[OptionsTab.DISABLE_WEAPONS] == 1)
-			{
-				includeWeapons = false;
-			}
-			
-			var includeTalismans:Boolean = true;
-			if (m_settings[OptionsTab.DISABLE_TALISMANS] == 1)
-			{
-				includeTalismans = false;
-			}
-			
-			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, "", includeWeapons, includeTalismans);
+			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, "", true, true);
 			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}

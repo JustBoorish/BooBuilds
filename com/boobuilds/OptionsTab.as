@@ -25,8 +25,6 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.OptionsTab implements ITabPane
 {
-	public static var DISABLE_WEAPONS:String = "WEAPONS_DISABLED";
-	public static var DISABLE_TALISMANS:String = "TALISMANS_DISABLED";
 	public static var INVENTORY_THROTTLE:String = "INVENTORY_THROTTLE";
 	
 	private static var THROTTLE_MODE0:String = "Default";
@@ -41,8 +39,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_maxHeight:Number;
 	private var m_margin:Number;
 	private var m_settings:Object;
-	private var m_disableWeapons:Checkbox;
-	private var m_disableTalismans:Checkbox;
 	private var m_menu:MenuPanel;
 	private var m_throttleX:Number;
 	private var m_throttleY:Number;
@@ -77,16 +73,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		if (visible == true && m_settings != null)
 		{
-			if (m_settings[DISABLE_WEAPONS] == 1)
-			{
-				m_disableWeapons.SetChecked(true);
-			}
-			
-			if (m_settings[DISABLE_TALISMANS] == 1)
-			{
-				m_disableTalismans.SetChecked(true);
-			}
-			
 			m_throttleMode = GetThrottleMode();
 			RebuildMenu();
 		}
@@ -111,24 +97,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		if (m_settings != null)
 		{
-			if (m_disableTalismans.IsChecked() == true)
-			{
-				m_settings[DISABLE_TALISMANS] = 1;
-			}
-			else
-			{
-				m_settings[DISABLE_TALISMANS] = 0;
-			}
-			
-			if (m_disableWeapons.IsChecked() == true)
-			{
-				m_settings[DISABLE_WEAPONS] = 1;
-			}
-			else
-			{
-				m_settings[DISABLE_WEAPONS] = 0;
-			}
-			
 			SetThrottleMode();
 			ApplyOptions(m_settings);
 		}
@@ -138,24 +106,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		if (settings != null)
 		{
-			if (settings[DISABLE_WEAPONS] == 1)
-			{
-				Build.SetWeaponsDisabled(true);
-			}
-			else
-			{
-				Build.SetWeaponsDisabled(false);
-			}
-			
-			if (settings[DISABLE_TALISMANS] == 1)
-			{
-				Build.SetTalismansDisabled(true);
-			}
-			else
-			{
-				Build.SetTalismansDisabled(false);
-			}
-			
 			if (settings[INVENTORY_THROTTLE] != null)
 			{
 				Build.SetInventoryThrottleMode(settings[INVENTORY_THROTTLE]);
@@ -232,37 +182,9 @@ class com.boobuilds.OptionsTab implements ITabPane
 		textFormat.color = 0xFFFFFF;
 		textFormat.bold = false;
 
-		var checkSize:Number = 13;
-		var text:String = "Disable weapon switching";
+		var text:String = "Throttle";
 		var extents:Object = Text.GetTextExtent(text, textFormat, m_frame);
-		var disableWeaponsText:TextField = m_frame.createTextField("DisableWeaponsText", m_frame.getNextHighestDepth(), 25 + checkSize, 20 + checkSize / 2 - extents.height / 2, extents.width, extents.height);
-		disableWeaponsText.embedFonts = true;
-		disableWeaponsText.selectable = false;
-		disableWeaponsText.antiAliasType = "advanced";
-		disableWeaponsText.autoSize = true;
-		disableWeaponsText.border = false;
-		disableWeaponsText.background = false;
-		disableWeaponsText.setNewTextFormat(textFormat);
-		disableWeaponsText.text = text;
-		
-		text = "Disable talisman switching";
-		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		var disableTalismansText:TextField = m_frame.createTextField("DisableTalismansText", m_frame.getNextHighestDepth(), 25 + checkSize, 50 + checkSize / 2 - extents.height / 2, extents.width, extents.height);
-		disableTalismansText.embedFonts = true;
-		disableTalismansText.selectable = false;
-		disableTalismansText.antiAliasType = "advanced";
-		disableTalismansText.autoSize = true;
-		disableTalismansText.border = false;
-		disableTalismansText.background = false;
-		disableTalismansText.setNewTextFormat(textFormat);
-		disableTalismansText.text = text;
-
-		m_disableWeapons = new Checkbox("DisableWeaponsText", m_frame, 20, 20, checkSize, Delegate.create(this, ToggleWeapons), false);
-		m_disableTalismans = new Checkbox("DisableTalismansText", m_frame, 20, 50, checkSize, Delegate.create(this, ToggleTalismans), false);
-		
-		text = "Throttle";
-		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		var throttleModeText:TextField = m_frame.createTextField("DisableTalismansText", m_frame.getNextHighestDepth(), 25 + checkSize, 80, extents.width, extents.height);
+		var throttleModeText:TextField = m_frame.createTextField("DisableTalismansText", m_frame.getNextHighestDepth(), 25, 30, extents.width, extents.height);
 		throttleModeText.embedFonts = true;
 		throttleModeText.selectable = false;
 		throttleModeText.antiAliasType = "advanced";
@@ -272,7 +194,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		throttleModeText.setNewTextFormat(textFormat);
 		throttleModeText.text = text;
 
-		BuildMenu(m_frame, 40 + checkSize + extents.width, 80);
+		BuildMenu(m_frame, 40 + extents.width, 30);
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
@@ -309,18 +231,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		m_menu.Unload();
 		BuildMenu(m_frame, m_throttleX, m_throttleY);
-		Save();
-	}
-		
-	private function ToggleWeapons(isChecked:Boolean):Void
-	{
-		Build.SetWeaponsDisabled(isChecked);
-		Save();
-	}
-	
-	private function ToggleTalismans(isChecked:Boolean):Void
-	{
-		Build.SetTalismansDisabled(isChecked);
 		Save();
 	}
 }

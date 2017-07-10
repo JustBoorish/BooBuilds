@@ -18,6 +18,9 @@ Delete the BooBuilds directory from \Data\Gui\Custom\Flash\
 
 Change Log
 
+Version 1.3
+Fixed bug in chat command loading
+
 Version 1.2
 Added loading builds from the chat command line
 Added talisman switching
