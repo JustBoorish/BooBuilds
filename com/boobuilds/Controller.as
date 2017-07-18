@@ -4,8 +4,8 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildList;
 import com.boobuilds.BuildSelector;
-import com.boobuilds.ButtonPopup;
 import com.boobuilds.Controller;
+import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
@@ -67,7 +67,7 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_GROUPS:Number = 50;
 	public static var MAX_BUILDS:Number = 200;
 	
-	private var m_version:String = "1.1";
+	private var m_version:String = "1.4";
 	private var m_debug:DebugWindow = null;
 	private var m_info:InfoWindow = null;
 	private var m_icon:BIcon;
@@ -87,6 +87,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_redrawInterval:Number;
 	private var m_redrawCount:Number;
 	private var m_loadBuildDV:DistributedValue;
+	private var m_cooldownMonitor:CooldownMonitor;
 	
 	//On Load
 	function onLoad():Void
@@ -125,6 +126,8 @@ class com.boobuilds.Controller extends MovieClip
 		SetDefaults();
 		
 		Localisation.SetLocalisation();
+		
+		m_cooldownMonitor = new CooldownMonitor();
 		
 		m_loadBuildDV = DistributedValue.Create("BooBuilds_LoadBuild");
 		m_loadBuildDV.SetValue("");
@@ -340,7 +343,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (show == true)
 		{
-			m_selectorWindow = new BuildSelector(m_mc, "Build Selector", m_groups, m_builds);
+			m_selectorWindow = new BuildSelector(m_mc, "Build Selector", m_groups, m_builds, m_cooldownMonitor);
 			var icon:MovieClip = m_icon.GetIcon();
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
@@ -366,7 +369,7 @@ class com.boobuilds.Controller extends MovieClip
 		if (m_configWindow == null)
 		{
 			m_optionsTab = new OptionsTab("Options");
-			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds, m_settings);
+			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds, m_settings, m_cooldownMonitor);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", buildList);
 			m_configWindow.AddTab("Options", m_optionsTab);
@@ -429,7 +432,7 @@ class com.boobuilds.Controller extends MovieClip
 			if (thisBuild != null && thisBuild.GetName() == buildName)
 			{
 				buildFound = true;
-				setTimeout(Delegate.create(this, function() { thisBuild.Apply(); }), 20);
+				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_cooldownMonitor); }), 20);
 				break;
 			}
 		}

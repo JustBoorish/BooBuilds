@@ -1,6 +1,7 @@
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildWindow;
+import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditBuildDialog;
@@ -56,15 +57,15 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_editBuildDialog:EditBuildDialog;
 	private var m_importBuildDialog:ImportBuildDialog;
 	private var m_settings:Object;
-	private var m_buildLoading:Boolean;
+	private var m_cooldownMonitor:CooldownMonitor;
 	
-	public function BuildList(name:String, groups:Array, builds:Object, settings:Object)
+	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, cdMon:CooldownMonitor)
 	{
 		m_name = name;
 		m_groups = groups;
 		m_builds = builds;
 		m_settings = settings;
-		m_buildLoading = false;
+		m_cooldownMonitor = cdMon;
 	}
 
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
@@ -268,25 +269,10 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function ApplyBuild(buildID:String):Void
 	{
-		if (m_buildLoading == true)
+		var thisBuild:Build = m_builds[buildID];
+		if (thisBuild != null)
 		{
-			InfoWindow.LogError("Please wait until previous build load completes");
-		}
-		else
-		{
-			var thisBuild:Build = m_builds[buildID];
-			if (thisBuild != null)
-			{
-				m_buildLoading = true;
-				var timeout:Number = 3000;
-				if (thisBuild.AreWeaponsEmpty() && thisBuild.AreGearEmpty())
-				{
-					timeout = 1000;
-				}
-				
-				setTimeout(Delegate.create(this, function() { this.m_buildLoading = false; }), timeout);
-				thisBuild.Apply();
-			}
+			thisBuild.Apply(m_cooldownMonitor);
 		}
 	}
 	

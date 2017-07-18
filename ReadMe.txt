@@ -15,8 +15,17 @@ PLEASE NOTE: Make sure you restart your client after installing this add-on. Alw
 
 Delete the BooBuilds directory from \Data\Gui\Custom\Flash\
 
+*** Help web page ***
+
+https://tswact.wordpress.com/boobuilds/
+
 
 Change Log
+
+Version 1.4
+Made builds include the weapon hidden status
+Stopped builds from loading when a skill has an active cooldown
+Continue loading a build if one talisman fails to load
 
 Version 1.3
 Fixed bug in chat command loading

@@ -158,34 +158,6 @@ class com.boobuilds.BuildWindow
 				SetGearIcon(build.GetWeapon(i), charInvId, charInv, bagInvId, bagInv, icons[i], null);
 			}
 		}
-		
-		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
-		var wearInv:Inventory = new Inventory(wearInvID);
-		var wardInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_StaticInventory, Character.GetClientCharID().GetInstance());
-		var wardInv:Inventory = new Inventory(wardInvID);
-		
-		icons = m_icons[GetIconName(Build.COSTUME_PREFIX)];
-		if (icons != null)
-		{
-			if (build.GetCostume(Build.MAX_COSTUME - 1) != null)
-			{
-				SetGearIcon(build.GetCostume(0), wearInvID, wearInv, wardInvID, wardInv, icons[0], DefaultCostumeIcons[0]);
-				SetGearIcon(build.GetCostume(1), wearInvID, wearInv, wardInvID, wardInv, icons[1], DefaultCostumeIcons[1]);
-				SetGearIcon(build.GetCostume(Build.MAX_COSTUME - 1), wearInvID, wearInv, wardInvID, wardInv, icons[2], DefaultCostumeIcons[Build.MAX_COSTUME - 1]);
-				
-				for (var i:Number = 3; i < Build.MAX_COSTUME - 1; ++i)
-				{
-					SetGearIcon(null, wearInvID, wearInv, wardInvID, wardInv, icons[i], null);
-				}
-			}
-			else
-			{
-				for (var i:Number = 0; i < Build.MAX_COSTUME - 1; ++i)
-				{
-					SetGearIcon(build.GetCostume(i), wearInvID, wearInv, wardInvID, wardInv, icons[i], DefaultCostumeIcons[i]);
-				}
-			}
-		}
 	}
 	
 	private function SetSkillIcon(featId:Number, button:IconButton):Void
@@ -403,9 +375,6 @@ class com.boobuilds.BuildWindow
 			case Build.GEAR_PREFIX:
 				GearPressed(indx, x, y, frameStyle);
 				break;
-			case Build.COSTUME_PREFIX:
-				CostumePressed(indx, x, y, frameStyle);
-				break;
 			case Build.PASSIVE_PREFIX:
 				PassivePressed(indx, x, y, frameStyle);
 				break;
@@ -458,11 +427,6 @@ class com.boobuilds.BuildWindow
 				color1 = Colors.e_ColorWeaponItemsHightlight;
 				color2 = Colors.e_ColorWeaponItemsBackground;
 				frameColor = Colors.e_ColorBorderItemEpic;
-				break;
-			case Build.COSTUME_PREFIX:
-				color1 = Colors.e_ColorClothingItemsHighlight;
-				color2 = Colors.e_ColorClothingItemsBackground;
-				frameColor = Colors.e_ColorWhite;
 				break;
 			default:
 				break;

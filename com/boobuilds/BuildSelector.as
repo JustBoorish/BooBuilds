@@ -2,6 +2,7 @@ import com.boobuilds.MenuPanel;
 import com.boobuilds.TreePanel;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Build;
+import com.boobuilds.CooldownMonitor;
 import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
 import com.GameInterface.Game.Character;
@@ -30,13 +31,15 @@ class com.boobuilds.BuildSelector
 	private var m_menu:MenuPanel;
 	private var m_groups:Array;
 	private var m_builds:Object;
+	private var m_cooldownMonitor:CooldownMonitor;
 	
-	public function BuildSelector(parent:MovieClip, name:String, groups:Array, builds:Object) 
+	public function BuildSelector(parent:MovieClip, name:String, groups:Array, builds:Object, cdMon:CooldownMonitor) 
 	{
 		m_parent = parent;
 		m_name = name;
 		m_groups = groups;
 		m_builds = builds;
+		m_cooldownMonitor = cdMon;
 		
 		m_frame = parent.createEmptyMovieClip(name + "Frame", parent.getNextHighestDepth());
 		BuildMenu();
@@ -64,6 +67,7 @@ class com.boobuilds.BuildSelector
 	private function BuildMenu():Void
 	{
 		m_menu = new MenuPanel(m_frame, "Builds", 4);
+		var singleGroup:Boolean = IsSingleGroup();
 
 		for (var indx:Number = 0; indx < m_groups.length; ++indx)
 		{
@@ -71,10 +75,17 @@ class com.boobuilds.BuildSelector
 			if (thisGroup != null)
 			{
 				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
-				var subMenu:MenuPanel = BuildSubMenu(thisGroup.GetID(), colours);
-				if (subMenu != null)
+				if (singleGroup == true)
 				{
-					m_menu.AddSubMenu(thisGroup.GetName(), subMenu, colours[0], colours[1]);
+					BuildSingleMenu(thisGroup.GetID(), colours, m_menu);
+				}
+				else
+				{
+					var subMenu:MenuPanel = BuildSubMenu(thisGroup.GetID(), colours);
+					if (subMenu != null)
+					{
+						m_menu.AddSubMenu(thisGroup.GetName(), subMenu, colours[0], colours[1]);
+					}
 				}
 			}
 		}
@@ -103,14 +114,53 @@ class com.boobuilds.BuildSelector
 		return subMenu;
 	}
 	
+	private function BuildSingleMenu(groupID:String, colours:Array, menu:MenuPanel):Void
+	{
+		var sortedBuilds:Array = Build.GetOrderedBuilds(groupID, m_builds);
+		
+		if (sortedBuilds.length > 0)
+		{
+			for (var indx:Number = 0; indx < sortedBuilds.length; ++indx)
+			{
+				var thisBuild:Build = sortedBuilds[indx];
+				if (thisBuild != null && thisBuild.GetGroup() == groupID)
+				{
+					menu.AddItem(thisBuild.GetName(), Proxy.create(this, BuildCallback, thisBuild.GetID()), colours[0], colours[1]);
+				}
+			}
+		}
+	}
+	
 	private function BuildCallback(buildID:String):Void
 	{
 		var thisBuild:Build = m_builds[buildID];
 		if (thisBuild != null)
 		{
-			thisBuild.Apply();
+			thisBuild.Apply(m_cooldownMonitor);
 		}
 		
 		m_menu.SetVisible(false);
+	}
+	
+	private function IsSingleGroup():Boolean
+	{
+		var groupID:String = null;
+		for (var indx:String in m_builds)
+		{
+			var thisBuild:Build = m_builds[indx];
+			if (groupID == null)
+			{
+				groupID = thisBuild.GetGroup();
+			}
+			else
+			{
+				if (groupID != thisBuild.GetGroup())
+				{
+					return false;
+				}
+			}
+		}
+		
+		return true;
 	}
 }
