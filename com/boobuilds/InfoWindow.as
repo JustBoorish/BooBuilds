@@ -21,17 +21,19 @@ import caurina.transitions.Tweener;
 class com.boobuilds.InfoWindow
 {
 	private static var m_instance:InfoWindow;
+	private static var MAX_MSGS:Number = 4;
 	
 	private var m_name:String;
 	private var m_parent:MovieClip;
 	private var m_errorCount:Number;
-	private var m_lastMsg:MovieClip;
+	private var m_msgList:Array;
 	
 	public function InfoWindow(name:String, parent:MovieClip) 
 	{
 		m_name = name;
 		m_parent = parent;
 		m_errorCount = 0;
+		m_msgList = new Array();
 	}
 
 	public static function CreateInstance(parent:MovieClip):InfoWindow
@@ -72,18 +74,17 @@ class com.boobuilds.InfoWindow
 		LogCommonMsg(msg, 0xFF0000);
 	}
 	
-	private function LogCommonMsg(msg:String, colour:Number):Void
+	private function LogCommonMsg(text:String, colour:Number):Void
 	{
-		if (m_lastMsg != null)
-		{
-			Tweener.removeTweens(m_lastMsg);
-			m_lastMsg.removeMovieClip();
-		}
+		RemoveOldestMsg();
 		
 		++m_errorCount;
-		m_lastMsg = CreateMsg(msg, colour);
-		m_lastMsg._alpha = 100;
-		Tweener.addTween(m_lastMsg, { _alpha:0, time:3, transition:"easeInQuint" } );
+		var msg:MovieClip = CreateMsg(text, colour);
+		msg._alpha = 100;
+		Tweener.addTween(msg, { _alpha:0, time:3, transition:"easeInQuint" } );
+		
+		ShiftMsgsUp(msg._height);
+		m_msgList.push(msg);
 	}
 	
 	private function CreateMsg(msg:String, colour:Number):MovieClip
@@ -111,5 +112,30 @@ class com.boobuilds.InfoWindow
 		error_mc._x = Stage.width / 2 - labelExtents.width / 2;
 		error_mc._y = Stage.height / 6;
 		return error_mc;
+	}
+	
+	private function RemoveOldestMsg():Void
+	{
+		if (m_msgList.length >= MAX_MSGS)
+		{
+			var msg:MovieClip = MovieClip(m_msgList.shift());
+			if (msg != null)
+			{
+				Tweener.removeTweens(msg);
+				msg.removeMovieClip();
+			}
+		}
+	}
+	
+	private function ShiftMsgsUp(height:Number):Void
+	{
+		for (var indx:Number = 0; indx < m_msgList.length; ++indx)
+		{
+			var msg:MovieClip = MovieClip(m_msgList[indx]);
+			if (msg != null)
+			{
+				msg._y -= height;
+			}
+		}
 	}
 }

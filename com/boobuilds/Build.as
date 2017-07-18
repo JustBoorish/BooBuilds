@@ -85,6 +85,7 @@ class com.boobuilds.Build
 	private var m_logAfterSkills:Boolean;
 	private var m_inventoryUseCounter:Number;
 	private var m_buildApplyQueue:Array;
+	private var m_buildErrorCount:Number;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -349,6 +350,7 @@ class com.boobuilds.Build
 				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
 			}
 			
+			m_buildErrorCount = 0;
 			m_inventoryUseCounter = 0;
 			ApplyPassives();
 			
@@ -388,7 +390,14 @@ class com.boobuilds.Build
 			
 			Build.m_buildStillLoading = false;
 			
-			InfoWindow.LogInfo("Build loaded");
+			if (m_buildErrorCount > 0)
+			{
+				InfoWindow.LogError("Build load failed");
+			}
+			else
+			{
+				InfoWindow.LogInfo("Build loaded");
+			}
 		}		
 		else
 		{
@@ -1197,6 +1206,7 @@ class com.boobuilds.Build
 			{
 				clearInterval(m_unequipSkillsInterval);
 				InfoWindow.LogError("Failed to unequip skills");
+				++m_buildErrorCount;
 			}
 		}
 	}
@@ -1285,6 +1295,7 @@ class com.boobuilds.Build
 				m_unequipPassivesCounter = 0;
 				m_unequipPassivesInterval = -1;
 				InfoWindow.LogError("Failed to unequip passives");
+				++m_buildErrorCount;
 			}
 		}
 	}
@@ -1372,6 +1383,7 @@ class com.boobuilds.Build
 				m_equipWeaponsCounter = 0;
 				m_equipWeaponsInterval = -1;
 				InfoWindow.LogError("Failed to unequip weapons");
+				++m_buildErrorCount;
 			}
 		}
 		
@@ -1402,6 +1414,7 @@ class com.boobuilds.Build
 			else
 			{
 				InfoWindow.LogError("Couldn't find weapon " + gear.GetName());
+				++m_buildErrorCount;
 			}
 		}
 	}
@@ -1437,6 +1450,7 @@ class com.boobuilds.Build
 				m_equipWeaponsCounter = 0;
 				m_equipWeaponsInterval = -1;
 				InfoWindow.LogError("Failed to equip weapon " + m_equipWeaponItem.GetName());
+				++m_buildErrorCount;
 			}
 		}
 		
@@ -1524,6 +1538,7 @@ class com.boobuilds.Build
 			else
 			{
 				InfoWindow.LogError("Couldn't find talisman " + gear.GetName());
+				++m_buildErrorCount;
 				moveOn = true;
 			}
 		}
@@ -1565,6 +1580,7 @@ class com.boobuilds.Build
 				m_equipTalismansCounter = 0;
 				m_equipTalismansInterval = -1;
 				InfoWindow.LogError("Failed to equip talisman " + m_equipTalismanItem.GetName());
+				++m_buildErrorCount;
 				moveOn = true;
 			}
 		}
