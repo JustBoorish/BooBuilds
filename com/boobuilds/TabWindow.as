@@ -92,6 +92,10 @@ class com.boobuilds.TabWindow
 			m_tabStrip.Rebuild();
 			m_firstTime = false;
 			m_tabs[0].SetVisible(true);
+			for (var indx:Number = 1; indx < m_tabs.length; ++indx)
+			{
+				m_tabs[indx].SetVisible(false);
+			}
 		}
 		
 		m_frame._visible = visible;

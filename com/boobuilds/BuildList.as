@@ -353,40 +353,43 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function ImportBuildCB(newName:String, buildString:String):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "build");
-		if (nameValid == true && buildString != null && buildString != "" && m_currentGroup != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:String in m_builds)
+			var nameValid:Boolean = IsValidName(newName, "build");
+			if (nameValid == true && buildString != null && buildString != "" && m_currentGroup != null)
 			{
-				var thisBuild:Build = m_builds[indx];
-				if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+				var duplicateFound:Boolean = false;
+				for (var indx:String in m_builds)
 				{
-					duplicateFound = true;
+					var thisBuild:Build = m_builds[indx];
+					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+					{
+						duplicateFound = true;
+					}
 				}
-			}
-			
-			if (duplicateFound == false)
-			{
-				var newID:String = Build.GetNextID(m_builds);
-				var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-				var newBuild:Build = Build.FromString(newID, newName, null, newOrder, m_currentGroup.GetID(), buildString);
-				if (newBuild != null)
+				
+				if (duplicateFound == false)
 				{
-					m_builds[newID] = newBuild;
-					DrawList();
+					var newID:String = Build.GetNextID(m_builds);
+					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
+					var newBuild:Build = Build.FromString(newID, newName, null, newOrder, m_currentGroup.GetID(), buildString);
+					if (newBuild != null)
+					{
+						m_builds[newID] = newBuild;
+						DrawList();
+					}
+					else
+					{
+						InfoWindow.LogError("Import failed.  Build string corrupt!");				
+					}
 				}
 				else
 				{
-					InfoWindow.LogError("Import failed.  Build string corrupt!");				
+					InfoWindow.LogError("Import failed.  A build with this name already exists in this build group");				
 				}
 			}
-			else
-			{
-				InfoWindow.LogError("Import failed.  A build with this name already exists in this build group");				
-			}
 		}
-			
+		
 		m_currentGroup = null;
 	}
 	
@@ -403,31 +406,34 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function RenameBuildCB(newName:String):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "build");
-		if (nameValid == true && m_currentBuild != null && newName != m_currentBuild.GetName())
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:String in m_builds)
+			var nameValid:Boolean = IsValidName(newName, "build");
+			if (nameValid == true && m_currentBuild != null && newName != m_currentBuild.GetName())
 			{
-				var tempBuild:Build = m_builds[indx];
-				if (tempBuild != null && tempBuild.GetName() == newName && tempBuild.GetGroup() == m_currentBuild.GetGroup())
+				var duplicateFound:Boolean = false;
+				for (var indx:String in m_builds)
 				{
-					duplicateFound = true;
-					break;
+					var tempBuild:Build = m_builds[indx];
+					if (tempBuild != null && tempBuild.GetName() == newName && tempBuild.GetGroup() == m_currentBuild.GetGroup())
+					{
+						duplicateFound = true;
+						break;
+					}
+				}
+
+				if (duplicateFound == false)
+				{
+					m_currentBuild.SetName(newName);
+					DrawList();
+				}
+				else
+				{
+					InfoWindow.LogError("Rename failed. A build with this name exists in this build group");
 				}
 			}
-
-			if (duplicateFound == false)
-			{
-				m_currentBuild.SetName(newName);
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Rename failed. A build with this name exists in this build group");
-			}
 		}
-			
+		
 		m_currentBuild = null;
 	}
 	
@@ -457,40 +463,43 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function UpdateBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "build");
-		if (nameValid == true && newName != "" && m_currentBuild != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:String in m_builds)
+			var nameValid:Boolean = IsValidName(newName, "build");
+			if (nameValid == true && newName != "" && m_currentBuild != null)
 			{
-				var thisBuild:Build = m_builds[indx];
-				if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+				var duplicateFound:Boolean = false;
+				for (var indx:String in m_builds)
 				{
-					duplicateFound = true;
-				}
-			}
-			
-			if (duplicateFound == false)
-			{
-				m_currentBuild.UpdateFromCurrent();
-				
-				if (includeWeapons != true)
-				{
-					m_currentBuild.ClearWeapons();
-				}
-				if (includeTalismans != true)
-				{
-					m_currentBuild.ClearGear();
+					var thisBuild:Build = m_builds[indx];
+					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+					{
+						duplicateFound = true;
+					}
 				}
 				
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Update build failed.  Name already exists");				
+				if (duplicateFound == false)
+				{
+					m_currentBuild.UpdateFromCurrent();
+					
+					if (includeWeapons != true)
+					{
+						m_currentBuild.ClearWeapons();
+					}
+					if (includeTalismans != true)
+					{
+						m_currentBuild.ClearGear();
+					}
+					
+					DrawList();
+				}
+				else
+				{
+					InfoWindow.LogError("Update build failed.  Name already exists");				
+				}
 			}
 		}
-			
+		
 		m_currentBuild = null;
 	}
 	
@@ -580,41 +589,44 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function CreateCurrentBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "build");
-		if (nameValid == true && newName != "" && m_currentGroup != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:String in m_builds)
+			var nameValid:Boolean = IsValidName(newName, "build");
+			if (nameValid == true && newName != "" && m_currentGroup != null)
 			{
-				var thisBuild:Build = m_builds[indx];
-				if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+				var duplicateFound:Boolean = false;
+				for (var indx:String in m_builds)
 				{
-					duplicateFound = true;
+					var thisBuild:Build = m_builds[indx];
+					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+					{
+						duplicateFound = true;
+					}
 				}
-			}
-			
-			if (duplicateFound == false)
-			{
-				var newID:String = Build.GetNextID(m_builds);
-				var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-				var newBuild:Build = Build.FromCurrent(newID, newName, null, newOrder, m_currentGroup.GetID());
-				if (includeWeapons != true)
+				
+				if (duplicateFound == false)
 				{
-					newBuild.ClearWeapons();
+					var newID:String = Build.GetNextID(m_builds);
+					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
+					var newBuild:Build = Build.FromCurrent(newID, newName, null, newOrder, m_currentGroup.GetID());
+					if (includeWeapons != true)
+					{
+						newBuild.ClearWeapons();
+					}
+					if (includeTalismans != true)
+					{
+						newBuild.ClearGear();
+					}
+					m_builds[newID] = newBuild;
+					DrawList();
 				}
-				if (includeTalismans != true)
+				else
 				{
-					newBuild.ClearGear();
+					InfoWindow.LogError("Create build failed.  Name already exists");				
 				}
-				m_builds[newID] = newBuild;
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Create build failed.  Name already exists");				
 			}
 		}
-			
+		
 		m_currentGroup = null;
 	}
 	
@@ -631,32 +643,35 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function EditGroupCB(newName:String, newColour:String):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "group");
-		if (nameValid == true && m_currentGroup != null && newColour != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:Number = 0; indx < m_groups.length; ++indx)
+			var nameValid:Boolean = IsValidName(newName, "group");
+			if (nameValid == true && m_currentGroup != null && newColour != null)
 			{
-				var tempGroup:BuildGroup = m_groups[indx];
-				if (tempGroup != null && tempGroup.GetID() != m_currentGroup.GetID() && tempGroup.GetName() == newName)
+				var duplicateFound:Boolean = false;
+				for (var indx:Number = 0; indx < m_groups.length; ++indx)
 				{
-					duplicateFound = true;
-					break;
+					var tempGroup:BuildGroup = m_groups[indx];
+					if (tempGroup != null && tempGroup.GetID() != m_currentGroup.GetID() && tempGroup.GetName() == newName)
+					{
+						duplicateFound = true;
+						break;
+					}
+				}
+
+				if (duplicateFound == false)
+				{
+					m_currentGroup.SetName(newName);
+					m_currentGroup.SetColourName(newColour);
+					DrawList();
+				}
+				else
+				{
+					InfoWindow.LogError("Edit group failed.  Name already exists");				
 				}
 			}
-
-			if (duplicateFound == false)
-			{
-				m_currentGroup.SetName(newName);
-				m_currentGroup.SetColourName(newColour);
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Edit group failed.  Name already exists");				
-			}
 		}
-			
+		
 		m_currentGroup = null;
 	}
 	
@@ -673,34 +688,37 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function AddGroupAboveCB(newName:String, newColour:String):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "group");
-		if (nameValid == true && m_currentGroup != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:Number = 0; indx < m_groups.length; ++indx)
+			var nameValid:Boolean = IsValidName(newName, "group");
+			if (nameValid == true && m_currentGroup != null)
 			{
-				var tempGroup:BuildGroup = m_groups[indx];
-				if (tempGroup != null && tempGroup.GetName() == newName)
+				var duplicateFound:Boolean = false;
+				for (var indx:Number = 0; indx < m_groups.length; ++indx)
 				{
-					duplicateFound = true;
-					break;
+					var tempGroup:BuildGroup = m_groups[indx];
+					if (tempGroup != null && tempGroup.GetName() == newName)
+					{
+						duplicateFound = true;
+						break;
+					}
+				}
+
+				if (duplicateFound == false)
+				{
+					var newID:String = BuildGroup.GetNextID(m_groups);
+					var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
+					var indx:Number = FindGroupIndex(m_currentGroup.GetID());
+					m_groups.splice(indx, 0, newGroup);
+					DrawList();
+				}
+				else
+				{
+					InfoWindow.LogError("Add group failed.  Name already exists");				
 				}
 			}
-
-			if (duplicateFound == false)
-			{
-				var newID:String = BuildGroup.GetNextID(m_groups);
-				var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
-				var indx:Number = FindGroupIndex(m_currentGroup.GetID());
-				m_groups.splice(indx, 0, newGroup);
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Add group failed.  Name already exists");				
-			}
 		}
-			
+		
 		m_currentGroup = null;
 	}
 	
@@ -717,34 +735,37 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function AddGroupBelowCB(newName:String, newColour:String):Void
 	{
-		var nameValid:Boolean = IsValidName(newName, "group");
-		if (nameValid == true && m_currentGroup != null)
+		if (newName != null)
 		{
-			var duplicateFound:Boolean = false;
-			for (var indx:Number = 0; indx < m_groups.length; ++indx)
+			var nameValid:Boolean = IsValidName(newName, "group");
+			if (nameValid == true && m_currentGroup != null)
 			{
-				var tempGroup:BuildGroup = m_groups[indx];
-				if (tempGroup != null && tempGroup.GetName() == newName)
+				var duplicateFound:Boolean = false;
+				for (var indx:Number = 0; indx < m_groups.length; ++indx)
 				{
-					duplicateFound = true;
-					break;
+					var tempGroup:BuildGroup = m_groups[indx];
+					if (tempGroup != null && tempGroup.GetName() == newName)
+					{
+						duplicateFound = true;
+						break;
+					}
+				}
+
+				if (duplicateFound == false)
+				{
+					var newID:String = BuildGroup.GetNextID(m_groups);
+					var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
+					var indx:Number = FindGroupIndex(m_currentGroup.GetID());
+					m_groups.splice(indx + 1, 0, newGroup);
+					DrawList();
+				}
+				else
+				{
+					InfoWindow.LogError("Add group failed.  Name already exists");				
 				}
 			}
-
-			if (duplicateFound == false)
-			{
-				var newID:String = BuildGroup.GetNextID(m_groups);
-				var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
-				var indx:Number = FindGroupIndex(m_currentGroup.GetID());
-				m_groups.splice(indx + 1, 0, newGroup);
-				DrawList();
-			}
-			else
-			{
-				InfoWindow.LogError("Add group failed.  Name already exists");				
-			}
 		}
-			
+		
 		m_currentGroup = null;
 	}
 	

@@ -120,18 +120,18 @@ class com.boobuilds.BuildGroup
 		}
 	}
 	
-	public function Save(archive:Archive, groupNumber:Number):Void
+	public function Save(groupPrefix:String, archive:Archive, groupNumber:Number):Void
 	{
-		var prefix:String = Build.GROUP_PREFIX + groupNumber;
+		var prefix:String = groupPrefix + groupNumber;
 		SetArchiveEntry(prefix, archive, Build.ID_PREFIX, m_id);
 		SetArchiveEntry(prefix, archive, Build.NAME_PREFIX, m_name);
 		SetArchiveEntry(prefix, archive, BuildGroup.COLOUR_PREFIX, m_colourName);
 	}
 	
-	public static function FromArchive(archive:Archive, groupNumber:Number):BuildGroup
+	public static function FromArchive(groupPrefix:String, archive:Archive, groupNumber:Number):BuildGroup
 	{
 		var ret:BuildGroup = null;
-		var prefix:String = Build.GROUP_PREFIX + groupNumber;
+		var prefix:String = groupPrefix + groupNumber;
 		var id:String = GetArchiveEntry(prefix, archive, Build.ID_PREFIX, null);
 		if (id != null)
 		{
@@ -143,9 +143,9 @@ class com.boobuilds.BuildGroup
 		return ret;
 	}
 
-	public static function ClearArchive(archive:Archive, groupNumber:Number):Void
+	public static function ClearArchive(groupPrefix:String, archive:Archive, groupNumber:Number):Void
 	{
-		var prefix:String = Build.GROUP_PREFIX + groupNumber;
+		var prefix:String = groupPrefix + groupNumber;
 		DeleteArchiveEntry(prefix, archive, Build.ID_PREFIX);
 		DeleteArchiveEntry(prefix, archive, Build.NAME_PREFIX);
 		DeleteArchiveEntry(prefix, archive, BuildGroup.COLOUR_PREFIX);

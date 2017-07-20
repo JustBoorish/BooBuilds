@@ -19,6 +19,7 @@ import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.InfoWindow;
+import com.boobuilds.InventoryThrottle;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -52,9 +53,8 @@ class com.boobuilds.Build
 	public static var MAX_PASSIVES:Number = 5;
 	public static var MAX_GEAR:Number = 8;
 	public static var MAX_WEAPONS:Number = 2;
-	private static var SEPARATOR = "%";
+	public static var SEPARATOR = "%";
 	
-	private static var m_inventoryThrottleMode:Number = 0;
 	private static var m_buildStillLoading:Boolean = false;
 	private static var m_buildLoadingID:Number = -1;
 
@@ -83,9 +83,9 @@ class com.boobuilds.Build
 	private var m_equipTalismanItem:GearItem;
 	private var m_equipTalismanSlot:Number;
 	private var m_logAfterSkills:Boolean;
-	private var m_inventoryUseCounter:Number;
 	private var m_buildApplyQueue:Array;
 	private var m_buildErrorCount:Number;
+	private var m_inventoryThrottle:InventoryThrottle;
 
 	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
 	{
@@ -350,8 +350,8 @@ class com.boobuilds.Build
 				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
 			}
 			
+			m_inventoryThrottle = new InventoryThrottle();
 			m_buildErrorCount = 0;
-			m_inventoryUseCounter = 0;
 			ApplyPassives();
 			
 			if (m_buildApplyQueue.length > 0)
@@ -659,7 +659,7 @@ class com.boobuilds.Build
 		return true;
 	}
 	
-	private static function GetArrayString(prefix:String, array:Array):String
+	public static function GetArrayString(prefix:String, array:Array):String
 	{
 		var ret:String = "";
 		if (prefix != null)
@@ -691,7 +691,7 @@ class com.boobuilds.Build
 		}
 	}
 	
-	private static function GetArrayGearItemString(prefix:String, array:Array):String
+	public static function GetArrayGearItemString(prefix:String, array:Array):String
 	{
 		var ret:String = "";
 		if (prefix != null)
@@ -788,7 +788,7 @@ class com.boobuilds.Build
 		DeleteArchiveEntry(prefix, archive, BUILD_PREFIX);
 	}
 	
-	private static function SplitBuildString(buildString:String):Array
+	public static function SplitArrayString(buildString:String):Array
 	{
 		var tmpBuildItems:Array = buildString.split(SEPARATOR);
 		var buildItems:Array = new Array();
@@ -943,7 +943,7 @@ class com.boobuilds.Build
 	public static function FromString(id:String, name:String, parent:Build, order:Number, groupID:String, buildString:String):Build
 	{
 		var ret:Build = null;
-		var buildItems:Array = SplitBuildString(buildString);
+		var buildItems:Array = SplitArrayString(buildString);
 		if (buildItems.length > 0)
 		{
 			if (buildItems[0] == "BD")
@@ -1106,46 +1106,6 @@ class com.boobuilds.Build
 		}
 	}
 	
-/*	private function SetCurrentCostume():Void
-	{
-		var inventoryID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
-		var inventory:Inventory = new Inventory(inventoryID);
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_Hat, _global.Enums.ItemEquipLocation.e_Wear_Face,
-								_global.Enums.ItemEquipLocation.e_Wear_Neck, _global.Enums.ItemEquipLocation.e_Wear_Back,
-								_global.Enums.ItemEquipLocation.e_Wear_Chest, _global.Enums.ItemEquipLocation.e_Wear_Hands,
-								_global.Enums.ItemEquipLocation.e_Wear_Legs, _global.Enums.ItemEquipLocation.e_Wear_Feet,
-								_global.Enums.ItemEquipLocation.e_Wear_FullOutfit];
-/*		        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_FullOutfit] = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Hat]        = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Face]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Neck]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Back]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Chest]      = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Hands]      = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Belt]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Legs]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Wear_Feet]       = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Ring_1]          = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_Ring_2]          = undefined;
-        m_LocationLabels[_global.Enums.ItemEquipLocation.e_HeadAccessory]   = undefined;*/
-/*
-		for ( var i:Number = 0 ; i < positions.length; ++i )
-		{
-			SetCostume(i, null);
-			
-			var item:InventoryItem = inventory.GetItemAt(positions[i]);
-			if (item != null)
-			{
-				var tooltipData:TooltipData = TooltipDataProvider.GetInventoryItemTooltip(inventoryID, positions[i]);
-				var gear:GearItem = GearItem.GetGearItem(item, tooltipData);
-				if (gear != null)
-				{
-					SetCostume(i, gear);
-				}
-			}
-		}		
-	}*/
-
 	public function UpdateFromCurrent():Void
 	{
 		SetCurrentSkills();
@@ -1347,7 +1307,6 @@ class com.boobuilds.Build
 		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 		var charInv:Inventory = new Inventory(charInvId);
 		charInv.UseItem(GetWeaponSlotID(m_equipWeaponSlot));
-		++m_inventoryUseCounter;
 		
 		// wait until both weapons are unequipped
 		m_equipWeaponsCounter = 0;
@@ -1367,12 +1326,12 @@ class com.boobuilds.Build
 			
 			if (m_equipWeaponSlot == 0)
 			{
-				DoNextInventoryAction(Delegate.create(this, function() { this.UnequipWeapon(1); }));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, function() { this.UnequipWeapon(1); }));
 			}
 			else
 			{
 				var nextWeapon:GearItem = GetWeapon(0);
-				DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 0); }));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 0); }));
 			}
 		}
 		else
@@ -1403,7 +1362,6 @@ class com.boobuilds.Build
 				var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 				var charInv:Inventory = new Inventory(charInvId);
 				charInv.AddItem(bagInvId, itemSlot, GetWeaponSlotID(slot));
-				++m_inventoryUseCounter;
 				DebugWindow.Log(DebugWindow.Info, "Adding " + gear.GetName());
 				
 				m_equipWeaponItem = GetWeapon(slot);
@@ -1434,12 +1392,12 @@ class com.boobuilds.Build
 				GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
 		
 				var nextWeapon:GearItem = GetWeapon(1);
-				DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 1); }));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, function() { this.EquipWeapon(nextWeapon, 1); }));
 			}
 			else
 			{
 				GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
-				DoNextInventoryAction(Delegate.create(this, ApplyBuildQueue));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, ApplyBuildQueue));
 			}
 		}
 		else
@@ -1528,7 +1486,6 @@ class com.boobuilds.Build
 			{
 				var itemSlot:Number = obj.indx;
 				bagInv.UseItem(itemSlot);
-				++m_inventoryUseCounter;
 				
 				m_equipTalismanItem = GetGear(slot);
 				m_equipTalismanSlot = slot;
@@ -1591,11 +1548,11 @@ class com.boobuilds.Build
 			{
 				var nextSlot:Number = m_equipTalismanSlot + 1;
 				var nextGear:GearItem = GetGear(nextSlot);
-				DoNextInventoryAction(Delegate.create(this, function() { this.EquipTalisman(nextGear, nextSlot); }));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, function() { this.EquipTalisman(nextGear, nextSlot); }));
 			}
 			else
 			{
-				DoNextInventoryAction(Delegate.create(this, ApplyBuildQueue));
+				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, ApplyBuildQueue));
 			}
 		}
 	}
@@ -1611,42 +1568,6 @@ class com.boobuilds.Build
 		}
 		
 		return false;
-	}
-	
-	public static function SetInventoryThrottleMode(newValue:Number):Void
-	{
-		m_inventoryThrottleMode = newValue;
-	}
-	
-	private function DoNextInventoryAction(callback:Function):Void
-	{
-		var shortTimeout:Number = 20;
-		var longTimeout:Number = 2000;
-		
-		if (m_inventoryThrottleMode == 1)
-		{
-			shortTimeout = 300;
-			longTimeout = 300;
-		}
-		else if (m_inventoryThrottleMode == 2)
-		{
-			shortTimeout = 400;
-			longTimeout = 400;
-		}
-		else if (m_inventoryThrottleMode == 3)
-		{
-			shortTimeout = 500;
-			longTimeout = 500;
-		}
-		
-		var timeout:Number = shortTimeout;
-		if (m_inventoryUseCounter > 5)
-		{
-			timeout = longTimeout;
-			m_inventoryUseCounter = 0;
-		}
-		
-		setTimeout(callback, timeout);
 	}
 	
 	private function AvailableBagSpace():Number

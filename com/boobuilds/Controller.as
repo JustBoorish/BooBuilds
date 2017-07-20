@@ -10,7 +10,9 @@ import com.boobuilds.DebugWindow;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.OptionsTab;
+import com.boobuilds.Outfit;
 import com.boobuilds.Localisation;
+import com.boobuilds.OutfitList;
 import com.boobuilds.Settings;
 import com.boobuilds.SkillMenu;
 import com.boobuilds.TabWindow;
@@ -66,6 +68,7 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_TABS:Number = 8;
 	public static var MAX_GROUPS:Number = 50;
 	public static var MAX_BUILDS:Number = 200;
+	public static var MAX_OUTFITS:Number = 200;
 	
 	private var m_version:String = "1.4";
 	private var m_debug:DebugWindow = null;
@@ -83,7 +86,9 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_optionsTab:OptionsTab;
 	private var m_selectorWindow:BuildSelector;
 	private var m_builds:Object;
-	private var m_groups:Array;
+	private var m_buildGroups:Array;
+	private var m_outfits:Object;
+	private var m_outfitGroups:Array;
 	private var m_redrawInterval:Number;
 	private var m_redrawCount:Number;
 	private var m_loadBuildDV:DistributedValue;
@@ -158,10 +163,17 @@ class com.boobuilds.Controller extends MovieClip
 			OptionsTab.ApplyOptions(m_settings);
 			LoadBuildGroups();
 			LoadBuilds();
+			LoadOutfitGroups();
+			LoadOutfits();
 			
-			if (m_groups.length == 0)
+			if (m_buildGroups.length == 0)
 			{
-				SetDefaultGroups();
+				SetDefaultBuildGroups();
+			}
+			
+			if (m_outfitGroups.length == 0)
+			{
+				SetDefaultOutfitGroups();
 			}
 			
 			m_clientCharacter = Character.GetClientCharacter();
@@ -194,45 +206,50 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 	}
 	
-	private function SetDefaultGroups():Void
+	private function SetDefaultBuildGroups():Void
 	{
-		m_groups.push(new BuildGroup(BuildGroup.GetNextID(m_groups), "Solo", BuildGroup.PURPLE));
-		m_groups.push(new BuildGroup(BuildGroup.GetNextID(m_groups), "DPS", BuildGroup.RED));
-		m_groups.push(new BuildGroup(BuildGroup.GetNextID(m_groups), "Heals", BuildGroup.GREEN));
-		m_groups.push(new BuildGroup(BuildGroup.GetNextID(m_groups), "Tank", BuildGroup.BLUE));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Solo", BuildGroup.PURPLE));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "DPS", BuildGroup.RED));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Heals", BuildGroup.GREEN));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Tank", BuildGroup.BLUE));
+	}
+	
+	private function SetDefaultOutfitGroups():Void
+	{
+		m_outfitGroups.push(new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Solo", BuildGroup.PURPLE));
 	}
 	
 	private function SaveBuildGroups():Void
 	{
 		var archive:Archive = Settings.GetArchive();
 		var groupNumber:Number = 1;
-		for (var indx:Number = 0; indx < m_groups.length; ++indx)
+		for (var indx:Number = 0; indx < m_buildGroups.length; ++indx)
 		{
-			var thisGroup:BuildGroup = m_groups[indx];
+			var thisGroup:BuildGroup = m_buildGroups[indx];
 			if (thisGroup != null)
 			{
-				thisGroup.Save(archive, groupNumber);
+				thisGroup.Save(Build.GROUP_PREFIX, archive, groupNumber);
 				++groupNumber;
 			}
 		}
 		
 		for (var indx:Number = groupNumber; indx <= MAX_GROUPS; ++indx)
 		{
-			BuildGroup.ClearArchive(archive, indx);
+			BuildGroup.ClearArchive(Build.GROUP_PREFIX, archive, indx);
 		}
 	}
 	
 	private function LoadBuildGroups():Void
 	{
-		m_groups = new Array();
+		m_buildGroups = new Array();
 		var archive:Archive = Settings.GetArchive();
 		for (var indx:Number = 0; indx < MAX_GROUPS; ++indx)
 		{
-			var thisGroup:BuildGroup = BuildGroup.FromArchive(archive, indx + 1);
+			var thisGroup:BuildGroup = BuildGroup.FromArchive(Build.GROUP_PREFIX, archive, indx + 1);
 			if (thisGroup != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Loaded group " + thisGroup.GetName());
-				m_groups.push(thisGroup);
+				DebugWindow.Log(DebugWindow.Info, "Loaded build group " + thisGroup.GetName());
+				m_buildGroups.push(thisGroup);
 			}
 		}
 	}
@@ -268,7 +285,7 @@ class com.boobuilds.Controller extends MovieClip
 			{
 				DebugWindow.Log(DebugWindow.Info, "Loaded build " + thisBuild.GetName() + " ID " + thisBuild.GetID() + " Group " + thisBuild.GetGroup() + " Order " + thisBuild.GetOrder());
 				
-				if (FindGroupWithID(thisBuild.GetGroup()) != null)
+				if (FindGroupWithID(m_buildGroups, thisBuild.GetGroup()) != null)
 				{
 					m_builds[thisBuild.GetID()] = thisBuild;
 				}
@@ -280,11 +297,89 @@ class com.boobuilds.Controller extends MovieClip
 		}
 	}
 	
-	private function FindGroupWithID(groupID:String):BuildGroup
+	private function SaveOutfitGroups():Void
 	{
-		for (var indx:Number = 0; indx < m_groups.length; ++indx)
+		var archive:Archive = Settings.GetArchive();
+		var groupNumber:Number = 1;
+		for (var indx:Number = 0; indx < m_outfitGroups.length; ++indx)
 		{
-			var thisGroup:BuildGroup = m_groups[indx];
+			var thisGroup:BuildGroup = m_outfitGroups[indx];
+			if (thisGroup != null)
+			{
+				thisGroup.Save(Outfit.GROUP_PREFIX, archive, groupNumber);
+				++groupNumber;
+			}
+		}
+		
+		for (var indx:Number = groupNumber; indx <= MAX_GROUPS; ++indx)
+		{
+			BuildGroup.ClearArchive(Outfit.GROUP_PREFIX, archive, indx);
+		}
+	}
+	
+	private function LoadOutfitGroups():Void
+	{
+		m_outfitGroups = new Array();
+		var archive:Archive = Settings.GetArchive();
+		for (var indx:Number = 0; indx < MAX_GROUPS; ++indx)
+		{
+			var thisGroup:BuildGroup = BuildGroup.FromArchive(Outfit.GROUP_PREFIX, archive, indx + 1);
+			if (thisGroup != null)
+			{
+				DebugWindow.Log(DebugWindow.Info, "Loaded outfit group " + thisGroup.GetName());
+				m_outfitGroups.push(thisGroup);
+			}
+		}
+	}
+	
+	private function SaveOutfits():Void
+	{
+		var archive:Archive = Settings.GetArchive();
+		var outfitNumber:Number = 1;
+		for (var indx:String in m_outfits)
+		{
+			var thisOutfit:Outfit = m_outfits[indx];
+			if (thisOutfit != null)
+			{
+				thisOutfit.Save(archive, outfitNumber);
+				++outfitNumber;
+			}
+		}
+		
+		for (var indx:Number = outfitNumber; indx <= MAX_OUTFITS; ++indx)
+		{
+			Outfit.ClearArchive(archive, indx);
+		}
+	}
+	
+	private function LoadOutfits():Void
+	{
+		m_outfits = new Object();
+		var archive:Archive = Settings.GetArchive();
+		for (var indx:Number = 0; indx < MAX_OUTFITS; ++indx)
+		{
+			var thisOutfit:Outfit = Outfit.FromArchive(indx + 1, archive);
+			if (thisOutfit != null)
+			{
+				DebugWindow.Log(DebugWindow.Info, "Loaded outfit " + thisOutfit.GetName() + " ID " + thisOutfit.GetID() + " Group " + thisOutfit.GetGroup() + " Order " + thisOutfit.GetOrder());
+				
+				if (FindGroupWithID(m_outfitGroups, thisOutfit.GetGroup()) != null)
+				{
+					m_outfits[thisOutfit.GetID()] = thisOutfit;
+				}
+				else
+				{
+					Outfit.ClearArchive(archive, indx + 1);
+				}
+			}
+		}
+	}
+	
+	private function FindGroupWithID(groups:Array, groupID:String):BuildGroup
+	{
+		for (var indx:Number = 0; indx < groups.length; ++indx)
+		{
+			var thisGroup:BuildGroup = groups[indx];
 			if (thisGroup != null && thisGroup.GetID() == groupID)
 			{
 				return thisGroup;
@@ -315,6 +410,8 @@ class com.boobuilds.Controller extends MovieClip
 		Settings.Save(m_settingsPrefix, m_settings, m_defaults);
 		SaveBuildGroups();
 		SaveBuilds();
+		SaveOutfitGroups();
+		SaveOutfits();
 	}
 	
 	private function ConfigClosed():Void
@@ -343,7 +440,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (show == true)
 		{
-			m_selectorWindow = new BuildSelector(m_mc, "Build Selector", m_groups, m_builds, m_cooldownMonitor);
+			m_selectorWindow = new BuildSelector(m_mc, "Build Selector", m_buildGroups, m_builds, m_cooldownMonitor);
 			var icon:MovieClip = m_icon.GetIcon();
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
@@ -369,9 +466,11 @@ class com.boobuilds.Controller extends MovieClip
 		if (m_configWindow == null)
 		{
 			m_optionsTab = new OptionsTab("Options");
-			var buildList:BuildList = new BuildList("BuildList", m_groups, m_builds, m_settings, m_cooldownMonitor);
+			var buildList:BuildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor);
+			var outfitList:OutfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", buildList);
+			m_configWindow.AddTab("Outfits", outfitList);
 			m_configWindow.AddTab("Options", m_optionsTab);
 			m_optionsTab.SetSettings(m_settings);
 			m_configWindow.SetVisible(true);

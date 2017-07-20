@@ -4,6 +4,7 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Checkbox;
 import com.boobuilds.DebugWindow;
+import com.boobuilds.InventoryThrottle;
 import com.boobuilds.MenuPanel;
 import com.Utils.Text;
 import mx.utils.Delegate;
@@ -108,7 +109,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		{
 			if (settings[INVENTORY_THROTTLE] != null)
 			{
-				Build.SetInventoryThrottleMode(settings[INVENTORY_THROTTLE]);
+				InventoryThrottle.SetInventoryThrottleMode(settings[INVENTORY_THROTTLE]);
 			}
 		}
 	}

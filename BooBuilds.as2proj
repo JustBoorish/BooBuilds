@@ -73,6 +73,11 @@
     <compile path="com\boobuilds\InfoWindow.as" />
     <compile path="com\boobuilds\EditBuildDialog.as" />
     <compile path="com\boobuilds\CooldownMonitor.as" />
+    <compile path="com\boobuilds\Outfit.as" />
+    <compile path="com\boobuilds\EditOutfitDialog.as" />
+    <compile path="com\boobuilds\ImportOutfitDialog.as" />
+    <compile path="com\boobuilds\OutfitList.as" />
+    <compile path="com\boobuilds\InventoryThrottle.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

@@ -22,6 +22,10 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 1.5
+Initial support for switching outfits
+Added Backup and restore features
+
 Version 1.4
 Made builds include the weapon hidden status
 Stopped builds from loading when a skill has an active cooldown
