@@ -55,15 +55,13 @@ class com.boobuilds.OutfitList implements ITabPane
 	private var m_editOutfitDialog:EditOutfitDialog;
 	private var m_importOutfitDialog:ImportOutfitDialog;
 	private var m_settings:Object;
-	private var m_cooldownMonitor:CooldownMonitor;
 	
-	public function OutfitList(name:String, groups:Array, outfits:Object, settings:Object, cdMon:CooldownMonitor)
+	public function OutfitList(name:String, groups:Array, outfits:Object, settings:Object)
 	{
 		m_name = name;
 		m_groups = groups;
 		m_outfits = outfits;
 		m_settings = settings;
-		m_cooldownMonitor = cdMon;
 	}
 
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
@@ -71,10 +69,11 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_parent = parent;
 		m_name = name;
 		m_addonMC = addonMC;
-		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height);
+		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null);
 		
 		m_itemPopup = new PopupMenu(m_addonMC, "Popup", 6);
 		m_itemPopup.AddItem("Use", Delegate.create(this, ApplyOutfit));
+		m_itemPopup.AddItem("Preview", Delegate.create(this, PreviewOutfit));
 		m_itemPopup.AddSeparator();
 		m_itemPopup.AddItem("Export", Delegate.create(this, ExportOutfit));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameOutfit));
@@ -180,14 +179,13 @@ class com.boobuilds.OutfitList implements ITabPane
 	public function OutfitSubMenu(subTree:TreePanel, groupID:String):Void
 	{
 		var sortedOutfits:Array = Outfit.GetOrderedOutfits(groupID, m_outfits);
-		DebugWindow.Log(DebugWindow.Debug, "Sorted list = " + sortedOutfits.length);
 		for (var indx:Number = 0; indx < sortedOutfits.length; ++indx)
 		{
 			var thisOutfit:Outfit = sortedOutfits[indx];
 			if (thisOutfit != null && thisOutfit.GetGroup() == groupID)
 			{
 				DebugWindow.Log(DebugWindow.Info, "Added outfit " + thisOutfit.GetName() + " " + thisOutfit.toString());
-				subTree.AddItem(thisOutfit.GetName(), Delegate.create(this, ApplyOutfit), thisOutfit.GetID());
+				subTree.AddItem(thisOutfit.GetName(), Delegate.create(this, PreviewOutfit), thisOutfit.GetID());
 			}
 		}
 	}
@@ -265,12 +263,21 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 	}
 	
+	private function PreviewOutfit(outfitID:String):Void
+	{
+		var thisOutfit:Outfit = m_outfits[outfitID];
+		if (thisOutfit != null)
+		{
+			thisOutfit.Preview();
+		}
+	}
+	
 	private function ApplyOutfit(outfitID:String):Void
 	{
 		var thisOutfit:Outfit = m_outfits[outfitID];
 		if (thisOutfit != null)
 		{
-			thisOutfit.Apply(m_cooldownMonitor);
+			thisOutfit.Apply();
 		}
 	}
 	
@@ -425,14 +432,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			var includeWeapons:Boolean = true;
-			var includeTalismans:Boolean = true;
-			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_currentOutfit.GetName(), includeWeapons, includeTalismans);
+			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.GetSprintTag());
 			m_editOutfitDialog.Show(Delegate.create(this, UpdateOutfitCB));
 		}
 	}
 	
-	private function UpdateOutfitCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
+	private function UpdateOutfitCB(newName:String, includeWeapons:Boolean, newSprintTag:Number):Void
 	{
 		if (newName != null)
 		{
@@ -452,6 +457,20 @@ class com.boobuilds.OutfitList implements ITabPane
 				if (duplicateFound == false)
 				{
 					m_currentOutfit.UpdateFromCurrent();
+					
+					if (includeWeapons != true)
+					{
+						m_currentOutfit.ClearWeaponVisibility();
+					}
+					
+					if (newSprintTag != null)
+					{
+						m_currentOutfit.SetSprintTag(newSprintTag);
+					}
+					else
+					{
+						m_currentOutfit.ClearSprint();
+					}
 					
 					DrawList();
 				}
@@ -544,12 +563,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, "", true, true);
+			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, m_addonMC, "", true, null);
 			m_editOutfitDialog.Show(Delegate.create(this, CreateCurrentOutfitCB));
 		}
 	}
 	
-	private function CreateCurrentOutfitCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
+	private function CreateCurrentOutfitCB(newName:String, includeWeapons:Boolean, newSprintTag:Number):Void
 	{
 		if (newName != null)
 		{
@@ -570,8 +589,21 @@ class com.boobuilds.OutfitList implements ITabPane
 				{
 					var newID:String = Outfit.GetNextID(m_outfits);
 					var newOrder:Number = Outfit.GetNextOrder(m_currentGroup.GetID(), m_outfits);
-					DebugWindow.Log(DebugWindow.Debug, "Create outfit " + newID + " " + newName + " " + newOrder + " " + m_currentGroup.GetName() + " " + m_currentGroup.GetID());
 					var newOutfit:Outfit = Outfit.FromCurrent(newID, newName, newOrder, m_currentGroup.GetID());
+					if (includeWeapons != true)
+					{
+						newOutfit.ClearWeaponVisibility();
+					}
+					
+					if (newSprintTag != null)
+					{
+						newOutfit.SetSprintTag(newSprintTag);
+					}
+					else
+					{
+						newOutfit.ClearSprint();
+					}
+					
 					m_outfits[newID] = newOutfit;
 					DrawList();
 				}

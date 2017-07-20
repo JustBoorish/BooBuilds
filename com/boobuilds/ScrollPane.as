@@ -26,10 +26,12 @@ class com.boobuilds.ScrollPane
 	private var m_mask:MovieClip;
 	private var m_content:MovieClip;
 	private var m_contentHeight:Number;
+	private var m_contentYOffset:Number;
 	private var m_scrollButton:MovieClip;
 	private var m_ratio:Number;
+	private var m_backgroundColour:Number;
 	
-	public function ScrollPane(parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number) 
+	public function ScrollPane(parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number, backgroundColour:Number) 
 	{
 		m_name = name;
 		m_parent = parent;
@@ -37,6 +39,7 @@ class com.boobuilds.ScrollPane
 		m_frame._visible = false;
 		m_frame._x = x;
 		m_frame._y = y;
+		m_backgroundColour = backgroundColour;
 		m_maxWidth = width;
 		m_maxHeight = height;
 		m_content = null;
@@ -75,6 +78,7 @@ class com.boobuilds.ScrollPane
 		m_mask.endFill();
 		
 		m_content = content;
+		
 		m_content.setMask(m_mask);
 		m_contentHeight = contentHeight;
 		Resize();
@@ -100,6 +104,19 @@ class com.boobuilds.ScrollPane
 	public function SetVisible(visible:Boolean):Void
 	{
 		m_frame._visible = visible;
+		m_content._visible = visible;
+		
+		if (visible == true)
+		{
+			var pt:Object = new Object();
+			pt.x = 1;
+			pt.y = 1;
+			m_mask.localToGlobal(pt);
+			m_content._parent.globalToLocal(pt);
+			m_content._x = pt.x;
+			m_contentYOffset = pt.y;
+			ScrollMoved();
+		}
 	}
 	
 	public function GetVisible():Boolean
@@ -126,18 +143,26 @@ class com.boobuilds.ScrollPane
 	
 	private function ScrollMoved():Void
 	{
-		m_content._y = - ((m_scrollButton._y - 1) / m_maxHeight * m_content._height);
+		m_content._y = m_contentYOffset - ((m_scrollButton._y - 1) / m_maxHeight * m_content._height);
 	}
 	
 	private function DrawFrame():Void
 	{
 		var areaFrame:MovieClip = m_frame.createEmptyMovieClip("Frame", m_frame.getNextHighestDepth());
+		if (m_backgroundColour != null)
+		{
+			areaFrame.beginFill(m_backgroundColour, 100); 
+		}
 		areaFrame.lineStyle(1, 0x000000, 100, true, "none", "square", "round");
 		areaFrame.moveTo(0, 0);
 		areaFrame.lineTo(m_maxWidth + 2, 0);
 		areaFrame.lineTo(m_maxWidth + 2, m_maxHeight + 2);
 		areaFrame.lineTo(0, m_maxHeight + 2);
 		areaFrame.lineTo(0, 0);
+		if (m_backgroundColour != null)
+		{
+			areaFrame.endFill(); 
+		}
 		
 		var radius:Number = 5;
 		var x:Number = radius;

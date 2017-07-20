@@ -37,7 +37,7 @@ class com.boobuilds.ModalBase
 	private var m_input:TextField;
 	private var m_drawFrameCallback:Function;
 	
-	public function ModalBase(name:String, parent:MovieClip, drawFrameCallback:Function, frameHeight:Number) 
+	public function ModalBase(name:String, parent:MovieClip, drawFrameCallback:Function, frameHeight:Number, frameWidth:Number) 
 	{
 		m_drawFrameCallback = drawFrameCallback;
 		
@@ -67,7 +67,15 @@ class com.boobuilds.ModalBase
 		m_blocker.onRollOut = Delegate.create(this, NullEvent);
 		m_blocker._visible = false;
 		
-		m_maxWidth = parent._width * 0.65;
+		if (frameWidth == null)
+		{
+			m_maxWidth = parent._width * 0.65;
+		}
+		else
+		{
+			m_maxWidth = parent._width * frameWidth;
+		}
+		
 		if (frameHeight == null)
 		{
 			m_maxHeight = parent._height * 0.3;

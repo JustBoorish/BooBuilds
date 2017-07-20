@@ -102,6 +102,11 @@ class com.boobuilds.MenuPanel
 		m_italicFormat.italic = true;
 	}
 	
+	public function GetMovieClip():MovieClip
+	{
+		return m_menu;
+	}
+	
 	public function GetCoords():Object
 	{
 		var pt:Object = new Object();

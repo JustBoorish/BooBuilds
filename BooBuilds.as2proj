@@ -78,6 +78,7 @@
     <compile path="com\boobuilds\ImportOutfitDialog.as" />
     <compile path="com\boobuilds\OutfitList.as" />
     <compile path="com\boobuilds\InventoryThrottle.as" />
+    <compile path="com\boobuilds\ComboBox.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

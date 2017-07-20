@@ -73,7 +73,7 @@ class com.boobuilds.BuildList implements ITabPane
 		m_parent = parent;
 		m_name = name;
 		m_addonMC = addonMC;
-		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height);
+		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null);
 		
 		m_itemPopup = new PopupMenu(m_addonMC, "Popup", 6);
 		m_itemPopup.AddItem("Use", Delegate.create(this, ApplyBuild));

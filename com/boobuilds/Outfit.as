@@ -1,7 +1,9 @@
+import com.GameInterface.DistributedValue;
 import com.GameInterface.Game.Character;
 import com.GameInterface.GearManager;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
+import com.GameInterface.SpellBase;
 import com.Utils.Archive;
 import com.Utils.ID32;
 import com.Utils.StringUtils;
@@ -46,6 +48,7 @@ class com.boobuilds.Outfit
 	private var m_outfit:Array;
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
+	private var m_sprintTag:Number;
 	private var m_inventoryThrottle:InventoryThrottle;
 	private var m_equipOutfitSlot:Number;
 	private var m_equipOutfitCounter:Number;
@@ -60,8 +63,8 @@ class com.boobuilds.Outfit
 		m_group = group;
 		m_order = order;
 		m_outfit = new Array();
-		m_primaryWeaponHidden = false;
-		m_secondaryWeaponHidden = false;
+		ClearWeaponVisibility();
+		ClearSprint();
 		
 		for (var indx:Number = 0; indx < FULL_OUTFIT_SIZE; ++indx)
 		{
@@ -69,27 +72,45 @@ class com.boobuilds.Outfit
 		}
 	}
 	
-	public function UpdateFromCurrent(includeWeapons:Boolean):Void
+	public function GetSprintTag():Number
+	{
+		return m_sprintTag;
+	}
+	
+	public function SetSprintTag(newTag:Number):Void
+	{
+		m_sprintTag = newTag;
+	}
+	
+	public function AreWeaponsSet():Boolean
+	{
+		return m_primaryWeaponHidden || m_secondaryWeaponHidden;
+	}
+	
+	public function UpdateFromCurrent():Void
 	{
 		SetCurrentCostume();
 		
-		if (includeWeapons == true)
-		{
-			m_primaryWeaponHidden = GearManager.IsPrimaryWeaponHidden();
-			m_secondaryWeaponHidden = GearManager.IsSecondaryWeaponHidden();
-		}
-		else
-		{
-			m_primaryWeaponHidden = false;
-			m_secondaryWeaponHidden = false;
-		}
+		m_primaryWeaponHidden = GearManager.IsPrimaryWeaponHidden();
+		m_secondaryWeaponHidden = GearManager.IsSecondaryWeaponHidden();
 	}
 	
-	public static function FromCurrent(id:String, name:String, order:Number, groupID:String, includeWeapons:Boolean):Outfit
+	public static function FromCurrent(id:String, name:String, order:Number, groupID:String):Outfit
 	{
 		var ret:Outfit = new Outfit(id, name, order, groupID);
 		ret.UpdateFromCurrent();
 		return ret;
+	}
+	
+	public function ClearWeaponVisibility():Void
+	{
+		m_primaryWeaponHidden = false;
+		m_secondaryWeaponHidden = false;
+	}
+	
+	public function ClearSprint():Void
+	{
+		m_sprintTag = null;
 	}
 	
 	public function IsFullOutfit():Boolean
@@ -180,7 +201,6 @@ class com.boobuilds.Outfit
 		var tempOutfits:Array = new Array();
 		for (var indx:String in outfits)
 		{
-			DebugWindow.Log(DebugWindow.Debug, "here");
 			var thisOutfit:Outfit = outfits[indx];
 			if (thisOutfit != null && thisOutfit.GetGroup() == groupID)
 			{
@@ -262,14 +282,12 @@ class com.boobuilds.Outfit
 		var fullOutfitItem:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(0));
 		if (fullOutfitItem != null)
 		{
-			DebugWindow.Log(DebugWindow.Debug, "Create full outfit");
 			m_outfit = new Array();
 			for ( var i:Number = 0 ; i < FULL_OUTFIT_SIZE; ++i )
 			{
 				var item:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(i));
 				if (item != null)
 				{
-			DebugWindow.Log(DebugWindow.Debug, "Adding full outfit " + item.m_Name);
 					m_outfit.push(item.m_Name);
 				}
 				else
@@ -280,14 +298,12 @@ class com.boobuilds.Outfit
 		}
 		else
 		{
-			DebugWindow.Log(DebugWindow.Debug, "Create normal outfit");
 			m_outfit = new Array();
 			for ( var i:Number = 0 ; i < NORMAL_OUTFIT_SIZE; ++i )
 			{
 				var item:InventoryItem = inventory.GetItemAt(GetNormalSlotID(i));
 				if (item != null)
 				{
-			DebugWindow.Log(DebugWindow.Debug, "Adding normal outfit " + item.m_Name);
 					m_outfit.push(item.m_Name);
 				}
 				else
@@ -362,8 +378,9 @@ class com.boobuilds.Outfit
 			ret = ret + Build.GetArrayString("OU", m_outfit);
 		}
 
-		var tempArray:Array = [ String(m_primaryWeaponHidden), String(m_secondaryWeaponHidden) ];
-		ret = ret + Build.GetArrayString("WV", tempArray);
+		ret = ret + Build.GetArrayString("WV", [ m_primaryWeaponHidden, m_secondaryWeaponHidden ]);
+		ret = ret + Build.GetArrayStringInternal("SP", [ m_sprintTag ], false);
+		
 		return ret;
 	}
 
@@ -406,6 +423,10 @@ class com.boobuilds.Outfit
 				case "WV":
 					ret.SetWeaponHiddenFromArray(i + 1, items);
 					i += Build.MAX_WEAPONS + 1;
+					break;
+				case "SP":
+					ret.SetSprintFromArray(i + 1, items);
+					i += 1 + 1;
 					break;
 				default:
 					i += 1;
@@ -461,6 +482,16 @@ class com.boobuilds.Outfit
 		}
 	}
 	
+	private function SetSprintFromArray(offset:Number, items:Array):Void
+	{
+		var indx:Number = 0 + offset;
+		if (indx < items.length && items[indx] != "undefined")
+		{
+			var item:Number = Number(items[indx]);
+			m_sprintTag = item;
+		}
+	}
+	
 	private static function DeleteArchiveEntry(prefix:String, archive:Archive, key:String):Void
 	{
 		var keyName:String = prefix + "_" + key;
@@ -511,6 +542,67 @@ class com.boobuilds.Outfit
 		return ret;
 	}
 	
+	public function Preview():Void
+	{
+		if (Outfit.m_outfitStillLoading == true)
+		{
+			InfoWindow.LogError("Please wait on previous outfit to load");
+		}
+		else if (Character.GetClientCharacter().IsInCombat() == true)
+		{
+			InfoWindow.LogError("Cannot preview an outfit while in combat");
+		}
+		else
+		{
+			var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
+			var wearInv:Inventory = new Inventory(wearInvID);
+			var wardrobeInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_StaticInventory, Character.GetClientCharacter().GetID().GetInstance());
+			var wardrobeInv:Inventory = new Inventory(wardrobeInvId);
+			for (var indx:Number = 0; indx < GetOutfitSize(); ++indx)
+			{
+				PreviewSlot(GetSlotID(indx), m_outfit[indx], wearInv, wardrobeInv);
+			}
+			
+			if (!IsFullOutfit())
+			{
+				DebugWindow.Log(DebugWindow.Debug, "Preview 1");
+				PreviewSlot(GetFullOutfitSlotID(0), null, wearInv, wardrobeInv);
+			}
+		}
+	}
+	
+	private function PreviewSlot(slotID:Number, itemName:String, wearInv:Inventory, wardrobeInv:Inventory)
+	{
+		var equipped:Boolean = IsSlotCorrect(wearInv, slotID, itemName);
+				DebugWindow.Log(DebugWindow.Debug, "Preview 2");
+		if (equipped != true)
+		{
+				DebugWindow.Log(DebugWindow.Debug, "Preview 3");
+			if (itemName == null)
+			{
+				DebugWindow.Log(DebugWindow.Debug, "Preview 4");
+				if (IsSlotEmpty(wearInv, slotID) != true)
+				{
+				DebugWindow.Log(DebugWindow.Debug, "Preview 5 " + slotID);
+					// Unequip for preview
+					wearInv.PreviewItem(slotID);
+				}
+			}
+			else
+			{
+				var itemIndx:Number = FindInventoryItem(wardrobeInv, itemName);
+				if (itemIndx == null)
+				{
+					InfoWindow.LogError("Failed to preview " + itemName);
+				}
+				else
+				{
+					wardrobeInv.PreviewItem(itemIndx);
+				}
+			}
+		}
+	}
+	
 	public function Apply():Void
 	{
 		if (Outfit.m_outfitStillLoading == true)
@@ -519,7 +611,7 @@ class com.boobuilds.Outfit
 		}
 		else if (Character.GetClientCharacter().IsInCombat() == true)
 		{
-			InfoWindow.LogError("Cannot load a outfit while in combat");
+			InfoWindow.LogError("Cannot load an outfit while in combat");
 		}
 		else
 		{
@@ -562,20 +654,8 @@ class com.boobuilds.Outfit
 
 			if (itemName != null)
 			{
-				var inventoryItem:InventoryItem = null;
-				var inventorySlot:Number = 0;
-				for (var indx:Number = 0; indx < wardrobeInv.GetMaxItems(); ++indx)
-				{
-					var tempItem:InventoryItem = wardrobeInv.GetItemAt(indx);
-					if (tempItem != null && itemName == tempItem.m_Name)
-					{
-						inventoryItem = tempItem;
-						inventorySlot = indx;
-						break;
-					}
-				}
-				
-				if (inventoryItem != null)
+				var inventorySlot:Number = FindInventoryItem(wardrobeInv, itemName);
+				if (inventorySlot != null)
 				{
 					wearInv.AddItem(wardrobeInvId, inventorySlot, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
 					
@@ -629,7 +709,6 @@ class com.boobuilds.Outfit
 		var equipped:Boolean = IsSlotCorrect(wearInv, slotID, itemName);
 		if (equipped == true)
 		{
-			DebugWindow.Log(DebugWindow.Debug, "Finished outfit item " + itemName);
 			clearInterval(m_equipOutfitInterval);
 			m_equipOutfitCounter = 0;
 			m_equipOutfitInterval = -1;
@@ -669,8 +748,24 @@ class com.boobuilds.Outfit
 		}
 	}
 	
+	private function FindInventoryItem(inv:Inventory, itemName:String):Number
+	{
+		var inventorySlot:Number = 0;
+		for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
+		{
+			var tempItem:InventoryItem = inv.GetItemAt(indx);
+			if (tempItem != null && itemName == tempItem.m_Name)
+			{
+				return indx;
+			}
+		}
+		
+		return null;
+	}
+	
 	private function UnequipFullOutfitSlot():Void
 	{
+		var moveOn:Boolean = true;
 		if (IsFullOutfit() != true)
 		{
 			var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
@@ -684,15 +779,22 @@ class com.boobuilds.Outfit
 
 				wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
 				
+				moveOn = false;
 				m_equipOutfitSlot = 0;
 				m_equipOutfitCounter = 0;
 				m_equipOutfitInterval = setInterval(Delegate.create(this, UnequipFullOutfitSlotCB), 20);
 			}
 		}
+		
+		if (moveOn == true)
+		{
+			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EndOutfitApply));
+		}
 	}
 
 	private function UnequipFullOutfitSlotCB():Void
 	{
+		++m_equipOutfitCounter;
 		var moveOn:Boolean = false;
 		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var wearInv:Inventory = new Inventory(wearInvID);
@@ -700,7 +802,6 @@ class com.boobuilds.Outfit
 		var empty:Boolean = IsSlotEmpty(wearInv, slotID);
 		if (empty == true)
 		{
-			DebugWindow.Log(DebugWindow.Debug, "Finished unequip full item ");
 			clearInterval(m_equipOutfitInterval);
 			m_equipOutfitCounter = 0;
 			m_equipOutfitInterval = -1;
@@ -727,6 +828,11 @@ class com.boobuilds.Outfit
 	
 	private function EndOutfitApply():Void
 	{
+		if (m_sprintTag != null)
+		{
+			SpellBase.SummonMountFromTag(m_sprintTag);
+		}
+		
 		if (Outfit.m_outfitLoadingID != -1)
 		{
 			clearTimeout(Outfit.m_outfitLoadingID);

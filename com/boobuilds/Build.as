@@ -661,6 +661,11 @@ class com.boobuilds.Build
 	
 	public static function GetArrayString(prefix:String, array:Array):String
 	{
+		return GetArrayStringInternal(prefix, array, true);
+	}
+	
+	public static function GetArrayStringInternal(prefix:String, array:Array, ignoreEmpty:Boolean):String
+	{
 		var ret:String = "";
 		if (prefix != null)
 		{
@@ -681,7 +686,7 @@ class com.boobuilds.Build
 			}
 		}
 		
-		if (found == true)
+		if (found == true || ignoreEmpty == false)
 		{
 			return ret;
 		}

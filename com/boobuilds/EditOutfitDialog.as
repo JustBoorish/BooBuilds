@@ -1,9 +1,15 @@
-import com.boobuilds.OutfitGroup;
+import com.boobuilds.BuildGroup;
 import com.boobuilds.Checkbox;
+import com.boobuilds.ComboBox;
 import com.boobuilds.ModalBase;
 import com.boobuilds.DebugWindow;
+import com.GameInterface.Utils;
 import com.Utils.Text;
+import com.GameInterface.Lore;
+import com.GameInterface.LoreBase;
+import com.GameInterface.LoreNode;
 import mx.utils.Delegate;
+import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
  *
@@ -22,23 +28,27 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.EditOutfitDialog
 {
+	private var m_addonMC:MovieClip;
 	private var m_modalBase:ModalBase;
 	private var m_textFormat:TextFormat;
 	private var m_outfitName:String;
 	private var m_includeWeapons:Boolean;
-	private var m_includeTalismans:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
+	private var m_combo:ComboBox;
+	private var m_sprintX:Number;
+	private var m_sprintY:Number;
+	private var m_sprintTag:Number;
 	private var m_includeWeaponsCheck:Checkbox;
-	private var m_includeTalismansCheck:Checkbox;
 	
-	public function EditOutfitDialog(name:String, parent:MovieClip, outfitName:String, includeWeapons:Boolean, includeTalismans:Boolean) 
+	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, sprintTag:Number) 
 	{
 		m_outfitName = outfitName;
 		m_includeWeapons = includeWeapons;
-		m_includeTalismans = includeTalismans;
+		m_sprintTag = sprintTag;
 		
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.5);
+		m_addonMC = addonMC;
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.75, 0.75);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -59,6 +69,7 @@ class com.boobuilds.EditOutfitDialog
 	
 	public function Unload():Void
 	{
+		m_combo.Unload();
 		m_modalBase.Unload();
 	}
 	
@@ -98,7 +109,7 @@ class com.boobuilds.EditOutfitDialog
 
 		var checkY:Number = 30 + line1._y + line1._height * 2;
 		var checkSize:Number = 13;
-		var text:String = "Include weapons";
+		var text:String = "Include weapon visibility";
 		var extents:Object = Text.GetTextExtent(text, textFormat, modalMC);
 		var includeWeaponsText:TextField = modalMC.createTextField("IncludeWeaponsText", modalMC.getNextHighestDepth(), 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		includeWeaponsText.embedFonts = true;
@@ -113,9 +124,9 @@ class com.boobuilds.EditOutfitDialog
 		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, false);
 		
 		checkY = 40 + line1._y + line1._height * 3;
-		text = "Include talismans";
+		text = "Sprint";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
-		var includeTalismansText:TextField = modalMC.createTextField("IncludeTalismansText", modalMC.getNextHighestDepth(), 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		var includeTalismansText:TextField = modalMC.createTextField("IncludeSprintText", modalMC.getNextHighestDepth(), 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		includeTalismansText.embedFonts = true;
 		includeTalismansText.selectable = false;
 		includeTalismansText.antiAliasType = "advanced";
@@ -125,10 +136,26 @@ class com.boobuilds.EditOutfitDialog
 		includeTalismansText.setNewTextFormat(textFormat);
 		includeTalismansText.text = text;
 
-		m_includeTalismansCheck = new Checkbox("IncludeTalismansCheck", modalMC, 30, checkY, checkSize, null, false);
-		
 		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
-		m_includeTalismansCheck.SetChecked(m_includeTalismans);
+		
+		m_sprintX = 35 + extents.width;
+		m_sprintY = checkY - 5;
+		BuildCombo(modalMC, m_sprintX, m_sprintY);
+	}
+	
+	private function BuildCombo(modalMC:MovieClip, x:Number, y:Number):Void
+	{
+		var ownedNodes:Array = GetSprintData();
+		var names:Array = new Array();
+		names.push("None");
+		for (var indx:Number = 0; indx < ownedNodes.length; ++indx)
+		{
+			var node:LoreNode = LoreNode(ownedNodes[indx]);
+			names.push(node.m_Name);
+		}
+		
+		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		m_combo = new ComboBox(modalMC, "Sprint", m_addonMC, x, y, colours[0], colours[1], 6, GetSprintFromTag(m_sprintTag), names);
 	}
 	
 	private function ButtonPressed(text:String):Void
@@ -146,12 +173,72 @@ class com.boobuilds.EditOutfitDialog
 			DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
 			if (success)
 			{
-				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked());
+				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), GetTagFromSprintName(m_combo.GetSelectedEntry()));
 			}
 			else
 			{
-				m_callback(null, false, false);
+				m_callback(null, false, null);
 			}
 		}
+	}
+	
+	private function GetSprintFromTag(sprintTag:Number):String
+	{
+		var ret:String = "None";
+		
+		if (sprintTag != null)
+		{
+			var nodes:Array = GetSprintData();
+			for (var indx:Number = 0; indx < nodes.length; ++indx)
+			{
+				var node:LoreNode = LoreNode(nodes[indx]);
+				if (node != null && node.m_Id == sprintTag)
+				{
+					ret = node.m_Name;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
+	private function GetTagFromSprintName(sprintName:String):Number
+	{
+		var ret:Number = null;
+		if (sprintName != null)
+		{
+			var nodes:Array = GetSprintData();
+			for (var indx:Number = 0; indx < nodes.length; ++indx)
+			{
+				var node:LoreNode = LoreNode(nodes[indx]);
+				if (node != null && node.m_Name == sprintName)
+				{
+					ret = node.m_Id;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
+	private function GetSprintData():Array
+	{
+		var allNodes:Array = Lore.GetMountTree().m_Children;
+		allNodes.sortOn("m_Name");
+		var ownedNodes:Array = new Array();
+		for (var i = 0; i < allNodes.length; i++)
+		{
+			if (Utils.GetGameTweak("HideMount_" + allNodes[i].m_Id) == 0)
+			{
+				if (!LoreBase.IsLocked(allNodes[i].m_Id))
+				{
+					ownedNodes.push(allNodes[i]);
+				}
+			}
+		}
+		
+		return ownedNodes;
 	}
 }
