@@ -61,7 +61,6 @@ class com.boobuilds.Build
 	private var m_id:String;
 	private var m_name:String;
 	private var m_group:String;
-	private var m_parent:Build;
 	private var m_order:Number;
 	private var m_skills:Array;
 	private var m_passives:Array;
@@ -87,11 +86,10 @@ class com.boobuilds.Build
 	private var m_buildErrorCount:Number;
 	private var m_inventoryThrottle:InventoryThrottle;
 
-	public function Build(id:String, name:String, parent:Build, order:Number, group:String)
+	public function Build(id:String, name:String, order:Number, group:String)
 	{
 		m_id = id;
 		SetName(name);
-		m_parent = parent;
 		m_group = group;
 		m_order = order;
 		m_skills = new Array();
@@ -148,6 +146,19 @@ class com.boobuilds.Build
 		
 		lastCount = lastCount + 1;
 		return lastCount;
+	}
+	
+	public static function ReorderBuilds(groupID:String, builds:Object):Void
+	{
+		var ordered:Array = GetOrderedBuilds(groupID, builds);
+		if (ordered != null)
+		{
+			for (var indx:Number = 0; indx < ordered.length; ++indx)
+			{
+				var thisBuild:Build = ordered[indx];
+				thisBuild.SetOrder(indx + 1);
+			}
+		}
 	}
 	
 	public static function GetOrderedBuilds(groupID:String, builds:Object):Array
@@ -445,14 +456,7 @@ class com.boobuilds.Build
 	{
 		if (indx >= 0 && indx < MAX_SKILLS)
 		{
-			if (m_parent == null || m_parent.GetSkill(indx) != skillId)
-			{
-				m_skills[indx] = skillId;
-			}
-			else
-			{
-				m_skills[indx] = null;
-			}
+			m_skills[indx] = skillId;
 		}
 	}
 	
@@ -460,14 +464,7 @@ class com.boobuilds.Build
 	{
 		if (indx >= 0 && indx < MAX_PASSIVES)
 		{
-			if (m_parent == null || m_parent.GetPassive(indx) != skillId)
-			{
-				m_passives[indx] = skillId;
-			}
-			else
-			{
-				m_passives[indx] = null;
-			}
+			m_passives[indx] = skillId;
 		}
 	}
 	
@@ -475,26 +472,7 @@ class com.boobuilds.Build
 	{
 		if (indx >= 0 && indx < MAX_GEAR)
 		{
-			if (m_parent == null || item == null)
-			{
-				m_gear[indx] = item;
-			}
-			else
-			{
-				var parentItem:GearItem = m_parent.GetGear(indx);
-				if (parentItem == null)
-				{
-					m_gear[indx] = item;
-				}
-				else if (parentItem.toString() != item.toString())
-				{
-					m_gear[indx] = item;					
-				}
-				else
-				{
-					m_gear[indx] = null;
-				}
-			}
+			m_gear[indx] = item;
 		}
 	}
 	
@@ -502,26 +480,7 @@ class com.boobuilds.Build
 	{
 		if (indx >= 0 && indx < MAX_WEAPONS)
 		{
-			if (m_parent == null || item == null)
-			{
-				m_weapons[indx] = item;
-			}
-			else
-			{
-				var parentItem:GearItem = m_parent.GetWeapon(indx);
-				if (parentItem == null)
-				{
-					m_weapons[indx] = item;
-				}
-				else if (parentItem.toString() != item.toString())
-				{
-					m_weapons[indx] = item;					
-				}
-				else
-				{
-					m_weapons[indx] = null;
-				}
-			}
+			m_weapons[indx] = item;
 		}
 	}
 	
@@ -532,10 +491,6 @@ class com.boobuilds.Build
 			if (m_skills[indx] != null)
 			{
 				return m_skills[indx];
-			}
-			else if (m_parent != null)
-			{
-				return m_parent.GetSkill(indx);
 			}
 		}
 		
@@ -550,10 +505,6 @@ class com.boobuilds.Build
 			{
 				return m_passives[indx];
 			}
-			else if (m_parent != null)
-			{
-				return m_parent.GetPassive(indx);
-			}
 		}
 		
 		return null;
@@ -567,10 +518,6 @@ class com.boobuilds.Build
 			{
 				return m_gear[indx];
 			}
-			else if (m_parent != null)
-			{
-				return m_parent.GetGear(indx);
-			}
 		}
 		
 		return null;
@@ -583,10 +530,6 @@ class com.boobuilds.Build
 			if (m_weapons[indx] != null)
 			{
 				return m_weapons[indx];
-			}
-			else if (m_parent != null)
-			{
-				return m_parent.GetWeapon(indx);
 			}
 		}
 		
@@ -766,16 +709,7 @@ class com.boobuilds.Build
 	{
 		var prefix:String = BUILD_PREFIX + buildNumber;
 		SetArchiveEntry(prefix, archive, ID_PREFIX, m_id);
-		SetArchiveEntry(prefix, archive, NAME_PREFIX, m_name);
-		if (m_parent != null)
-		{
-			SetArchiveEntry(prefix, archive, PARENT_PREFIX, m_parent.GetName());
-		}
-		else
-		{
-			SetArchiveEntry(prefix, archive, PARENT_PREFIX, null);
-		}
-		
+		SetArchiveEntry(prefix, archive, NAME_PREFIX, m_name);		
 		SetArchiveEntry(prefix, archive, GROUP_PREFIX, m_group);
 		SetArchiveEntry(prefix, archive, ORDER_PREFIX, String(m_order));
 		
@@ -904,9 +838,9 @@ class com.boobuilds.Build
 		}
 	}
 	
-	private static function FromBDArray(id:String, name:String, parent:Build, order:Number, groupID:String, buildItems:Array):Build
+	private static function FromBDArray(id:String, name:String, order:Number, groupID:String, buildItems:Array):Build
 	{
-		var ret:Build = new Build(id, name, parent, order, groupID);
+		var ret:Build = new Build(id, name, order, groupID);
 		var version:String = null;
 		var i:Number = 1;
 		while (i < buildItems.length)
@@ -945,7 +879,7 @@ class com.boobuilds.Build
 		return ret;
 	}
 	
-	public static function FromString(id:String, name:String, parent:Build, order:Number, groupID:String, buildString:String):Build
+	public static function FromString(id:String, name:String, order:Number, groupID:String, buildString:String):Build
 	{
 		var ret:Build = null;
 		var buildItems:Array = SplitArrayString(buildString);
@@ -953,7 +887,7 @@ class com.boobuilds.Build
 		{
 			if (buildItems[0] == "BD")
 			{
-				ret = FromBDArray(id, name, parent, order, groupID, buildItems);
+				ret = FromBDArray(id, name, order, groupID, buildItems);
 			}
 		}
 		
@@ -966,13 +900,7 @@ class com.boobuilds.Build
 		return archive.FindEntry(keyName, defaultValue);
 	}
 	
-	public static function ParentFromArchive(buildNumber:Number, archive:Archive):String
-	{
-		var prefix:String = BUILD_PREFIX + buildNumber;
-		return GetArchiveEntry(prefix, archive, PARENT_PREFIX, null);
-	}
-	
-	public static function FromArchive(buildNumber:Number, archive:Archive, parentBuild:Build):Build
+	public static function FromArchive(buildNumber:Number, archive:Archive):Build
 	{
 		var ret:Build = null;
 		var prefix:String = BUILD_PREFIX + buildNumber;
@@ -983,7 +911,7 @@ class com.boobuilds.Build
 			var group:String = GetArchiveEntry(prefix, archive, GROUP_PREFIX, null);
 			var order:String = GetArchiveEntry(prefix, archive, ORDER_PREFIX, "-1");
 			var bdString:String = GetArchiveEntry(prefix, archive, BUILD_PREFIX, null);
-			ret = Build.FromString(id, name, parentBuild, Number(order), group, bdString);
+			ret = Build.FromString(id, name, Number(order), group, bdString);
 		}
 		
 		return ret;
@@ -1119,9 +1047,9 @@ class com.boobuilds.Build
 		SetCurrentWeapons();
 	}
 	
-	public static function FromCurrent(id:String, name:String, parent:Build, order:Number, groupID:String):Build
+	public static function FromCurrent(id:String, name:String, order:Number, groupID:String):Build
 	{
-		var ret:Build = new Build(id, name, parent, order, groupID);
+		var ret:Build = new Build(id, name, order, groupID);
 		ret.UpdateFromCurrent();
 		return ret;
 	}

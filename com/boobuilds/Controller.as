@@ -54,6 +54,7 @@ import org.aswing.JTextComponent;
  */
 class com.boobuilds.Controller extends MovieClip
 {
+	public static var VERSION = "1.4";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -71,7 +72,6 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_BUILDS:Number = 200;
 	public static var MAX_OUTFITS:Number = 200;
 	
-	private var m_version:String = "1.4";
 	private var m_debug:DebugWindow = null;
 	private var m_info:InfoWindow = null;
 	private var m_icon:BIcon;
@@ -102,7 +102,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		ASWingUtils.setRootMovieClip(this);
 		JTextComponent.setDefaultRegainTextFocusEnabled(false);
-		Settings.SetVersion(m_version);
+		Settings.SetVersion(VERSION);
 		
 		m_mc = this;
 		m_info = InfoWindow.CreateInstance(m_mc);
@@ -145,7 +145,7 @@ class com.boobuilds.Controller extends MovieClip
 	
 	function OnModuleActivated(config:Archive):Void
 	{
-		Settings.SetVersion(m_version);
+		Settings.SetVersion(VERSION);
 		Settings.SetArchive(config);
 		
 		m_loadBuildDV.SignalChanged.Connect(LoadBuildCmd, this);
@@ -187,7 +187,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_clientCharacter.SignalToggleCombat.Connect(ToggleCombat, this);
 			DebugWindow.Log(DebugWindow.Info, "BooBuilds OnModuleActivated: connect " + m_characterName);
 
-			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, m_version, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
+			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
 			
 			FeatInterface.BuildFeatList();
 		}
@@ -516,7 +516,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_configWindow == null)
 		{
-			m_optionsTab = new OptionsTab("Options");
+			m_optionsTab = new OptionsTab("Options", m_buildGroups, m_builds, m_outfitGroups, m_outfits);
 			var buildList:BuildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor);
 			var outfitList:OutfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");

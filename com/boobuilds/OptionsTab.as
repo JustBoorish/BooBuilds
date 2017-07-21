@@ -3,10 +3,17 @@ import com.boobuilds.ITabPane;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Checkbox;
+import com.boobuilds.Controller;
 import com.boobuilds.DebugWindow;
+import com.boobuilds.EditDialog;
+import com.boobuilds.Graphics;
+import com.boobuilds.InfoWindow;
 import com.boobuilds.InventoryThrottle;
 import com.boobuilds.MenuPanel;
+import com.boobuilds.Outfit;
+import com.boobuilds.RestoreDialog;
 import com.Utils.Text;
+import com.boobuilds.SubArchive;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -44,10 +51,20 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_throttleX:Number;
 	private var m_throttleY:Number;
 	private var m_throttleMode:String;
+	private var m_builds:Object;
+	private var m_buildGroups:Array;
+	private var m_outfits:Object;
+	private var m_outfitGroups:Array;
+	private var m_editDialog:EditDialog;
+	private var m_restoreDialog:RestoreDialog;
 	
-	public function OptionsTab(title:String)
+	public function OptionsTab(title:String, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object)
 	{
 		m_name = title;
+		m_buildGroups = buildGroups;
+		m_builds = builds;
+		m_outfitGroups = outfitGroups;
+		m_outfits = outfits;
 		m_parent = null;
 	}
 	
@@ -176,26 +193,21 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	private function DrawFrame():Void
 	{
-		var textFormat:TextFormat = new TextFormat();
-		textFormat.align = "left";
-		textFormat.font = "tahoma";
-		textFormat.size = 14;
-		textFormat.color = 0xFFFFFF;
-		textFormat.bold = false;
+		var textFormat:TextFormat = Graphics.GetTextFormat();
 
 		var text:String = "Throttle";
 		var extents:Object = Text.GetTextExtent(text, textFormat, m_frame);
-		var throttleModeText:TextField = m_frame.createTextField("DisableTalismansText", m_frame.getNextHighestDepth(), 25, 30, extents.width, extents.height);
-		throttleModeText.embedFonts = true;
-		throttleModeText.selectable = false;
-		throttleModeText.antiAliasType = "advanced";
-		throttleModeText.autoSize = true;
-		throttleModeText.border = false;
-		throttleModeText.background = false;
-		throttleModeText.setNewTextFormat(textFormat);
-		throttleModeText.text = text;
+		var throttleModeText:TextField = Graphics.DrawText("ThrottleText", m_frame, text, textFormat, 25, 30, extents.width, extents.height);
 
 		BuildMenu(m_frame, 40 + extents.width, 30);
+
+		text = "Backup";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 30 + 2 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+
+		text = "Restore";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 40 + 3 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
@@ -233,5 +245,261 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_menu.Unload();
 		BuildMenu(m_frame, m_throttleX, m_throttleY);
 		Save();
+	}
+	
+	private function UnloadDialogs():Void
+	{
+		if (m_editDialog != null)
+		{
+			m_editDialog.Unload();
+			m_editDialog = null;
+		}
+		
+		if (m_restoreDialog != null)
+		{
+			m_restoreDialog.Unload();
+			m_restoreDialog = null;
+		}
+	}
+	
+	private function ShowBackupDialog():Void
+	{
+		UnloadDialogs();
+		
+		var backupString:String = CreateBackupString();
+		m_editDialog = new EditDialog("Backup", m_parent, null, "Select all the text below", "and press Ctrl+C to copy", backupString);
+		m_editDialog.Show();
+	}
+	
+	private function ShowRestoreDialog():Void
+	{
+		UnloadDialogs();
+		
+		m_restoreDialog = new RestoreDialog("Restore", m_parent, Delegate.create(this, RestoreCallback));
+		m_restoreDialog.Show();
+	}
+
+	private function RestoreCallback(restoreString:String, overwrite:Boolean):Void
+	{
+		if (restoreString != null)
+		{
+			RestoreBackupString(restoreString, overwrite);
+		}
+	}
+	
+	private function RestoreBackupString(backupString:String, overwrite:Boolean):Void
+	{
+		var archives:Array = SubArchive.FromStringArray(backupString);
+		if (archives == null || archives.length != 5)
+		{
+			InfoWindow.LogError("Invalid backup string");
+		}
+		else
+		{
+			var thisArchive:SubArchive = archives[1];
+			if (thisArchive.GetID() != Build.GROUP_PREFIX)
+			{
+				InfoWindow.LogError("Build groups missing");
+				return;
+			}
+			
+			RestoreGroups(thisArchive, m_buildGroups, Build.GROUP_PREFIX, Controller.MAX_GROUPS, overwrite);
+			
+			thisArchive = archives[3];
+			if (thisArchive.GetID() != Outfit.GROUP_PREFIX)
+			{
+				InfoWindow.LogError("Outfit groups missing");
+				return;
+			}
+			
+			RestoreGroups(thisArchive, m_outfitGroups, Outfit.GROUP_PREFIX, Controller.MAX_GROUPS, overwrite);
+			
+			RestoreBuilds(archives[2], overwrite);
+			RestoreOutfits(archives[4], overwrite);
+			
+			for (var indx:Number = 0; indx < m_buildGroups.length; ++indx)
+			{
+				Build.ReorderBuilds(m_buildGroups[indx].GetID(), m_builds);
+			}
+			
+			for (var indx:Number = 0; indx < m_outfitGroups.length; ++indx)
+			{
+				Outfit.ReorderOutfits(m_outfitGroups[indx].GetID(), m_outfits);
+			}
+		}
+	}
+
+	private function RestoreGroups(thisArchive:SubArchive, groups:Array, groupPrefix:String, maxGroups:Number, overwrite:Boolean):Void
+	{
+		for (var indx:Number = 0; indx < maxGroups; ++indx)
+		{
+			var thisGroup:BuildGroup = BuildGroup.FromArchive(groupPrefix, thisArchive, indx + 1);
+			if (thisGroup != null)
+			{
+				var existingGroupIndex:Number = FindGroupIndex(groups, thisGroup.GetID());
+				if (existingGroupIndex != null)
+				{
+					if (overwrite == true)
+					{
+						var existingGroup:BuildGroup = groups[existingGroupIndex];
+						groups[existingGroupIndex] = thisGroup;
+					}
+				}
+				else
+				{
+					groups.push(thisGroup);
+				}
+			}
+		}
+	}
+	
+	private function RestoreBuilds(thisArchive:SubArchive, overwrite:Boolean):Void
+	{
+		for (var indx:Number = 0; indx < Controller.MAX_BUILDS; ++indx)
+		{
+			var thisBuild:Build = Build.FromArchive(indx + 1, thisArchive);
+			if (thisBuild != null)
+			{
+				var writeIt:Boolean = false;
+				var existingBuild:Build = m_builds[thisBuild.GetID()];
+				if (existingBuild != null)
+				{
+					if (overwrite == true)
+					{
+						writeIt = true;
+					}
+				}
+				else
+				{
+					writeIt = true;
+				}
+				
+				if (writeIt == true)
+				{
+					m_builds[thisBuild.GetID()] = thisBuild;
+					var groupIndex:Number = FindGroupIndex(m_buildGroups, thisBuild.GetID());
+					if (groupIndex == null)
+					{
+						CreateTempGroup(thisBuild.GetID(), m_buildGroups);
+					}
+				}
+			}
+		}
+	}
+	
+	private function RestoreOutfits(thisArchive:SubArchive, overwrite:Boolean):Void
+	{
+		for (var indx:Number = 0; indx < Controller.MAX_OUTFITS; ++indx)
+		{
+			var thisOutfit:Outfit = Outfit.FromArchive(indx + 1, thisArchive);
+			if (thisOutfit != null)
+			{
+				var writeIt:Boolean = false;
+				var existingOutfit:Build = m_outfits[thisOutfit.GetID()];
+				if (existingOutfit != null)
+				{
+					if (overwrite == true)
+					{
+						writeIt = true;
+					}
+				}
+				else
+				{
+					writeIt = true;
+				}
+				
+				if (writeIt == true)
+				{
+					m_outfits[thisOutfit.GetID()] = thisOutfit;
+					var groupIndex:Number = FindGroupIndex(m_outfitGroups, thisOutfit.GetID());
+					if (groupIndex == null)
+					{
+						CreateTempGroup(thisOutfit.GetID(), m_outfitGroups);
+					}
+				}
+			}
+		}
+	}
+	
+	private function FindGroupIndex(groups:Array, groupID:String):Number
+	{
+		for (var indx:Number = 0; indx < groups.length; ++indx)
+		{
+			var thisGroup:BuildGroup = groups[indx];
+			if (thisGroup != null && thisGroup.GetID() == groupID)
+			{
+				return indx;
+			}
+		}
+		
+		return null;
+	}
+	
+	private function CreateTempGroup(groupID:String, groups:Array):Void
+	{
+		var thisGroup:BuildGroup = new BuildGroup(groupID, "GROUP" + groupID, BuildGroup.GRAY);
+		groups.push(thisGroup);
+	}
+	
+	private function CreateBackupString():String
+	{
+		var header:SubArchive = new SubArchive("BOOBUILDS");
+		header.AddEntry("VERSION", Controller.VERSION);
+		return header.ToString() +
+			CreateGroupString(m_buildGroups, Build.GROUP_PREFIX) + 
+			CreateBuildString() +
+			CreateGroupString(m_outfitGroups, Outfit.GROUP_PREFIX) +
+			CreateOutfitString();
+	}
+	
+	private function CreateGroupString(groups:Array, prefix:String):String
+	{
+		var archive:SubArchive = new SubArchive(prefix);
+		var groupNumber:Number = 1;
+		for (var indx:Number = 0; indx < groups.length; ++indx)
+		{
+			var thisGroup:BuildGroup = groups[indx];
+			if (thisGroup != null)
+			{
+				thisGroup.Save(prefix, archive, groupNumber);
+				++groupNumber;
+			}
+		}
+		
+		return archive.ToString();
+	}
+	
+	private function CreateBuildString():String
+	{
+		var archive:SubArchive = new SubArchive(Build.BUILD_PREFIX);
+		var buildNumber:Number = 1;
+		for (var indx:String in m_builds)
+		{
+			var thisBuild:Build = m_builds[indx];
+			if (thisBuild != null)
+			{
+				thisBuild.Save(archive, buildNumber);
+				++buildNumber;
+			}
+		}
+		
+		return archive.ToString();
+	}
+	
+	private function CreateOutfitString():String
+	{
+		var archive:SubArchive = new SubArchive(Outfit.OUTFIT_PREFIX);
+		var outfitNumber:Number = 1;
+		for (var indx:String in m_outfits)
+		{
+			var thisOutfit:Outfit = m_outfits[indx];
+			if (thisOutfit != null)
+			{
+				thisOutfit.Save(archive, outfitNumber);
+				++outfitNumber;
+			}
+		}
+		
+		return archive.ToString();
 	}
 }

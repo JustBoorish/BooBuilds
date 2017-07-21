@@ -80,6 +80,9 @@
     <compile path="com\boobuilds\InventoryThrottle.as" />
     <compile path="com\boobuilds\ComboBox.as" />
     <compile path="com\boobuilds\OutfitSelector.as" />
+    <compile path="com\boobuilds\Graphics.as" />
+    <compile path="com\boobuilds\SubArchive.as" />
+    <compile path="com\boobuilds\RestoreDialog.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

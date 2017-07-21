@@ -372,7 +372,7 @@ class com.boobuilds.BuildList implements ITabPane
 				{
 					var newID:String = Build.GetNextID(m_builds);
 					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-					var newBuild:Build = Build.FromString(newID, newName, null, newOrder, m_currentGroup.GetID(), buildString);
+					var newBuild:Build = Build.FromString(newID, newName, newOrder, m_currentGroup.GetID(), buildString);
 					if (newBuild != null)
 					{
 						m_builds[newID] = newBuild;
@@ -608,7 +608,7 @@ class com.boobuilds.BuildList implements ITabPane
 				{
 					var newID:String = Build.GetNextID(m_builds);
 					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-					var newBuild:Build = Build.FromCurrent(newID, newName, null, newOrder, m_currentGroup.GetID());
+					var newBuild:Build = Build.FromCurrent(newID, newName, newOrder, m_currentGroup.GetID());
 					if (includeWeapons != true)
 					{
 						newBuild.ClearWeapons();

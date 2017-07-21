@@ -196,6 +196,19 @@ class com.boobuilds.Outfit
 		return lastCount;
 	}
 	
+	public static function ReorderOutfits(groupID:String, outfits:Object):Void
+	{
+		var ordered:Array = GetOrderedOutfits(groupID, outfits);
+		if (ordered != null)
+		{
+			for (var indx:Number = 0; indx < ordered.length; ++indx)
+			{
+				var thisOutfit:Outfit = ordered[indx];
+				thisOutfit.SetOrder(indx + 1);
+			}
+		}
+	}
+	
 	public static function GetOrderedOutfits(groupID:String, outfits:Object):Array
 	{
 		var tempOutfits:Array = new Array();
