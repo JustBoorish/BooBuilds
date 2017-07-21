@@ -13,6 +13,7 @@ import com.boobuilds.OptionsTab;
 import com.boobuilds.Outfit;
 import com.boobuilds.Localisation;
 import com.boobuilds.OutfitList;
+import com.boobuilds.OutfitSelector;
 import com.boobuilds.Settings;
 import com.boobuilds.SkillMenu;
 import com.boobuilds.TabWindow;
@@ -84,7 +85,8 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_yBottom:Number;
 	private var m_configWindow:TabWindow;
 	private var m_optionsTab:OptionsTab;
-	private var m_selectorWindow:BuildSelector;
+	private var m_buildSelectorWindow:BuildSelector;
+	private var m_outfitSelectorWindow:OutfitSelector;
 	private var m_builds:Object;
 	private var m_buildGroups:Array;
 	private var m_outfits:Object;
@@ -92,6 +94,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_redrawInterval:Number;
 	private var m_redrawCount:Number;
 	private var m_loadBuildDV:DistributedValue;
+	private var m_loadOutfitDV:DistributedValue;
 	private var m_cooldownMonitor:CooldownMonitor;
 	
 	//On Load
@@ -108,7 +111,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_debug == null)
 		{
-			if (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Marvvin")
+			if (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Boor")
 			{
 				m_debug = new DebugWindow(m_mc, DebugWindow.Debug);
 			}
@@ -136,7 +139,9 @@ class com.boobuilds.Controller extends MovieClip
 		
 		m_loadBuildDV = DistributedValue.Create("BooBuilds_LoadBuild");
 		m_loadBuildDV.SetValue("");
-}
+		m_loadOutfitDV = DistributedValue.Create("BooBuilds_LoadOutfit");
+		m_loadOutfitDV.SetValue("");
+	}
 	
 	function OnModuleActivated(config:Archive):Void
 	{
@@ -144,6 +149,7 @@ class com.boobuilds.Controller extends MovieClip
 		Settings.SetArchive(config);
 		
 		m_loadBuildDV.SignalChanged.Connect(LoadBuildCmd, this);
+		m_loadOutfitDV.SignalChanged.Connect(LoadOutfitCmd, this);
 		
 		if (Character.GetClientCharacter().GetName() != m_characterName)
 		{
@@ -181,7 +187,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_clientCharacter.SignalToggleCombat.Connect(ToggleCombat, this);
 			DebugWindow.Log(DebugWindow.Info, "BooBuilds OnModuleActivated: connect " + m_characterName);
 
-			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, m_version, Delegate.create(this, ToggleSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
+			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, m_version, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
 			
 			FeatInterface.BuildFeatList();
 		}
@@ -191,6 +197,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		SaveSettings();
 		m_loadBuildDV.SignalChanged.Disconnect(LoadBuildCmd, this);
+		m_loadOutfitDV.SignalChanged.Disconnect(LoadOutfitCmd, this);
 		var ret:Archive = Settings.GetArchive();
 		//DebugWindow.Log("BooBuilds OnModuleDeactivated: " + ret.toString());
 		return ret;
@@ -419,37 +426,84 @@ class com.boobuilds.Controller extends MovieClip
 		SaveSettings();
 	}
 	
-	private function ToggleSelectorVisible():Void
+	private function HideWindows():Void
 	{
 		if (m_configWindow != null && m_configWindow.GetVisible() == true)
 		{
 			ToggleConfigVisible();
 		}
 		
-		var show:Boolean = true;
-		if (m_selectorWindow != null)
+		if (m_buildSelectorWindow != null && m_buildSelectorWindow.GetVisible() == true)
 		{
-			if (m_selectorWindow.GetVisible() == true)
+			ToggleBuildSelectorVisible();
+		}
+		
+		if (m_outfitSelectorWindow != null && m_outfitSelectorWindow.GetVisible() == true)
+		{
+			ToggleOutfitSelectorVisible();
+		}		
+	}
+	
+	private function ToggleBuildSelectorVisible():Void
+	{
+		HideWindows();
+		
+		var show:Boolean = true;
+		if (m_buildSelectorWindow != null)
+		{
+			if (m_buildSelectorWindow.GetVisible() == true)
 			{
 				show = false;
 			}
 			
-			m_selectorWindow.Unload();
-			m_selectorWindow = null;
+			m_buildSelectorWindow.Unload();
+			m_buildSelectorWindow = null;
 		}
 		
 		if (show == true)
 		{
-			m_selectorWindow = new BuildSelector(m_mc, "Build Selector", m_buildGroups, m_builds, m_cooldownMonitor);
+			m_buildSelectorWindow = new BuildSelector(m_mc, "Build Selector", m_buildGroups, m_builds, m_cooldownMonitor);
 			var icon:MovieClip = m_icon.GetIcon();
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
 			{
-				m_selectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height);
+				m_buildSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height);
 			}
 			else
 			{
-				m_selectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
+				m_buildSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
+			}
+		}
+	}
+	
+	private function ToggleOutfitSelectorVisible():Void
+	{
+		HideWindows();
+		
+		var show:Boolean = true;
+		if (m_outfitSelectorWindow != null)
+		{
+			if (m_outfitSelectorWindow.GetVisible() == true)
+			{
+				show = false;
+			}
+			
+			m_outfitSelectorWindow.Unload();
+			m_outfitSelectorWindow = null;
+		}
+		
+		if (show == true)
+		{
+			m_outfitSelectorWindow = new OutfitSelector(m_mc, "Outfit Selector", m_outfitGroups, m_outfits);
+			var icon:MovieClip = m_icon.GetIcon();
+			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
+				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
+			{
+				m_outfitSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height);
+			}
+			else
+			{
+				m_outfitSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
 			}
 		}
 	}
@@ -458,10 +512,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		FeatInterface.BuildFeatList();
 		
-		if (m_selectorWindow != null && m_selectorWindow.GetVisible() == true)
-		{
-			ToggleSelectorVisible();
-		}
+		HideWindows();
 		
 		if (m_configWindow == null)
 		{
@@ -542,6 +593,39 @@ class com.boobuilds.Controller extends MovieClip
 		}
 
 		m_loadBuildDV.SetValue("");
+	}
+	
+	private function LoadOutfitCmd():Void
+	{
+		var outfitName:String = m_loadOutfitDV.GetValue();
+		if (outfitName != null)
+		{
+			outfitName = StringUtils.Strip(outfitName);
+		}
+		
+		if (outfitName == null || outfitName == "")
+		{
+			return;
+		}
+
+		var outfitFound:Boolean = false;
+		for (var id:String in m_builds)
+		{
+			var thisOutfit:Outfit = m_outfits[id];
+			if (thisOutfit != null && thisOutfit.GetName() == outfitName)
+			{
+				outfitFound = true;
+				setTimeout(Delegate.create(this, function() { thisOutfit.Apply(); }), 20);
+				break;
+			}
+		}
+		
+		if (outfitFound == false)
+		{
+			InfoWindow.LogError("Cannot find outfit " + outfitName);
+		}
+
+		m_loadOutfitDV.SetValue("");
 	}
 	
 	private function ToggleCombat(inCombat:Boolean):Void

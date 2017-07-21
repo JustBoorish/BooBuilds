@@ -34,6 +34,7 @@ class com.boobuilds.BIcon
 	private var m_tooltip:TooltipInterface;
 	private var m_toggleLeftVisibleFunc:Function;
 	private var m_toggleRightVisibleFunc:Function;
+	private var m_toggleShiftLeftVisibleFunc:Function;
 	private var m_ctrlToggleVisibleFunc:Function;
 	private var m_version:String;
 	private var m_dragging:Boolean;
@@ -57,7 +58,7 @@ class com.boobuilds.BIcon
 	// Fifth is the path to your icon as seen in-game using Ctrl + Shift + F2 (the debug window). Can be undefined if you have no icon (this also means your add-on won't be slotable).
 	private var VTIOAddonInfo_s:String;
 	
-	public function BIcon(parent:MovieClip, icon:MovieClip, version:String, toggleLeftVisibleFunc:Function, toggleRightVisibleFunc:Function, ctrlToggleVisibleFunc:Function, x:Number, y:Number)
+	public function BIcon(parent:MovieClip, icon:MovieClip, version:String, toggleLeftVisibleFunc:Function, toggleRightVisibleFunc:Function, toggleShiftLeftVisibleFunc:Function, ctrlToggleVisibleFunc:Function, x:Number, y:Number)
 	{
 		if (icon == null)
 		{
@@ -68,6 +69,7 @@ class com.boobuilds.BIcon
 		m_version = version;
 		m_toggleLeftVisibleFunc = toggleLeftVisibleFunc;
 		m_toggleRightVisibleFunc = toggleRightVisibleFunc;
+		m_toggleShiftLeftVisibleFunc = toggleShiftLeftVisibleFunc;
 		m_ctrlToggleVisibleFunc = ctrlToggleVisibleFunc;
 		m_dragging = false;
 		
@@ -142,7 +144,14 @@ class com.boobuilds.BIcon
 		DistributedValue.SetDValue("VTIO_BooBuilds", !DistributedValue.GetDValue("VTIO_BooBuilds"));
 		if (buttonIndex == 1)
 		{
-			m_toggleLeftVisibleFunc();
+			if (Key.isDown(Key.SHIFT))
+			{
+				m_toggleShiftLeftVisibleFunc();
+			}
+			else
+			{
+				m_toggleLeftVisibleFunc();
+			}
 		}
 		else
 		{
@@ -185,7 +194,9 @@ class com.boobuilds.BIcon
 			tooltipData.AddAttribute("", "<font face='_StandardFont' size='13' color='#FF8000'><b>BooBuilds v" + m_version + " by Boorish</b></font>");
 			tooltipData.AddAttributeSplitter();
 			tooltipData.AddAttribute("", "");
-			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Left click to choose a build. Right click to edit builds</font>");
+			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Left click to choose a build</font>");
+			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Shift+Left click to choose an outfit</font>");
+			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Right click to edit builds and outfits</font>");
 			tooltipData.m_Padding = 4;
 			tooltipData.m_MaxWidth = 210;
 			m_tooltip = TooltipManager.GetInstance().ShowTooltip(undefined, TooltipInterface.e_OrientationVertical, 0, tooltipData);
