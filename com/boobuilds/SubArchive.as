@@ -1,4 +1,5 @@
 import com.Utils.Archive;
+import com.boobuilds.DebugWindow;
 import com.boobuilds.SubArchive;
 import com.Utils.StringUtils;
 /**
@@ -58,6 +59,8 @@ class com.boobuilds.SubArchive extends Archive
 			{
 				ret.AddEntry(items[indx], items[indx + 1]);
 			}
+			
+			return ret;
 		}
 		
 		return null;
@@ -71,7 +74,7 @@ class com.boobuilds.SubArchive extends Archive
 			var ret:Array = new Array();
 			for (var indx:Number = 0; indx < items.length; ++indx)
 			{
-				var thisArc:SubArchive = SubArchive.FromString(items[indx]);
+				var thisArc:SubArchive = SubArchive.FromString(TAG + items[indx]);
 				ret.push(thisArc);
 			}
 			
@@ -85,7 +88,7 @@ class com.boobuilds.SubArchive extends Archive
 	
 	public static function SplitArrayString(inString:String, separator:String):Array
 	{
-		var tmpItems:Array = inString.split(SEPARATOR);
+		var tmpItems:Array = inString.split(separator);
 		var items:Array = new Array();
 		for (var i:Number = 0; i < tmpItems.length; ++i)
 		{

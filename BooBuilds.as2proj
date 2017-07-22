@@ -83,6 +83,7 @@
     <compile path="com\boobuilds\Graphics.as" />
     <compile path="com\boobuilds\SubArchive.as" />
     <compile path="com\boobuilds\RestoreDialog.as" />
+    <compile path="com\boobuilds\ExportDialog.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

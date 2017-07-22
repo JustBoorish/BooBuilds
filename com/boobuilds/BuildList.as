@@ -6,6 +6,7 @@ import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditBuildDialog;
 import com.boobuilds.EditGroupDialog;
+import com.boobuilds.ExportDialog;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.ITabPane;
 import com.boobuilds.ImportBuildDialog;
@@ -56,8 +57,10 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_editGroupDialog:EditGroupDialog;
 	private var m_editBuildDialog:EditBuildDialog;
 	private var m_importBuildDialog:ImportBuildDialog;
+	private var m_exportBuildDialog:ExportDialog;
 	private var m_settings:Object;
 	private var m_cooldownMonitor:CooldownMonitor;
+	private var m_forceRedraw:Boolean;
 	
 	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, cdMon:CooldownMonitor)
 	{
@@ -66,6 +69,7 @@ class com.boobuilds.BuildList implements ITabPane
 		m_builds = builds;
 		m_settings = settings;
 		m_cooldownMonitor = cdMon;
+		m_forceRedraw = false;
 	}
 
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
@@ -108,6 +112,11 @@ class com.boobuilds.BuildList implements ITabPane
 	public function SetVisible(visible:Boolean):Void
 	{
 		m_scrollPane.SetVisible(visible);
+		if (visible == true && m_forceRedraw == true)
+		{
+			m_forceRedraw = false;
+			DrawList();
+		}
 	}
 	
 	public function GetVisible():Boolean
@@ -128,6 +137,11 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	public function StopDrag():Void
 	{	
+	}
+
+	public function ForceRedraw():Void
+	{
+		m_forceRedraw = true;
 	}
 
 	public function DrawList():Void
@@ -265,6 +279,12 @@ class com.boobuilds.BuildList implements ITabPane
 			m_importBuildDialog.Unload();
 			m_importBuildDialog = null;
 		}
+		
+		if (m_exportBuildDialog != null)
+		{
+			m_exportBuildDialog.Unload();
+			m_exportBuildDialog = null;
+		}
 	}
 	
 	private function ApplyBuild(buildID:String):Void
@@ -335,8 +355,8 @@ class com.boobuilds.BuildList implements ITabPane
 		if (m_currentBuild != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("ExportBuild", m_parent, "Select all the text below", "and press Ctrl+C to copy", m_currentBuild.GetName(), m_currentBuild.toExportString());
-			m_editDialog.Show();
+			m_exportBuildDialog = new ExportDialog("ExportBuild", m_parent, "Export " + m_currentBuild.GetName(), m_currentBuild.toExportString());
+			m_exportBuildDialog.Show();
 		}
 	}
 	

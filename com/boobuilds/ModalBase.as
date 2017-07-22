@@ -31,7 +31,6 @@ class com.boobuilds.ModalBase
 	private var m_textFormat:TextFormat;
 	private var m_button1:MovieClip;
 	private var m_button2:MovieClip;
-	private var m_callback:Function;
 	private var m_maxWidth:Number;
 	private var m_maxHeight:Number;
 	private var m_input:TextField;
@@ -104,9 +103,8 @@ class com.boobuilds.ModalBase
 		return m_modal;
 	}
 	
-	public function Show(callback:Function):Void
+	public function Show():Void
 	{
-		m_callback = callback;
 		m_blocker._visible = true;
 		m_modal._visible = true;
 	}
@@ -242,37 +240,5 @@ class com.boobuilds.ModalBase
 		menuMask._y = menuCell._y;
 		
 		return menuCell;
-	}
-
-	private function ButtonPressed(text:String):Void
-	{
-		var success:Boolean = false;
-		if (text == "Yes" || text == "OK")
-		{
-			success = true;
-		}
-		
-		m_modal._visible = false;
-		m_blocker._visible = false;
-		
-		if (m_callback != null)
-		{
-			if (m_input != null)
-			{
-				DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
-				if (success)
-				{
-					m_callback(m_input.text);
-				}
-				else
-				{
-					m_callback(null);
-				}
-			}
-			else
-			{
-				m_callback(success);
-			}
-		}
 	}
 }

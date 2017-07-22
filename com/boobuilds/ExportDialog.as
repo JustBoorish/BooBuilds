@@ -1,4 +1,3 @@
-import com.boobuilds.Checkbox;
 import com.boobuilds.Graphics;
 import com.boobuilds.ModalBase;
 import com.boobuilds.DebugWindow;
@@ -20,28 +19,29 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.RestoreDialog
+class com.boobuilds.ExportDialog
 {
 	private var m_modalBase:ModalBase;
 	private var m_textFormat:TextFormat;
-	private var m_callback:Function;
 	private var m_input:TextField;
-	private var m_overwrite:Checkbox;
+	private var m_title:String;
+	private var m_exportString:String;
 	
-	public function RestoreDialog(name:String, parent:MovieClip, callback:Function) 
+	public function ExportDialog(name:String, parent:MovieClip, title:String, exportString:String) 
 	{
-		m_callback = callback;
+		m_exportString = exportString;
+		m_title = title;
 		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.6, 0.8);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
-		m_modalBase.DrawButton("OK", modalMC._width / 4, y, Delegate.create(this, ButtonPressed));
-		m_modalBase.DrawButton("Cancel", modalMC._width - (modalMC._width / 4), y, Delegate.create(this, ButtonPressed));
+		m_modalBase.DrawButton("OK", modalMC._width / 2, y, Delegate.create(this, ButtonPressed));
 	}
 	
 	public function Show():Void
 	{
 		Selection.setFocus(m_input);
+		Selection.setSelection(0, m_exportString.length);
 		m_modalBase.Show();
 	}
 	
@@ -61,15 +61,15 @@ class com.boobuilds.RestoreDialog
 	{
 		m_textFormat = Graphics.GetTextFormat();
 		var labelExtents:Object;
-		var text:String = "Paste the saved backup string";
+		var text:String = m_title;
 		labelExtents = Text.GetTextExtent(text, m_textFormat, modalMC);
 		Graphics.DrawText("Line1", modalMC, text, m_textFormat, modalMC._width / 2 - labelExtents.width / 2, labelExtents.height, labelExtents.width, labelExtents.height);
 		
-		text = "into the below box and press OK";
+		text = "Press Ctrl+C to copy and press OK";
 		labelExtents = Text.GetTextExtent(text, m_textFormat, modalMC);
 		var line2:TextField = Graphics.DrawText("Line2", modalMC, text, m_textFormat, modalMC._width / 2 - labelExtents.width / 2, labelExtents.height * 2, labelExtents.width, labelExtents.height);
 		
-		var input:TextField = modalMC.createTextField("RestoreInput", modalMC.getNextHighestDepth(), 30, line2._y + line2._height + 10, modalMC._width - 60, labelExtents.height * 7 + 6);
+		var input:TextField = modalMC.createTextField("ExportInput", modalMC.getNextHighestDepth(), 30, line2._y + line2._height + 10, modalMC._width - 60, labelExtents.height * 7 + 6);
 		input.type = "input";
 		input.embedFonts = true;
 		input.selectable = true;
@@ -78,42 +78,16 @@ class com.boobuilds.RestoreDialog
 		input.border = true;
 		input.background = false;
 		input.setNewTextFormat(m_textFormat);
-		input.text = "";
+		input.text = m_exportString;
 		input.borderColor = 0x585858;
 		input.background = true;
 		input.backgroundColor = 0x2E2E2E;
 		input.wordWrap = true;
 		m_input = input;
-		
-		var checkSize:Number = 10;
-		var checkY:Number = m_input._y + m_input._height + 20;
-		m_overwrite = new Checkbox("RestoreOverwrite", modalMC, 30, checkY, checkSize, null, false);
-		
-		text = "Overwrite existing";
-		labelExtents = Text.GetTextExtent(text, m_textFormat, modalMC);
-		Graphics.DrawText("OverwriteLabel", modalMC, text, m_textFormat, 45, checkY + checkSize / 2 - labelExtents.height / 2, labelExtents.width, labelExtents.height);
 	}
 	
 	private function ButtonPressed(text:String):Void
 	{
-		var success:Boolean = false;
-		if (text == "OK")
-		{
-			success = true;
-		}
-
 		m_modalBase.Hide();
-		
-		if (m_callback != null)
-		{
-			if (success)
-			{
-				m_callback(m_input.text, m_overwrite.IsChecked());
-			}
-			else
-			{
-				m_callback(null, false);
-			}
-		}
 	}
 }

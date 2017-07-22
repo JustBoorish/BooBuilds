@@ -2,15 +2,17 @@ import com.Utils.Archive;
 import com.boobuilds.ITabPane;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
+import com.boobuilds.BuildList;
 import com.boobuilds.Checkbox;
 import com.boobuilds.Controller;
 import com.boobuilds.DebugWindow;
-import com.boobuilds.EditDialog;
+import com.boobuilds.ExportDialog;
 import com.boobuilds.Graphics;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.InventoryThrottle;
 import com.boobuilds.MenuPanel;
 import com.boobuilds.Outfit;
+import com.boobuilds.OutfitList;
 import com.boobuilds.RestoreDialog;
 import com.Utils.Text;
 import com.boobuilds.SubArchive;
@@ -55,16 +57,21 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_buildGroups:Array;
 	private var m_outfits:Object;
 	private var m_outfitGroups:Array;
-	private var m_editDialog:EditDialog;
+	private var m_exportDialog:ExportDialog;
 	private var m_restoreDialog:RestoreDialog;
+	private var m_buildList:BuildList;
+	private var m_outfitList:OutfitList;
 	
-	public function OptionsTab(title:String, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object)
+	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, buildList:BuildList, outfitList:OutfitList)
 	{
 		m_name = title;
+		m_settings = settings;
 		m_buildGroups = buildGroups;
 		m_builds = builds;
 		m_outfitGroups = outfitGroups;
 		m_outfits = outfits;
+		m_buildList = buildList;
+		m_outfitList = outfitList;
 		m_parent = null;
 	}
 	
@@ -104,11 +111,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 		pt.x = m_frame._x;
 		pt.y = m_frame._y;
 		return pt;
-	}
-	
-	public function SetSettings(settings:Object):Void
-	{
-		m_settings = settings;
 	}
 	
 	public function Save():Void
@@ -249,10 +251,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	private function UnloadDialogs():Void
 	{
-		if (m_editDialog != null)
+		if (m_exportDialog != null)
 		{
-			m_editDialog.Unload();
-			m_editDialog = null;
+			m_exportDialog.Unload();
+			m_exportDialog = null;
 		}
 		
 		if (m_restoreDialog != null)
@@ -267,8 +269,8 @@ class com.boobuilds.OptionsTab implements ITabPane
 		UnloadDialogs();
 		
 		var backupString:String = CreateBackupString();
-		m_editDialog = new EditDialog("Backup", m_parent, null, "Select all the text below", "and press Ctrl+C to copy", backupString);
-		m_editDialog.Show();
+		m_exportDialog = new ExportDialog("Backup", m_parent, "Backup builds and outfits", backupString);
+		m_exportDialog.Show();
 	}
 	
 	private function ShowRestoreDialog():Void
@@ -326,6 +328,9 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				Outfit.ReorderOutfits(m_outfitGroups[indx].GetID(), m_outfits);
 			}
+			
+			m_buildList.ForceRedraw();
+			m_outfitList.ForceRedraw();
 		}
 	}
 
@@ -377,10 +382,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 				if (writeIt == true)
 				{
 					m_builds[thisBuild.GetID()] = thisBuild;
-					var groupIndex:Number = FindGroupIndex(m_buildGroups, thisBuild.GetID());
+					var groupIndex:Number = FindGroupIndex(m_buildGroups, thisBuild.GetGroup());
 					if (groupIndex == null)
 					{
-						CreateTempGroup(thisBuild.GetID(), m_buildGroups);
+						CreateTempGroup(thisBuild.GetGroup(), m_buildGroups);
 					}
 				}
 			}
@@ -411,10 +416,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 				if (writeIt == true)
 				{
 					m_outfits[thisOutfit.GetID()] = thisOutfit;
-					var groupIndex:Number = FindGroupIndex(m_outfitGroups, thisOutfit.GetID());
+					var groupIndex:Number = FindGroupIndex(m_outfitGroups, thisOutfit.GetGroup());
 					if (groupIndex == null)
 					{
-						CreateTempGroup(thisOutfit.GetID(), m_outfitGroups);
+						CreateTempGroup(thisOutfit.GetGroup(), m_outfitGroups);
 					}
 				}
 			}

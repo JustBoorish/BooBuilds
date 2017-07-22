@@ -47,17 +47,21 @@ class com.boobuilds.EditGroupDialog
 	
 	public function Show(callback:Function):Void
 	{
+		Selection.setFocus(m_input);
+		Selection.setSelection(m_groupName.length, m_groupName.length);
 		m_callback = callback;
 		m_modalBase.Show(m_callback);
 	}
 	
 	public function Hide():Void
 	{
+		Selection.setFocus(null);
 		m_modalBase.Hide();
 	}
 	
 	public function Unload():Void
 	{
+		Selection.setFocus(null);
 		m_modalBase.Unload();
 	}
 	

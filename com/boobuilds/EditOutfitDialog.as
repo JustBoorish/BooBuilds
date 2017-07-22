@@ -58,17 +58,21 @@ class com.boobuilds.EditOutfitDialog
 	
 	public function Show(callback:Function):Void
 	{
+		Selection.setFocus(m_input);
+		Selection.setSelection(m_outfitName.length, m_outfitName.length);
 		m_callback = callback;
 		m_modalBase.Show(m_callback);
 	}
 	
 	public function Hide():Void
 	{
+		Selection.setFocus(null);
 		m_modalBase.Hide();
 	}
 	
 	public function Unload():Void
 	{
+		Selection.setFocus(null);
 		m_combo.Unload();
 		m_modalBase.Unload();
 	}

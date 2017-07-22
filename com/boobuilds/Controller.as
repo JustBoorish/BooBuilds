@@ -407,7 +407,6 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_optionsTab != null)
 		{
-			m_optionsTab.SetSettings(m_settings);
 			m_optionsTab.Save();
 		}
 		
@@ -426,27 +425,17 @@ class com.boobuilds.Controller extends MovieClip
 		SaveSettings();
 	}
 	
-	private function HideWindows():Void
+	private function ToggleBuildSelectorVisible():Void
 	{
 		if (m_configWindow != null && m_configWindow.GetVisible() == true)
 		{
 			ToggleConfigVisible();
 		}
 		
-		if (m_buildSelectorWindow != null && m_buildSelectorWindow.GetVisible() == true)
-		{
-			ToggleBuildSelectorVisible();
-		}
-		
 		if (m_outfitSelectorWindow != null && m_outfitSelectorWindow.GetVisible() == true)
 		{
 			ToggleOutfitSelectorVisible();
 		}		
-	}
-	
-	private function ToggleBuildSelectorVisible():Void
-	{
-		HideWindows();
 		
 		var show:Boolean = true;
 		if (m_buildSelectorWindow != null)
@@ -478,7 +467,15 @@ class com.boobuilds.Controller extends MovieClip
 	
 	private function ToggleOutfitSelectorVisible():Void
 	{
-		HideWindows();
+		if (m_configWindow != null && m_configWindow.GetVisible() == true)
+		{
+			ToggleConfigVisible();
+		}
+		
+		if (m_buildSelectorWindow != null && m_buildSelectorWindow.GetVisible() == true)
+		{
+			ToggleBuildSelectorVisible();
+		}
 		
 		var show:Boolean = true;
 		if (m_outfitSelectorWindow != null)
@@ -510,26 +507,32 @@ class com.boobuilds.Controller extends MovieClip
 	
 	private function ToggleConfigVisible():Void
 	{
-		FeatInterface.BuildFeatList();
+		if (m_buildSelectorWindow != null && m_buildSelectorWindow.GetVisible() == true)
+		{
+			ToggleBuildSelectorVisible();
+		}
 		
-		HideWindows();
+		if (m_outfitSelectorWindow != null && m_outfitSelectorWindow.GetVisible() == true)
+		{
+			ToggleOutfitSelectorVisible();
+		}		
 		
 		if (m_configWindow == null)
 		{
-			m_optionsTab = new OptionsTab("Options", m_buildGroups, m_builds, m_outfitGroups, m_outfits);
+			FeatInterface.BuildFeatList();
+		
 			var buildList:BuildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor);
 			var outfitList:OutfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
+			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, buildList, outfitList);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", buildList);
 			m_configWindow.AddTab("Outfits", outfitList);
 			m_configWindow.AddTab("Options", m_optionsTab);
-			m_optionsTab.SetSettings(m_settings);
 			m_configWindow.SetVisible(true);
 		}
 		else
 		{
-			m_optionsTab.SetSettings(m_settings);
-			m_configWindow.ToggleVisible();
+			m_configWindow.SetVisible(!m_configWindow.GetVisible());
 		}
 		
 		if (m_configWindow.GetVisible() != true)
