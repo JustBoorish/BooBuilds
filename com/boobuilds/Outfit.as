@@ -102,6 +102,15 @@ class com.boobuilds.Outfit
 		return ret;
 	}
 	
+	public static function FromImport(id:String, name:String, order:Number, groupID:String, clothes:Array, primaryHidden:Boolean, secondaryHidden:Boolean):Outfit
+	{
+		var ret:Outfit = new Outfit(id, name, order, groupID);
+		ret.m_outfit = clothes;
+		ret.m_primaryWeaponHidden = primaryHidden;
+		ret.m_secondaryWeaponHidden = secondaryHidden;
+		return ret;
+	}
+	
 	public function ClearWeaponVisibility():Void
 	{
 		m_primaryWeaponHidden = false;
@@ -126,6 +135,11 @@ class com.boobuilds.Outfit
 	public function GetGroup():String
 	{
 		return m_group;
+	}
+	
+	public function SetGroup(newGroup:String):Void
+	{
+		m_group = newGroup;
 	}
 	
 	public function GetOrder():Number
@@ -578,7 +592,6 @@ class com.boobuilds.Outfit
 			
 			if (!IsFullOutfit())
 			{
-				DebugWindow.Log(DebugWindow.Debug, "Preview 1");
 				PreviewSlot(GetFullOutfitSlotID(0), null, wearInv, wardrobeInv);
 			}
 		}
@@ -587,16 +600,12 @@ class com.boobuilds.Outfit
 	private function PreviewSlot(slotID:Number, itemName:String, wearInv:Inventory, wardrobeInv:Inventory)
 	{
 		var equipped:Boolean = IsSlotCorrect(wearInv, slotID, itemName);
-				DebugWindow.Log(DebugWindow.Debug, "Preview 2");
 		if (equipped != true)
 		{
-				DebugWindow.Log(DebugWindow.Debug, "Preview 3");
 			if (itemName == null)
 			{
-				DebugWindow.Log(DebugWindow.Debug, "Preview 4");
 				if (IsSlotEmpty(wearInv, slotID) != true)
 				{
-				DebugWindow.Log(DebugWindow.Debug, "Preview 5 " + slotID);
 					// Unequip for preview
 					wearInv.PreviewItem(slotID);
 				}

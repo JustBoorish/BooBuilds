@@ -1,6 +1,6 @@
 import com.boobuilds.Outfit;
 import com.boobuilds.BuildGroup;
-import com.boobuilds.CooldownMonitor;
+import com.boobuilds.ChangeGroupDialog;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditOutfitDialog;
@@ -56,6 +56,7 @@ class com.boobuilds.OutfitList implements ITabPane
 	private var m_editOutfitDialog:EditOutfitDialog;
 	private var m_importOutfitDialog:ImportOutfitDialog;
 	private var m_exportOutfitDialog:ExportDialog;
+	private var m_changeGroupDialog:ChangeGroupDialog;
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
 	
@@ -82,6 +83,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_itemPopup.AddItem("Export", Delegate.create(this, ExportOutfit));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameOutfit));
 		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateOutfit));
+		m_itemPopup.AddItem("Change group", Delegate.create(this, ChangeGroup));
 		m_itemPopup.AddItem("Move Up", Delegate.create(this, MoveOutfitUp));
 		m_itemPopup.AddItem("Move Down", Delegate.create(this, MoveOutfitDown));
 		m_itemPopup.AddSeparator();
@@ -280,6 +282,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			m_exportOutfitDialog.Unload();
 			m_exportOutfitDialog = null;
+		}
+		
+		if (m_changeGroupDialog != null)
+		{
+			m_changeGroupDialog.Unload();
+			m_changeGroupDialog = null;
 		}
 	}
 	
@@ -501,6 +509,72 @@ class com.boobuilds.OutfitList implements ITabPane
 			}
 		}
 		
+		m_currentOutfit = null;
+	}
+	
+	private function ChangeGroup(outfitID:String):Void
+	{
+		m_currentOutfit = m_outfits[outfitID];
+		if (m_currentOutfit != null)
+		{
+			m_currentGroup = FindGroupByID(m_currentOutfit.GetGroup());
+			if (m_currentGroup != null)
+			{
+				UnloadDialogs();
+				
+				m_changeGroupDialog = new ChangeGroupDialog("ChangeOutfitGroup", m_parent, m_addonMC, m_currentGroup.GetName(), m_groups);
+				m_changeGroupDialog.Show(Delegate.create(this, ChangeGroupCB));
+			}
+		}
+	}
+	
+	private function ChangeGroupCB(newName:String):Void
+	{
+		if (newName != null)
+		{
+			var nameValid:Boolean = IsValidName(newName, "group");
+			if (nameValid == true && newName != "" && m_currentOutfit != null && m_currentGroup != null && newName != m_currentGroup.GetName())
+			{
+				var newGroup:BuildGroup = null;
+				for (var indx:Number = 0; indx < m_groups.length; ++indx)
+				{
+					if (m_groups[indx] != null && m_groups[indx].GetName() == newName)
+					{
+						newGroup = m_groups[indx];
+						break;
+					}
+				}
+				
+				if (newGroup == null)
+				{
+					InfoWindow.LogError("Failed to find group " + newName);
+				}
+				else
+				{
+					var duplicateFound:Boolean = false;
+					for (var indx:String in m_outfits)
+					{
+						var thisOutfit:Outfit = m_outfits[indx];
+						if (thisOutfit != null && thisOutfit.GetName() == m_currentOutfit.GetName() && newGroup.GetID() == thisOutfit.GetGroup())
+						{
+							duplicateFound = true;
+						}
+					}
+					
+					if (duplicateFound == false)
+					{
+						m_currentOutfit.SetGroup(newGroup.GetID());
+						DrawList();
+					}
+					else
+					{
+						InfoWindow.LogError("Update outfit group failed.  Name already exists");				
+					}
+				}
+			}
+		}
+		
+		m_currentGroup = null;
 		m_currentOutfit = null;
 	}
 	

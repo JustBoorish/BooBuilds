@@ -249,6 +249,11 @@ class com.boobuilds.Build
 		return m_group;
 	}
 	
+	public function SetGroup(newGroup:String):Void
+	{
+		m_group = newGroup;
+	}
+	
 	public function GetOrder():Number
 	{
 		return m_order;

@@ -25,6 +25,9 @@ Change Log
 Version 1.5
 Initial support for switching outfits
 Added Backup and restore features
+Added Change group ability
+Added restore from Fashionista
+Added sprint selection to outfits
 
 Version 1.4
 Made builds include the weapon hidden status

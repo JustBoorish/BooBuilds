@@ -203,13 +203,12 @@ class com.boobuilds.OptionsTab implements ITabPane
 
 		BuildMenu(m_frame, 40 + extents.width, 30);
 
-		text = "Backup";
+		text = "Backup builds and outfits";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 30 + 2 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 2 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
 
-		text = "Restore";
-		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 40 + 3 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		text = "Restore build and outfits";
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 4 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
@@ -285,7 +284,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		if (restoreString != null)
 		{
-			RestoreBackupString(restoreString, overwrite);
+			if (IsFashionistaExport(restoreString) == true)
+			{
+				RestoreFashionistaString(restoreString, overwrite);
+			}
+			else
+			{
+				RestoreBackupString(restoreString, overwrite);
+			}
 		}
 	}
 	
@@ -506,5 +512,156 @@ class com.boobuilds.OptionsTab implements ITabPane
 		}
 		
 		return archive.ToString();
+	}
+	
+	/*
+	private function GetNormalSlotID(indx:Number):Number
+	{
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_Hat, _global.Enums.ItemEquipLocation.e_Wear_Face,
+								_global.Enums.ItemEquipLocation.e_Wear_Neck, _global.Enums.ItemEquipLocation.e_Wear_Back,
+								_global.Enums.ItemEquipLocation.e_Wear_Chest, _global.Enums.ItemEquipLocation.e_Wear_Hands,
+								_global.Enums.ItemEquipLocation.e_Wear_Legs, _global.Enums.ItemEquipLocation.e_Wear_Feet,
+								_global.Enums.ItemEquipLocation.e_Ring_1, _global.Enums.ItemEquipLocation.e_Ring_2,
+								_global.Enums.ItemEquipLocation.e_HeadAccessory];
+		return positions[indx];
+	}
+	
+	private function GetFullOutfitSlotID(indx:Number):Number
+	{
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_FullOutfit, _global.Enums.ItemEquipLocation.e_Wear_Hat,
+								_global.Enums.ItemEquipLocation.e_Wear_Face, _global.Enums.ItemEquipLocation.e_HeadAccessory ];
+		return positions[indx];
+	}
+	
+	* */
+	
+	private function IsFashionistaExport(backupString:String):Boolean
+	{
+		if (backupString != null && backupString.indexOf("VFA_EXPORT") == 0)
+		{
+			return true;
+		}
+		
+		return false;
+	}
+	
+	private function RestoreFashionistaString(backupString:String, overwrite:Boolean):Void
+	{
+		var items:Array = SubArchive.SplitArrayString(backupString, "%");
+		if (items == null || items.length < 3)
+		{
+			InfoWindow.LogError("Invalid Fashionista export string");
+		}
+		else
+		{
+			if (items[0].indexOf("VFA_EXPORT") != 0)
+			{
+				InfoWindow.LogError("Invalid Fashionista export string");
+				return;
+			}
+			
+			var thisGroup:BuildGroup = null;
+			for (var indx:Number = 2; indx < items.length; indx += 2)
+			{
+				var outfitItems:Array = SubArchive.SplitArrayString(items[indx], "|");
+				if (outfitItems == null || outfitItems.length != 15)
+				{
+					InfoWindow.LogError("Ignoring outfit " + outfitItems[0]);
+				}
+				else
+				{
+					if (thisGroup == null)
+					{
+						thisGroup = GetFashionistaGroup();
+					}
+					
+					var oldOutfit:Outfit = FindOutfit(thisGroup.GetID(), outfitItems[0]);
+					if (oldOutfit == null || overwrite == true)
+					{
+						var outfitID:String;
+						if (oldOutfit == null)
+						{
+							outfitID = Outfit.GetNextID(m_outfits);
+						}
+						else
+						{
+							outfitID = oldOutfit.GetID();
+						}
+						
+						var primaryHidden:Boolean = outfitItems[12] == "true";
+						var secondaryHidden:Boolean = outfitItems[13] == "true";
+						var clothes:Array = new Array();
+						if (outfitItems[10] == "undefined")
+						{
+							clothes.push(GetClothesItem(outfitItems, 7));
+							clothes.push(GetClothesItem(outfitItems, 8));
+							clothes.push(GetClothesItem(outfitItems, 6));
+							clothes.push(GetClothesItem(outfitItems, 4));
+							clothes.push(GetClothesItem(outfitItems, 3));
+							clothes.push(GetClothesItem(outfitItems, 5));
+							clothes.push(GetClothesItem(outfitItems, 2));
+							clothes.push(GetClothesItem(outfitItems, 1));
+							clothes.push(null);
+							clothes.push(null);
+							clothes.push(GetClothesItem(outfitItems, 9));
+						}
+						else
+						{
+							clothes.push(GetClothesItem(outfitItems, 10));
+							clothes.push(GetClothesItem(outfitItems, 7));
+							clothes.push(GetClothesItem(outfitItems, 8));
+							clothes.push(GetClothesItem(outfitItems, 9));
+						}
+						
+						var thisOutfit:Outfit = Outfit.FromImport(outfitID, outfitItems[0], Outfit.GetNextOrder(thisGroup.GetID(), m_outfits), thisGroup.GetID(), clothes, primaryHidden, secondaryHidden);
+						m_outfits[outfitID] = thisOutfit;
+					}
+				}
+			}
+			
+			Outfit.ReorderOutfits(thisGroup.GetID(), m_outfits);
+			m_outfitList.ForceRedraw();
+		}
+	}
+	
+	private function GetFashionistaGroup():BuildGroup
+	{
+		for (var indx:Number = 0; indx < m_outfitGroups.length; ++indx)
+		{
+			if (m_outfitGroups[indx].GetName() == "Fashionista")
+			{
+				return m_outfitGroups[indx];
+			}
+		}
+		
+		var thisGroup:BuildGroup = new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Fashionista", BuildGroup.GRAY);
+		m_outfitGroups.push(thisGroup);
+		return thisGroup;
+	}
+	
+	private function FindOutfit(groupID:String, name:String):Outfit
+	{
+		for (var indx:String in m_outfits)
+		{
+			var outfit:Outfit = m_outfits[indx];
+			if (outfit.GetGroup() == groupID && outfit.GetName() == name)
+			{
+				return outfit;
+			}
+		}
+		
+		return null;
+	}
+	
+	private function GetClothesItem(items:Array, indx:Number):String
+	{
+		if (items[indx] == null || items[indx] == "undefined")
+		{
+			return null;
+		}
+		else
+		{
+			return items[indx];
+		}
 	}
 }

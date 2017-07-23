@@ -67,6 +67,7 @@ class com.boobuilds.EditOutfitDialog
 	public function Hide():Void
 	{
 		Selection.setFocus(null);
+		m_combo.HidePopup();
 		m_modalBase.Hide();
 	}
 	
@@ -170,7 +171,7 @@ class com.boobuilds.EditOutfitDialog
 			success = true;
 		}
 
-		m_modalBase.Hide();
+		Hide();
 		
 		if (m_callback != null)
 		{

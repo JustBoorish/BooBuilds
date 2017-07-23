@@ -87,9 +87,13 @@ class com.boobuilds.ComboBox
 		return m_selectedName;
 	}
 	
-	public function SetVisible(visible:Boolean):Void
+	public function HidePopup():Void
 	{
 		m_scroll.SetVisible(false);
+	}
+	public function SetVisible(visible:Boolean):Void
+	{
+		HidePopup();
 		
 		if (visible != true)
 		{
