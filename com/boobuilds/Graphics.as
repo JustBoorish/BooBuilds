@@ -1,3 +1,4 @@
+import com.boobuilds.DebugWindow;
 import caurina.transitions.Tweener;
 import com.Utils.Text;
 import flash.geom.Matrix;
@@ -105,6 +106,28 @@ class com.boobuilds.Graphics
 		textField.setNewTextFormat(textFormat);
 		textField.text = text;
 		return textField;
+	}
+	
+	public static function DrawRectangle(mc:MovieClip, lineColour:Number, lineWidth:Number, x:Number, y:Number, width:Number, height:Number):Void
+	{
+		mc.lineStyle(lineWidth, lineColour, 100, true, "none", "square", "round");
+		mc.moveTo(x, y);
+		mc.lineTo(x + width, y);
+		mc.lineTo(x + width, y + height);
+		mc.lineTo(x, y + height);
+		mc.lineTo(x, y);
+	}
+	
+	public static function DrawFilledRectangle(mc:MovieClip, lineColour:Number, lineWidth:Number, fillColour:Number, fillAlpha:Number, x:Number, y:Number, width:Number, height:Number):Void
+	{
+		mc.lineStyle(lineWidth, lineColour, 100, true, "none", "square", "round");
+		mc.beginFill(fillColour, fillAlpha);
+		mc.moveTo(x, y);
+		mc.lineTo(x + width, y);
+		mc.lineTo(x + width, y + height);
+		mc.lineTo(x, y + height);
+		mc.lineTo(x, y);
+		mc.endFill();
 	}
 	
 	public static function DrawRoundedRectangle(mc:MovieClip, lineColour:Number, lineWidth:Number, x:Number, y:Number, width:Number, height:Number):Void

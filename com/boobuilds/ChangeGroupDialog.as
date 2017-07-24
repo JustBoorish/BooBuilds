@@ -100,7 +100,6 @@ class com.boobuilds.ChangeGroupDialog
 		
 		if (m_callback != null)
 		{
-			DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
 			if (success)
 			{
 				m_callback(m_combo.GetSelectedEntry());

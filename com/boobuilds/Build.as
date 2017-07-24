@@ -11,6 +11,7 @@ import com.GameInterface.SpellBase;
 import com.GameInterface.SpellData;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipDataProvider;
+import com.GameInterface.Game.BuffData;
 import com.Utils.Archive;
 import com.Utils.ID32;
 import com.Utils.StringUtils;
@@ -45,6 +46,7 @@ class com.boobuilds.Build
 	public static var NAME_PREFIX:String = "Name";
 	public static var PARENT_PREFIX:String = "Parent";
 	public static var ORDER_PREFIX:String = "Order";
+	public static var OUTFIT_PREFIX:String = "Outfit";
 	public static var SKILL_PREFIX:String = "Skill";
 	public static var PASSIVE_PREFIX:String = "Passive";
 	public static var GEAR_PREFIX:String = "Gear";
@@ -57,11 +59,13 @@ class com.boobuilds.Build
 	
 	private static var m_buildStillLoading:Boolean = false;
 	private static var m_buildLoadingID:Number = -1;
+	private static var m_dismountBeforeBuild:Boolean = false;
 
 	private var m_id:String;
 	private var m_name:String;
 	private var m_group:String;
 	private var m_order:Number;
+	private var m_outfit:String;
 	private var m_skills:Array;
 	private var m_passives:Array;
 	private var m_gear:Array;
@@ -96,6 +100,7 @@ class com.boobuilds.Build
 		m_passives = new Array();
 		m_gear = new Array();
 		m_weapons = new Array();
+		m_outfit = null;
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
 		m_unequipSkillsInterval = -1;
@@ -254,6 +259,16 @@ class com.boobuilds.Build
 		m_group = newGroup;
 	}
 	
+	public function GetOutfitID():String
+	{
+		return m_outfit;
+	}
+	
+	public function SetOutfitID(newOutfit:String):Void
+	{
+		m_outfit = newOutfit;
+	}
+	
 	public function GetOrder():Number
 	{
 		return m_order;
@@ -285,8 +300,13 @@ class com.boobuilds.Build
 	{
 		return m_buildStillLoading;
 	}
+	
+	public static function SetDismountBeforeBuild(newValue:Boolean):Void
+	{
+		m_dismountBeforeBuild = newValue;
+	}
 
-	public function Apply(cdMon:CooldownMonitor):Void
+	public function Apply(cdMon:CooldownMonitor, outfits:Object):Void
 	{
 		if (m_buildStillLoading == true)
 		{
@@ -340,6 +360,11 @@ class com.boobuilds.Build
 				}
 			}
 			
+			if (m_dismountBeforeBuild == true)
+			{
+				Dismount();
+			}
+			
 			doTalismans = true;
 			var talismanCount:Number = 0;
 			for (var indx:Number = 0; indx < m_gear.length; ++indx)
@@ -356,6 +381,15 @@ class com.boobuilds.Build
 			}
 			
 			m_buildApplyQueue = new Array();
+			m_inventoryThrottle = new InventoryThrottle();
+			m_buildErrorCount = 0;
+			
+			if (m_outfit != null && outfits[m_outfit] != null)
+			{
+				var endCallback:Function = Delegate.create(this, ApplyBuildQueue);
+				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(this.m_inventoryThrottle, endCallback); }));
+			}
+			
 			if (doWeapons == true)
 			{
 				m_buildApplyQueue.push(Delegate.create(this, ApplyWeapons));
@@ -366,8 +400,6 @@ class com.boobuilds.Build
 				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
 			}
 			
-			m_inventoryThrottle = new InventoryThrottle();
-			m_buildErrorCount = 0;
 			ApplyPassives();
 			
 			if (m_buildApplyQueue.length > 0)
@@ -717,6 +749,7 @@ class com.boobuilds.Build
 		SetArchiveEntry(prefix, archive, NAME_PREFIX, m_name);		
 		SetArchiveEntry(prefix, archive, GROUP_PREFIX, m_group);
 		SetArchiveEntry(prefix, archive, ORDER_PREFIX, String(m_order));
+		SetArchiveEntry(prefix, archive, OUTFIT_PREFIX, m_outfit);
 		
 		var bdString:String = toString();
 		SetArchiveEntry(prefix, archive, BUILD_PREFIX, bdString);
@@ -729,6 +762,8 @@ class com.boobuilds.Build
 		DeleteArchiveEntry(prefix, archive, NAME_PREFIX);
 		DeleteArchiveEntry(prefix, archive, PARENT_PREFIX);
 		DeleteArchiveEntry(prefix, archive, GROUP_PREFIX);
+		DeleteArchiveEntry(prefix, archive, ORDER_PREFIX);
+		DeleteArchiveEntry(prefix, archive, OUTFIT_PREFIX);
 		DeleteArchiveEntry(prefix, archive, BUILD_PREFIX);
 	}
 	
@@ -915,8 +950,10 @@ class com.boobuilds.Build
 			var name:String = GetArchiveEntry(prefix, archive, NAME_PREFIX, null);
 			var group:String = GetArchiveEntry(prefix, archive, GROUP_PREFIX, null);
 			var order:String = GetArchiveEntry(prefix, archive, ORDER_PREFIX, "-1");
+			var outfit:String = GetArchiveEntry(prefix, archive, OUTFIT_PREFIX, null);
 			var bdString:String = GetArchiveEntry(prefix, archive, BUILD_PREFIX, null);
 			ret = Build.FromString(id, name, Number(order), group, bdString);
+			ret.SetOutfitID(outfit);
 		}
 		
 		return ret;
@@ -1528,5 +1565,28 @@ class com.boobuilds.Build
 		}
 		
 		return spaces;
+	}
+	
+	private function Dismount():Void
+	{
+		if (IsSprinting() == true)
+		{
+			SpellBase.SummonMountFromTag();
+		}
+	}
+	
+	private function IsSprinting():Boolean
+	{
+		var SPRINT_BUFFS:Array = [7481588, 7758936, 7758937, 7758938, 9114480, 9115262];
+		for (var i:Number = 0; i < SPRINT_BUFFS.length; i++)
+		{
+			var buff:BuffData = Character.GetClientCharacter().m_InvisibleBuffList[SPRINT_BUFFS[i]];
+			if (buff != undefined)
+			{
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }

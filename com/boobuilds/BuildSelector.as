@@ -31,15 +31,15 @@ class com.boobuilds.BuildSelector
 	private var m_menu:MenuPanel;
 	private var m_groups:Array;
 	private var m_builds:Object;
-	private var m_cooldownMonitor:CooldownMonitor;
+	private var m_callback:Function;
 	
-	public function BuildSelector(parent:MovieClip, name:String, groups:Array, builds:Object, cdMon:CooldownMonitor) 
+	public function BuildSelector(parent:MovieClip, name:String, groups:Array, builds:Object, callback:Function) 
 	{
 		m_parent = parent;
 		m_name = name;
 		m_groups = groups;
 		m_builds = builds;
-		m_cooldownMonitor = cdMon;
+		m_callback = callback;
 		
 		m_frame = parent.createEmptyMovieClip(name + "Frame", parent.getNextHighestDepth());
 		BuildMenu();
@@ -133,13 +133,13 @@ class com.boobuilds.BuildSelector
 	
 	private function BuildCallback(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
-		if (thisBuild != null)
-		{
-			thisBuild.Apply(m_cooldownMonitor);
-		}
-		
 		m_menu.SetVisible(false);
+		
+		var thisBuild:Build = m_builds[buildID];
+		if (thisBuild != null && m_callback != null)
+		{
+			m_callback(thisBuild);
+		}
 	}
 	
 	private function IsSingleGroup():Boolean

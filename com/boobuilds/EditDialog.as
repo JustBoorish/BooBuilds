@@ -136,7 +136,6 @@ class com.boobuilds.EditDialog
 		
 		if (m_callback != null)
 		{
-			DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
 			if (success)
 			{
 				m_callback(m_input.text);

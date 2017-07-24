@@ -30,13 +30,15 @@ class com.boobuilds.OutfitSelector
 	private var m_menu:MenuPanel;
 	private var m_groups:Array;
 	private var m_outfits:Object;
+	private var m_callback:Function;
 	
-	public function OutfitSelector(parent:MovieClip, name:String, groups:Array, outfits:Object) 
+	public function OutfitSelector(parent:MovieClip, name:String, groups:Array, outfits:Object, callback:Function) 
 	{
 		m_parent = parent;
 		m_name = name;
 		m_groups = groups;
 		m_outfits = outfits;
+		m_callback = callback;
 		
 		m_frame = parent.createEmptyMovieClip(name + "Frame", parent.getNextHighestDepth());
 		OutfitMenu();
@@ -129,14 +131,14 @@ class com.boobuilds.OutfitSelector
 	}
 	
 	private function OutfitCallback(outfitID:String):Void
-	{
-		var thisOutfit:Outfit = m_outfits[outfitID];
-		if (thisOutfit != null)
-		{
-			thisOutfit.Apply();
-		}
-		
+	{		
 		m_menu.SetVisible(false);
+		
+		var thisOutfit:Outfit = m_outfits[outfitID];
+		if (thisOutfit != null && m_callback != null)
+		{
+			m_callback(thisOutfit);
+		}
 	}
 	
 	private function IsSingleGroup():Boolean

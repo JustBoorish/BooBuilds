@@ -16,6 +16,8 @@
  */
 class com.boobuilds.InventoryThrottle
 {
+	public static var MAX_THROTTLE:Number = 6;
+	
 	private static var m_inventoryThrottleMode:Number = 0;
 
 	private var m_inventoryUseCounter:Number;
@@ -44,6 +46,21 @@ class com.boobuilds.InventoryThrottle
 		{
 			shortTimeout = 500;
 			longTimeout = 500;
+		}
+		else if (m_inventoryThrottleMode == 4)
+		{
+			shortTimeout = 20;
+			longTimeout = 2250;
+		}
+		else if (m_inventoryThrottleMode == 5)
+		{
+			shortTimeout = 20;
+			longTimeout = 2500;
+		}
+		else if (m_inventoryThrottleMode == 6)
+		{
+			shortTimeout = 20;
+			longTimeout = 2750;
 		}
 		
 		++m_inventoryUseCounter;

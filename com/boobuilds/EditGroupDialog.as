@@ -154,7 +154,6 @@ class com.boobuilds.EditGroupDialog
 		
 		if (m_callback != null)
 		{
-			DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
 			if (success)
 			{
 				m_callback(m_input.text, m_colourName);

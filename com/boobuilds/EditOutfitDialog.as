@@ -175,7 +175,6 @@ class com.boobuilds.EditOutfitDialog
 		
 		if (m_callback != null)
 		{
-			DebugWindow.Log(DebugWindow.Info, "Success " + success + " text " + text);
 			if (success)
 			{
 				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), GetTagFromSprintName(m_combo.GetSelectedEntry()));

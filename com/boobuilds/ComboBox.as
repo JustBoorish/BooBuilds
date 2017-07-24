@@ -114,7 +114,6 @@ class com.boobuilds.ComboBox
 	public function Draw():Void
 	{
 		SetTextExtents();
-		DebugWindow.Log(DebugWindow.Debug, "m_elementHeight " + m_elementHeight + " m_maxWidth " + m_maxWidth + " " + m_names[0] + " " + m_list);
 		DrawButton(m_selectedName);
 		
 		for (var indx:Number = 0; indx < m_names.length; ++indx)

@@ -49,6 +49,8 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_groupPopup:PopupMenu;
 	private var m_groups:Array;
 	private var m_builds:Object;
+	private var m_outfits:Object;
+	private var m_outfitGroups:Array;
 	private var m_currentGroup:BuildGroup;
 	private var m_currentBuild:Build;
 	private var m_buildWindow:BuildWindow;
@@ -64,11 +66,13 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_cooldownMonitor:CooldownMonitor;
 	private var m_forceRedraw:Boolean;
 	
-	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, cdMon:CooldownMonitor)
+	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, cdMon:CooldownMonitor, outfits:Object, outfitGroups:Array)
 	{
 		m_name = name;
 		m_groups = groups;
 		m_builds = builds;
+		m_outfits = outfits;
+		m_outfitGroups = outfitGroups;
 		m_settings = settings;
 		m_cooldownMonitor = cdMon;
 		m_forceRedraw = false;
@@ -245,7 +249,7 @@ class com.boobuilds.BuildList implements ITabPane
 		}
 	}
 
-	private function UnloadDialogs():Void
+	public function UnloadDialogs():Void
 	{
 		if (m_editDialog != null)
 		{
@@ -301,7 +305,7 @@ class com.boobuilds.BuildList implements ITabPane
 		var thisBuild:Build = m_builds[buildID];
 		if (thisBuild != null)
 		{
-			thisBuild.Apply(m_cooldownMonitor);
+			thisBuild.Apply(m_cooldownMonitor, m_outfits);
 		}
 	}
 	
@@ -485,30 +489,35 @@ class com.boobuilds.BuildList implements ITabPane
 				includeTalismans = false;
 			}
 			
-			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_currentBuild.GetName(), includeWeapons, includeTalismans);
+			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild.GetName(), includeWeapons, includeTalismans, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups);
 			m_editBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
 	
-	private function UpdateBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
+	private function UpdateBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, outfitID:String):Void
 	{
-		if (newName != null)
+		if (inName != null)
 		{
+			var newName:String = StringUtils.Strip(inName);
 			var nameValid:Boolean = IsValidName(newName, "build");
 			if (nameValid == true && newName != "" && m_currentBuild != null)
 			{
 				var duplicateFound:Boolean = false;
-				for (var indx:String in m_builds)
+				if (newName != m_currentBuild.GetName())
 				{
-					var thisBuild:Build = m_builds[indx];
-					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
+					for (var indx:String in m_builds)
 					{
-						duplicateFound = true;
+						var thisBuild:Build = m_builds[indx];
+						if (thisBuild != null && thisBuild.GetName() == newName && m_currentBuild.GetGroup() == thisBuild.GetGroup())
+						{
+							duplicateFound = true;
+						}
 					}
 				}
 				
 				if (duplicateFound == false)
 				{
+					m_currentBuild.SetName(newName);
 					m_currentBuild.UpdateFromCurrent();
 					
 					if (includeWeapons != true)
@@ -518,6 +527,15 @@ class com.boobuilds.BuildList implements ITabPane
 					if (includeTalismans != true)
 					{
 						m_currentBuild.ClearGear();
+					}
+					
+					if (outfitID != null && m_outfits[outfitID] != null)
+					{
+						m_currentBuild.SetOutfitID(outfitID);
+					}
+					else
+					{
+						m_currentBuild.SetOutfitID(null);
 					}
 					
 					DrawList();
@@ -677,15 +695,16 @@ class com.boobuilds.BuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, "", true, true);
+			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, "", true, true, null, m_outfits, m_outfitGroups);
 			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(newName:String, includeWeapons:Boolean, includeTalismans:Boolean):Void
+	private function CreateCurrentBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, outfitID:String):Void
 	{
-		if (newName != null)
+		if (inName != null)
 		{
+			var newName:String = StringUtils.Strip(inName);
 			var nameValid:Boolean = IsValidName(newName, "build");
 			if (nameValid == true && newName != "" && m_currentGroup != null)
 			{
@@ -712,6 +731,12 @@ class com.boobuilds.BuildList implements ITabPane
 					{
 						newBuild.ClearGear();
 					}
+					
+					if (outfitID != null && m_outfits[outfitID] != null)
+					{
+						newBuild.SetOutfitID(outfitID);
+					}
+					
 					m_builds[newID] = newBuild;
 					DrawList();
 				}

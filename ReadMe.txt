@@ -28,6 +28,8 @@ Added Backup and restore features
 Added Change group ability
 Added restore from Fashionista
 Added sprint selection to outfits
+Added option to dismount before loading build
+Added more throttle settings
 
 Version 1.4
 Made builds include the weapon hidden status

@@ -54,7 +54,7 @@ import org.aswing.JTextComponent;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "1.5beta";
+	public static var VERSION = "1.5alpha";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -85,6 +85,8 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_yBottom:Number;
 	private var m_configWindow:TabWindow;
 	private var m_optionsTab:OptionsTab;
+	private var m_buildList:BuildList;
+	private var m_outfitList:OutfitList;
 	private var m_buildSelectorWindow:BuildSelector;
 	private var m_outfitSelectorWindow:OutfitSelector;
 	private var m_builds:Object;
@@ -211,6 +213,7 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[BIcon.ICON_X] = -1;
 		m_defaults[BIcon.ICON_Y] = -1;
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
+		m_defaults[OptionsTab.DISMOUNT_PRELOAD] = 0;
 	}
 	
 	private function SetDefaultBuildGroups():Void
@@ -451,7 +454,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (show == true)
 		{
-			m_buildSelectorWindow = new BuildSelector(m_mc, "Build Selector", m_buildGroups, m_builds, m_cooldownMonitor);
+			m_buildSelectorWindow = new BuildSelector(m_mc, "Build Selector", m_buildGroups, m_builds, Delegate.create(this, BuildSelected));
 			var icon:MovieClip = m_icon.GetIcon();
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
@@ -462,6 +465,14 @@ class com.boobuilds.Controller extends MovieClip
 			{
 				m_buildSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
 			}
+		}
+	}
+	
+	private function BuildSelected(thisBuild:Build):Void
+	{
+		if (thisBuild != null)
+		{
+			thisBuild.Apply(m_cooldownMonitor, m_outfits);
 		}
 	}
 	
@@ -505,6 +516,14 @@ class com.boobuilds.Controller extends MovieClip
 		}
 	}
 	
+	private function OutfitSelected(thisOutfit:Outfit):Void
+	{
+		if (thisOutfit != null)
+		{
+			thisOutfit.Apply();
+		}
+	}
+	
 	private function ToggleConfigVisible():Void
 	{
 		if (m_buildSelectorWindow != null && m_buildSelectorWindow.GetVisible() == true)
@@ -521,12 +540,12 @@ class com.boobuilds.Controller extends MovieClip
 		{
 			FeatInterface.BuildFeatList();
 		
-			var buildList:BuildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor);
-			var outfitList:OutfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
-			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, buildList, outfitList);
+			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor, m_outfits, m_outfitGroups);
+			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
+			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_buildList, m_outfitList);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
-			m_configWindow.AddTab("Builds", buildList);
-			m_configWindow.AddTab("Outfits", outfitList);
+			m_configWindow.AddTab("Builds", m_buildList);
+			m_configWindow.AddTab("Outfits", m_outfitList);
 			m_configWindow.AddTab("Options", m_optionsTab);
 			m_configWindow.SetVisible(true);
 		}
@@ -537,6 +556,8 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_configWindow.GetVisible() != true)
 		{
+			m_buildList.UnloadDialogs();
+			m_outfitList.UnloadDialogs();
 			ConfigClosed();
 		}
 	}
@@ -585,7 +606,7 @@ class com.boobuilds.Controller extends MovieClip
 			if (thisBuild != null && thisBuild.GetName() == buildName)
 			{
 				buildFound = true;
-				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_cooldownMonitor); }), 20);
+				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_cooldownMonitor, this.m_outfits); }), 20);
 				break;
 			}
 		}

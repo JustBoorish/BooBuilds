@@ -240,7 +240,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 	}
 
-	private function UnloadDialogs():Void
+	public function UnloadDialogs():Void
 	{
 		if (m_editDialog != null)
 		{

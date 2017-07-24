@@ -380,7 +380,9 @@ class com.boobuilds.TreePanel
 	public function Layout():Void
 	{
 		var root:TreePanel = FindRoot();
-		root.RecalculatePositions(root.m_menu._y);
+		var rootY:Number = root.m_menu._y;
+		root.RecalculatePositions(0);
+		root.m_menu._y = rootY;
 		if (m_layoutCallback != null)
 		{
 			m_layoutCallback(this);
@@ -399,7 +401,7 @@ class com.boobuilds.TreePanel
 		matrix.createGradientBox(m_maxWidth, m_elementHeight, 90 / 180 * Math.PI, 0, 0);
 		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
 		menuCell._x = 0;
-		menuCell._y = (indx * m_elementHeight) + (indx * m_margin);
+		menuCell._y = (indx * m_elementHeight);
 		menuCell.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
 		menuCell.beginGradientFill("linear", m_cellColors[indx], alphas, ratios, matrix);
 		menuCell.moveTo(radius, 0);

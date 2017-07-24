@@ -1,4 +1,5 @@
 import com.boobuilds.DebugWindow;
+import com.boobuilds.Graphics;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -66,16 +67,9 @@ class com.boobuilds.ScrollPane
 		}
 		
 		m_mask = m_frame.createEmptyMovieClip("Mask", m_frame.getNextHighestDepth() + 200);
+		Graphics.DrawFilledRectangle(m_mask, 0xFFFFFF, 0, 0xFFFFFF, 100, 0, 0, m_maxWidth, m_maxHeight);
 		m_mask._x = 1;
 		m_mask._y = 1;
-		m_mask.lineStyle(0, 0xFFFFFF, 100, true, "none", "square", "round");
-		m_mask.beginFill(0xFFFFFF, 100);
-		m_mask.moveTo(0, 0);
-		m_mask.lineTo(m_maxWidth, 0);
-		m_mask.lineTo(m_maxWidth, m_maxHeight);
-		m_mask.lineTo(0, m_maxHeight);
-		m_mask.lineTo(0, 0);
-		m_mask.endFill();
 		
 		m_content = content;
 		
@@ -151,17 +145,11 @@ class com.boobuilds.ScrollPane
 		var areaFrame:MovieClip = m_frame.createEmptyMovieClip("Frame", m_frame.getNextHighestDepth());
 		if (m_backgroundColour != null)
 		{
-			areaFrame.beginFill(m_backgroundColour, 100); 
+			Graphics.DrawFilledRoundedRectangle(areaFrame, 0x000000, 1, m_backgroundColour, 100, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
 		}
-		areaFrame.lineStyle(1, 0x000000, 100, true, "none", "square", "round");
-		areaFrame.moveTo(0, 0);
-		areaFrame.lineTo(m_maxWidth + 2, 0);
-		areaFrame.lineTo(m_maxWidth + 2, m_maxHeight + 2);
-		areaFrame.lineTo(0, m_maxHeight + 2);
-		areaFrame.lineTo(0, 0);
-		if (m_backgroundColour != null)
+		else
 		{
-			areaFrame.endFill(); 
+			Graphics.DrawRoundedRectangle(areaFrame, 0x000000, 1, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
 		}
 		
 		var radius:Number = 5;
