@@ -31,10 +31,12 @@ class com.boobuilds.EditBuildDialog
 	private var m_buildName:String;
 	private var m_includeWeapons:Boolean;
 	private var m_includeTalismans:Boolean;
+	private var m_includeGadget:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
 	private var m_includeWeaponsCheck:Checkbox;
 	private var m_includeTalismansCheck:Checkbox;
+	private var m_includeGadgetCheck:Checkbox;
 	private var m_outfitID:String;
 	private var m_outfits:Object;
 	private var m_outfitGroups:Array;
@@ -44,17 +46,18 @@ class com.boobuilds.EditBuildDialog
 	private var m_removeOutfitButton:MovieClip;
 	private var m_outfitSelector:OutfitSelector;
 	
-	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, buildName:String, includeWeapons:Boolean, includeTalismans:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
+	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, buildName:String, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
 	{
 		m_addonMC = addonMC;
 		m_buildName = buildName;
 		m_includeWeapons = includeWeapons;
 		m_includeTalismans = includeTalismans;
+		m_includeGadget = includeGadget;
 		m_outfitID = outfitID;
 		m_outfits = outfits;
 		m_outfitGroups = outfitGroups;
 		
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.5, 0.85);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.6, 0.85);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -137,6 +140,12 @@ class com.boobuilds.EditBuildDialog
 		Graphics.DrawText("IncludeTalismansText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		m_includeTalismansCheck = new Checkbox("IncludeTalismansCheck", modalMC, 30, checkY, checkSize, null, false);
 		
+		checkY = 45 + labelExtents.height * 5;
+		text = "Include gadget";
+		extents = Text.GetTextExtent(text, textFormat, modalMC);
+		Graphics.DrawText("IncludeGadgetText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		m_includeGadgetCheck = new Checkbox("IncludeGadgetCheck", modalMC, 30, checkY, checkSize, null, false);
+		
 		text = "Outfit";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
 		Graphics.DrawText("OutfitText", modalMC, text, m_textFormat, 30, checkY + checkSize * 2, extents.width, extents.height);
@@ -146,6 +155,7 @@ class com.boobuilds.EditBuildDialog
 		
 		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 		m_includeTalismansCheck.SetChecked(m_includeTalismans);
+		m_includeGadgetCheck.SetChecked(m_includeGadget);
 	}
 	
 	private function DrawOutfitButton(modalMC:MovieClip):Void
@@ -240,11 +250,11 @@ class com.boobuilds.EditBuildDialog
 		{
 			if (success)
 			{
-				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_outfitID);
+				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_includeGadgetCheck.IsChecked(), m_outfitID);
 			}
 			else
 			{
-				m_callback(null, false, false, null);
+				m_callback(null, false, false, false, null);
 			}
 		}
 	}

@@ -175,12 +175,12 @@ class com.boobuilds.BuildList implements ITabPane
 			var thisGroup:BuildGroup = m_groups[indx];
 			if (thisGroup != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
 				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
 				var subTree:TreePanel = new TreePanel(m_buildTree.GetMovieClip(), "subTree" + thisGroup.GetName(), margin, colours[0], colours[1], callback, Delegate.create(this, ContextMenu));
 				BuildSubMenu(subTree, thisGroup.GetID());
 				m_buildTree.AddSubMenu(thisGroup.GetName(), thisGroup.GetID(), subTree, colours[0], colours[1]);
-				DebugWindow.Log(DebugWindow.Info, "Added group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Added group " + thisGroup.GetName());
 			}
 		}
 		
@@ -209,7 +209,7 @@ class com.boobuilds.BuildList implements ITabPane
 			var thisBuild:Build = sortedBuilds[indx];
 			if (thisBuild != null && thisBuild.GetGroup() == groupID)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Added build " + thisBuild.GetName() + " " + thisBuild.toString());
+				//DebugWindow.Log(DebugWindow.Info, "Added build " + thisBuild.GetName() + " " + thisBuild.toString());
 				subTree.AddItem(thisBuild.GetName(), Delegate.create(this, ApplyBuild), thisBuild.GetID());
 			}
 		}
@@ -489,12 +489,18 @@ class com.boobuilds.BuildList implements ITabPane
 				includeTalismans = false;
 			}
 			
-			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild.GetName(), includeWeapons, includeTalismans, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups);
+			var includeGadget:Boolean = true;
+			if (m_currentBuild.IsGadgetEmpty())
+			{
+				includeGadget = false;
+			}
+			
+			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild.GetName(), includeWeapons, includeTalismans, includeGadget, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups);
 			m_editBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
 	
-	private function UpdateBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, outfitID:String):Void
+	private function UpdateBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String):Void
 	{
 		if (inName != null)
 		{
@@ -527,6 +533,10 @@ class com.boobuilds.BuildList implements ITabPane
 					if (includeTalismans != true)
 					{
 						m_currentBuild.ClearGear();
+					}
+					if (includeGadget != true)
+					{
+						m_currentBuild.ClearGadget();
 					}
 					
 					if (outfitID != null && m_outfits[outfitID] != null)
@@ -695,12 +705,12 @@ class com.boobuilds.BuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, "", true, true, null, m_outfits, m_outfitGroups);
+			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, "", true, true, true, null, m_outfits, m_outfitGroups);
 			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, outfitID:String):Void
+	private function CreateCurrentBuildCB(inName:String, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String):Void
 	{
 		if (inName != null)
 		{
@@ -730,6 +740,10 @@ class com.boobuilds.BuildList implements ITabPane
 					if (includeTalismans != true)
 					{
 						newBuild.ClearGear();
+					}
+					if (includeGadget != true)
+					{
+						newBuild.ClearGadget();
 					}
 					
 					if (outfitID != null && m_outfits[outfitID] != null)

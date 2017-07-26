@@ -54,7 +54,7 @@ import org.aswing.JTextComponent;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "1.5alpha";
+	public static var VERSION = "1.5";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";

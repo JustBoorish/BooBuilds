@@ -51,6 +51,7 @@ class com.boobuilds.Build
 	public static var PASSIVE_PREFIX:String = "Passive";
 	public static var GEAR_PREFIX:String = "Gear";
 	public static var WEAPON_PREFIX:String = "Weapon";
+	public static var GADGET_INDEX:Number = 7;
 	public static var MAX_SKILLS:Number = 6;
 	public static var MAX_PASSIVES:Number = 5;
 	public static var MAX_GEAR:Number = 8;
@@ -474,8 +475,16 @@ class com.boobuilds.Build
 	{
 		for (var i:Number = 0; i < MAX_GEAR; ++i)
 		{
-			SetGear(i, null);
+			if (i != GADGET_INDEX)
+			{
+				SetGear(i, null);
+			}
 		}
+	}
+	
+	public function ClearGadget():Void
+	{
+		SetGear(GADGET_INDEX, null);
 	}
 	
 	public function ClearWeapons():Void
@@ -607,13 +616,21 @@ class com.boobuilds.Build
 	{
 		for (var indx:Number = 0; indx < MAX_GEAR; ++indx)
 		{
-			if (m_gear[indx] != null)
+			if (indx != GADGET_INDEX)
 			{
-				return false;
+				if (m_gear[indx] != null)
+				{
+					return false;
+				}
 			}
 		}
 		
 		return true;
+	}
+	
+	public function IsGadgetEmpty():Boolean
+	{
+		return m_gear[GADGET_INDEX] == null;
 	}
 	
 	public function IsWeaponSet(indx:Number):Boolean

@@ -51,7 +51,7 @@ class com.boobuilds.SubArchive extends Archive
 	
 	public static function FromString(inString:String):SubArchive
 	{
-		var items:Array = SplitArrayString(inString, SEPARATOR);
+		var items:Array = SplitArrayString(inString, SEPARATOR, true);
 		if (items != null && items.length > 1 && items[0] == TAG)
 		{
 			var ret:SubArchive = new SubArchive(items[1]);
@@ -68,7 +68,7 @@ class com.boobuilds.SubArchive extends Archive
 	
 	public static function FromStringArray(inString:String):Array
 	{
-		var items:Array = SplitArrayString(inString, TAG);
+		var items:Array = SplitArrayString(inString, TAG, true);
 		if (items != null && items.length > 0)
 		{
 			var ret:Array = new Array();
@@ -86,14 +86,14 @@ class com.boobuilds.SubArchive extends Archive
 		}
 	}
 	
-	public static function SplitArrayString(inString:String, separator:String):Array
+	public static function SplitArrayString(inString:String, separator:String, ignoreBlanks:Boolean):Array
 	{
 		var tmpItems:Array = inString.split(separator);
 		var items:Array = new Array();
 		for (var i:Number = 0; i < tmpItems.length; ++i)
 		{
 			var thisItem:String = StringUtils.Strip(tmpItems[i]);
-			if (thisItem != "")
+			if (thisItem != "" || ignoreBlanks != true)
 			{
 				items.push(thisItem);
 			}

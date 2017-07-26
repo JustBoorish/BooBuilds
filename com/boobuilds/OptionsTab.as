@@ -591,7 +591,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	private function RestoreFashionistaString(backupString:String, overwrite:Boolean):Void
 	{
-		var items:Array = SubArchive.SplitArrayString(backupString, "%");
+		var items:Array = SubArchive.SplitArrayString(backupString, "%", true);
 		if (items == null || items.length < 3)
 		{
 			InfoWindow.LogError("Invalid Fashionista export string");
@@ -607,10 +607,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 			var thisGroup:BuildGroup = null;
 			for (var indx:Number = 2; indx < items.length; indx += 2)
 			{
-				var outfitItems:Array = SubArchive.SplitArrayString(items[indx], "|");
-				if (outfitItems == null || outfitItems.length != 15)
+				var outfitItems:Array = SubArchive.SplitArrayString(items[indx], "|", false);
+				if (outfitItems == null || outfitItems.length != 16)
 				{
-					InfoWindow.LogError("Ignoring outfit " + outfitItems[0]);
+					InfoWindow.LogError("Ignoring outfit " + outfitItems[0] + " " + outfitItems.length);
 				}
 				else
 				{
@@ -632,10 +632,10 @@ class com.boobuilds.OptionsTab implements ITabPane
 							outfitID = oldOutfit.GetID();
 						}
 						
-						var primaryHidden:Boolean = outfitItems[12] == "true";
-						var secondaryHidden:Boolean = outfitItems[13] == "true";
+						var primaryHidden:Boolean = outfitItems[13] == "true";
+						var secondaryHidden:Boolean = outfitItems[14] == "true";
 						var clothes:Array = new Array();
-						if (outfitItems[10] == "undefined")
+						if (outfitItems[10] == "undefined" || outfitItems[10] == "")
 						{
 							clothes.push(GetClothesItem(outfitItems, 7));
 							clothes.push(GetClothesItem(outfitItems, 8));
@@ -699,7 +699,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	private function GetClothesItem(items:Array, indx:Number):String
 	{
-		if (items[indx] == null || items[indx] == "undefined")
+		if (items[indx] == null || items[indx] == "undefined" || items[indx] == "")
 		{
 			return null;
 		}

@@ -166,12 +166,12 @@ class com.boobuilds.OutfitList implements ITabPane
 			var thisGroup:BuildGroup = m_groups[indx];
 			if (thisGroup != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
 				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
 				var subTree:TreePanel = new TreePanel(m_outfitTree.GetMovieClip(), "subTree" + thisGroup.GetName(), margin, colours[0], colours[1], callback, Delegate.create(this, ContextMenu));
 				OutfitSubMenu(subTree, thisGroup.GetID());
 				m_outfitTree.AddSubMenu(thisGroup.GetName(), thisGroup.GetID(), subTree, colours[0], colours[1]);
-				DebugWindow.Log(DebugWindow.Info, "Added group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Added group " + thisGroup.GetName());
 			}
 		}
 		
@@ -200,7 +200,7 @@ class com.boobuilds.OutfitList implements ITabPane
 			var thisOutfit:Outfit = sortedOutfits[indx];
 			if (thisOutfit != null && thisOutfit.GetGroup() == groupID)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Added outfit " + thisOutfit.GetName() + " " + thisOutfit.toString());
+				//DebugWindow.Log(DebugWindow.Info, "Added outfit " + thisOutfit.GetName() + " " + thisOutfit.toString());
 				subTree.AddItem(thisOutfit.GetName(), Delegate.create(this, PreviewOutfit), thisOutfit.GetID());
 			}
 		}
@@ -465,25 +465,30 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 	}
 	
-	private function UpdateOutfitCB(newName:String, includeWeapons:Boolean, newSprintTag:Number):Void
+	private function UpdateOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number):Void
 	{
-		if (newName != null)
+		if (inName != null)
 		{
+			var newName:String = StringUtils.Strip(inName);
 			var nameValid:Boolean = IsValidName(newName, "outfit");
 			if (nameValid == true && newName != "" && m_currentOutfit != null)
 			{
 				var duplicateFound:Boolean = false;
-				for (var indx:String in m_outfits)
+				if (newName != m_currentOutfit.GetName())
 				{
-					var thisOutfit:Outfit = m_outfits[indx];
-					if (thisOutfit != null && thisOutfit.GetName() == newName && m_currentGroup.GetID() == thisOutfit.GetGroup())
+					for (var indx:String in m_outfits)
 					{
-						duplicateFound = true;
+						var thisOutfit:Outfit = m_outfits[indx];
+						if (thisOutfit != null && thisOutfit.GetName() == newName && m_currentOutfit.GetGroup() == thisOutfit.GetGroup())
+						{
+							duplicateFound = true;
+						}
 					}
 				}
 				
 				if (duplicateFound == false)
 				{
+					m_currentOutfit.SetName(newName);
 					m_currentOutfit.UpdateFromCurrent();
 					
 					if (includeWeapons != true)
@@ -662,10 +667,11 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 	}
 	
-	private function CreateCurrentOutfitCB(newName:String, includeWeapons:Boolean, newSprintTag:Number):Void
+	private function CreateCurrentOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number):Void
 	{
-		if (newName != null)
+		if (inName != null)
 		{
+			var newName:String = StringUtils.Strip(inName);
 			var nameValid:Boolean = IsValidName(newName, "outfit");
 			if (nameValid == true && newName != "" && m_currentGroup != null)
 			{

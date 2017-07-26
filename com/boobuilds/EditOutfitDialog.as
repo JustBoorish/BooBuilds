@@ -60,6 +60,8 @@ class com.boobuilds.EditOutfitDialog
 	{
 		Selection.setFocus(m_input);
 		Selection.setSelection(m_outfitName.length, m_outfitName.length);
+		m_combo.HidePopup();
+		m_combo.SetVisible(false);
 		m_callback = callback;
 		m_modalBase.Show(m_callback);
 	}
@@ -127,10 +129,11 @@ class com.boobuilds.EditOutfitDialog
 		includeWeaponsText.text = text;
 		
 		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, false);
-		
+	
 		checkY = 40 + line1._y + line1._height * 3;
 		text = "Sprint";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
+		/*
 		var includeTalismansText:TextField = modalMC.createTextField("IncludeSprintText", modalMC.getNextHighestDepth(), 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		includeTalismansText.embedFonts = true;
 		includeTalismansText.selectable = false;
@@ -140,7 +143,8 @@ class com.boobuilds.EditOutfitDialog
 		includeTalismansText.background = false;
 		includeTalismansText.setNewTextFormat(textFormat);
 		includeTalismansText.text = text;
-
+		*/
+		
 		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 		
 		m_sprintX = 35 + extents.width;

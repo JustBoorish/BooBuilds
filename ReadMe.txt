@@ -27,7 +27,6 @@ Initial support for switching outfits
 Added Backup and restore features
 Added Change group ability
 Added restore from Fashionista
-Added sprint selection to outfits
 Added option to dismount before loading build
 Added more throttle settings
 
