@@ -54,7 +54,7 @@ import org.aswing.JTextComponent;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "1.5";
+	public static var VERSION = "1.6";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -156,11 +156,6 @@ class com.boobuilds.Controller extends MovieClip
 		if (Character.GetClientCharacter().GetName() != m_characterName)
 		{
 			DebugWindow.Log(DebugWindow.Debug, "BooBuilds OnModuleActivated: " + config.toString());
-			if (m_clientCharacter != null)
-			{
-				m_clientCharacter.SignalToggleCombat.Disconnect(ToggleCombat, this);
-			}
-			
 			if (m_configWindow != null)
 			{
 				m_configWindow.SetVisible(false);
@@ -186,7 +181,6 @@ class com.boobuilds.Controller extends MovieClip
 			
 			m_clientCharacter = Character.GetClientCharacter();
 			m_characterName = m_clientCharacter.GetName();
-			m_clientCharacter.SignalToggleCombat.Connect(ToggleCombat, this);
 			DebugWindow.Log(DebugWindow.Info, "BooBuilds OnModuleActivated: connect " + m_characterName);
 
 			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
@@ -650,16 +644,6 @@ class com.boobuilds.Controller extends MovieClip
 		}
 
 		m_loadOutfitDV.SetValue("");
-	}
-	
-	private function ToggleCombat(inCombat:Boolean):Void
-	{
-		if (inCombat == true)
-		{
-		}
-		else
-		{
-		}
 	}
 	
 	private function GetGlobalSize(mc:MovieClip):Object

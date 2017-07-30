@@ -1,5 +1,4 @@
 import com.boobuilds.MenuPanel;
-import com.boobuilds.TreePanel;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Build;
 import com.boobuilds.CooldownMonitor;

@@ -45,6 +45,13 @@ class com.boobuilds.Graphics
 		return textFormat;
 	}
 	
+	public static function GetBoldTextFormat():TextFormat
+	{
+		var textFormat:TextFormat = GetTextFormat();
+		textFormat.bold = true;
+		return textFormat;
+	}
+	
 	public static function DrawButton(name:String, parent:MovieClip, text:String, textFormat:TextFormat, x:Number, y:Number, width:Number, inColours:Array, callback:Function):MovieClip
 	{
 		var colours:Array = [0x2E2E2E, 0x585858]
@@ -165,10 +172,19 @@ class com.boobuilds.Graphics
 		var alphas:Array = [100, 100];
 		var ratios:Array = [0, 245];
 		var matrix:Matrix = new Matrix();
+		var colors:Array = [0x2E2E2E, 0x1C1C1C];
 		
 		matrix.createGradientBox(width, height, 90 / 180 * Math.PI, 0, 0);
 		mc.lineStyle(lineWidth, lineColour, 100, true, "none", "square", "round");
-		mc.beginGradientFill("linear", fillColours, alphas, ratios, matrix);
+		if (ColourArrayValid(fillColours) != true)
+		{
+			mc.beginGradientFill("linear", colors, alphas, ratios, matrix);
+		}
+		else
+		{
+			mc.beginGradientFill("linear", fillColours, alphas, ratios, matrix);
+		}
+
 		mc.moveTo(x + m_radius, y);
 		mc.lineTo(x + (width-m_radius), y);
 		mc.curveTo(x + width, y, x + width, y + m_radius);
@@ -179,5 +195,72 @@ class com.boobuilds.Graphics
 		mc.lineTo(x, y + m_radius);
 		mc.curveTo(x, y, x + m_radius, y);
 		mc.endFill();
+	}
+		
+	public static function DrawFilledCircle(target_mc:MovieClip, radius:Number, xOffset:Number, yOffset:Number, fillColor:Number, fillAlpha:Number):Void
+	{
+		var x:Number = radius + xOffset;
+		var y:Number = radius + yOffset;
+		with (target_mc)
+		{
+			beginFill(fillColor, fillAlpha); 
+			moveTo(x + radius, y);
+			curveTo(radius + x, Math.tan(Math.PI / 8) * radius + y, Math.sin(Math.PI / 4) * radius + x, Math.sin(Math.PI / 4) * radius + y);
+			curveTo(Math.tan(Math.PI / 8) * radius + x, radius + y, x, radius + y);
+			curveTo(-Math.tan(Math.PI / 8) * radius + x, radius+ y, -Math.sin(Math.PI / 4) * radius + x, Math.sin(Math.PI / 4) * radius + y);
+			curveTo(-radius + x, Math.tan(Math.PI / 8) * radius + y, -radius + x, y);
+			curveTo(-radius + x, -Math.tan(Math.PI / 8) * radius + y, -Math.sin(Math.PI / 4) * radius + x, -Math.sin(Math.PI / 4) * radius + y);
+			curveTo(-Math.tan(Math.PI / 8) * radius + x, -radius + y, x, -radius + y);
+			curveTo(Math.tan(Math.PI / 8) * radius + x, -radius + y, Math.sin(Math.PI / 4) * radius + x, -Math.sin(Math.PI / 4) * radius + y);
+			curveTo(radius + x, -Math.tan(Math.PI / 8) * radius + y, radius + x, y);
+			endFill();
+		}
+	}
+	
+	public static function ColourArrayValid(inColours:Array):Boolean
+	{
+		if (inColours == null)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colours null");
+			return false;
+		}
+		
+		if ((inColours instanceof Array) != true)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colours not array");
+			return false;
+		}
+		
+		if (inColours.length != 2)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colours not 2 long");
+			return false;
+		}
+		
+		if (inColours[0] == null || inColours[1] == null)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colours contents null");
+			return false;
+		}
+		
+		if (typeof(inColours[0]) != "number" || typeof(inColours[1]) != "number")
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colours not number " + typeof(inColours[0]));
+			return false;
+		}
+		
+		if (inColours[0] < 0 || inColours[0] > 0xFFFFFF)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colour 0 invalid number " + inColours[0]);
+			return false;
+		}
+		
+		if (inColours[1] < 0 || inColours[1] > 0xFFFFFF)
+		{
+			DebugWindow.Log(DebugWindow.Debug, "colour 1 invalid number " + inColours[1]);
+			return false;
+		}
+		
+		return true;
 	}
 }

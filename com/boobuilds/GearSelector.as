@@ -1,5 +1,6 @@
 import com.boobuilds.DebugWindow;
 import com.boobuilds.GearItem;
+import com.boobuilds.Graphics;
 import com.boobuilds.IconButton;
 import com.GameInterface.Game.Character;
 import com.GameInterface.Inventory;
@@ -9,7 +10,6 @@ import com.GameInterface.Tooltip.TooltipDataProvider;
 import com.GameInterface.Utils;
 import com.Utils.Colors;
 import com.Utils.ID32;
-import flash.filters.GlowFilter;
 import flash.geom.Matrix;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
@@ -205,27 +205,11 @@ class com.boobuilds.GearSelector
 		m_frame = m_parent.createEmptyMovieClip(m_name, m_parent.getNextHighestDepth());
 		var width:Number = m_side * m_buttonWidth + (m_margin  * (m_side + 1));
 		var height:Number = m_side * m_buttonHeight + (m_margin * (m_side + 1));
-		var radius:Number = 10;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
-		var alphas:Array = [100, 100];
-		var ratios:Array = [0, 245];
+		var colors:Array = [0x2E2E2E, 0x1C1C1C];
 		var matrix:Matrix = new Matrix();
-		var colors:Array = [0x2E2E2E, 0x1C1C1C]
 		
 		matrix.createGradientBox(width, height, 90 / 180 * Math.PI, 0, 0);
-		m_frame.lineStyle(4, 0xD8D8D8, 100, true, "none", "square", "round");
-		m_frame.beginGradientFill("linear", colors, alphas, ratios, matrix);
-		m_frame.moveTo(radius, 0);
-		m_frame.lineTo((width-radius), 0);
-		m_frame.curveTo(width, 0, width, radius);
-		m_frame.lineTo(width, (height-radius));
-		m_frame.curveTo(width, height, (width-radius), height);
-		m_frame.lineTo(radius, height);
-		m_frame.curveTo(0, height, 0, (height-radius));
-		m_frame.lineTo(0, radius);
-		m_frame.curveTo(0, 0, radius, 0);
-		m_frame.endFill();
+		Graphics.DrawGradientFilledRoundedRectangle(m_frame, 0xD8D8D8, 4, colors, 0, 0, width, height);
 		m_frame._visible = false;
 		
 		var deleteIcon:IconButton = CreateIcon(0, Delegate.create(this, DeletePressed), IconButton.MINUS);

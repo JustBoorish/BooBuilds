@@ -1,9 +1,9 @@
 import com.boobuilds.DebugWindow;
-import flash.filters.GlowFilter;
-import flash.geom.Matrix;
+import com.boobuilds.Graphics;
 import org.sitedaniel.utils.Proxy;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
+import flash.geom.Matrix;
 /**
  * There is no copyright on this code
  *
@@ -53,12 +53,7 @@ class com.boobuilds.TabStrip
 		m_maxWidth = width;
 		m_selectedTab = selectedTab;
 		
-		m_textFormat = new TextFormat();
-		m_textFormat.align = "left";
-		m_textFormat.font = "arial";
-		m_textFormat.size = 14;
-		m_textFormat.color = 0xFFFFFF;
-		m_textFormat.bold = true;
+		m_textFormat = Graphics.GetTextFormat();
 	}
 	
 	public function GetSelectedTab():Number
@@ -111,8 +106,6 @@ class com.boobuilds.TabStrip
 	private function DrawTab(indx:Number, xMargin:Number, yMargin:Number):Void
 	{
 		var radius:Number = 2;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
 		var alphas:Array = [100, 100];
 		var ratios:Array = [0, 245];
 		var matrix:Matrix = new Matrix();

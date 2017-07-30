@@ -1,4 +1,5 @@
 import com.boobuilds.DebugWindow;
+import com.boobuilds.Graphics;
 import com.boobuilds.InfoWindow;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
@@ -91,23 +92,9 @@ class com.boobuilds.InfoWindow
 	{
 		var error_mc:MovieClip = m_parent.createEmptyMovieClip("ErrorMsg" + m_errorCount, m_parent.getNextHighestDepth());
 		
-		var textFormat:TextFormat = new TextFormat();
-		textFormat.align = "left";
-		textFormat.font = "arial";
-		textFormat.size = 20;
-		textFormat.color = colour;
-		textFormat.bold = true;
-			
+		var textFormat:TextFormat = Graphics.GetBoldTextFormat();
 		var labelExtents:Object = Text.GetTextExtent(msg, textFormat, error_mc);
-		var errorText:TextField = error_mc.createTextField("ErrorMsgText", error_mc.getNextHighestDepth(), 0, 0, labelExtents.width, labelExtents.height);
-		errorText.embedFonts = true;
-		errorText.selectable = false;
-		errorText.antiAliasType = "advanced";
-		errorText.autoSize = false;
-		errorText.border = false;
-		errorText.background = false;
-		errorText.setNewTextFormat(textFormat);
-		errorText.text = msg;		
+		Graphics.DrawText("ErrorMsgText", error_mc, msg, textFormat, 0, 0, labelExtents.width, labelExtents.height);
 		
 		error_mc._x = Stage.width / 2 - labelExtents.width / 2;
 		error_mc._y = Stage.height / 6;

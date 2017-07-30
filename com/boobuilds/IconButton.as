@@ -1,8 +1,8 @@
+import com.boobuilds.Graphics;
 import com.boobuilds.Localisation;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
-import flash.filters.GlowFilter;
 import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 /**
@@ -200,15 +200,13 @@ class com.boobuilds.IconButton
 	
 	private function CreateBackgroundFrame(name:String, parent:MovieClip, x:Number, y:Number, inBackgroundColors:Array, isElite:Boolean, inFrameColors:Array):MovieClip
 	{
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
 		var alphas:Array = [100, 100];
 		var ratios:Array = [0, 245];
 		var matrix:Matrix = new Matrix();
 		var colors:Array = [0x0, 0x0];
 		var frameColors:Array = [0x000000, 0x000000];
 
-		if (inFrameColors != null && inFrameColors.length == 2)
+		if (Graphics.ColourArrayValid(inFrameColors) == true)
 		{
 			frameColors = [inFrameColors[0], inFrameColors[1]];
 		}
@@ -221,7 +219,7 @@ class com.boobuilds.IconButton
 			frameColors = [0x000000, 0x000000];
 		}
 		
-		if (inBackgroundColors != null && inBackgroundColors.length == 2)
+		if (Graphics.ColourArrayValid(inBackgroundColors) == true)
 		{
 			colors = [inBackgroundColors[0], inBackgroundColors[1]];
 		}
@@ -382,7 +380,7 @@ class com.boobuilds.IconButton
 			var xOffset:Number = 0;
 			for (var i:Number = 0; i < m_numPips; ++i)
 			{
-				DrawCircle(m_pips, m_buttonWidth * 0.05, xOffset, 0, 0xfbe31e, 100);
+				Graphics.DrawFilledCircle(m_pips, m_buttonWidth * 0.05, xOffset, 0, 0xfbe31e, 100);
 				xOffset = xOffset + m_buttonWidth * 0.05 * 2 + m_frameWidth * 2;
 			}
 			
@@ -406,26 +404,6 @@ class com.boobuilds.IconButton
 		if (m_enabled == true)
 		{
 			m_callback.call(m_data);
-		}
-	}
-	
-	private static function DrawCircle(target_mc:MovieClip, radius:Number, xOffset:Number, yOffset:Number, fillColor:Number, fillAlpha:Number):Void
-	{
-		var x:Number = radius + xOffset;
-		var y:Number = radius + yOffset;
-		with (target_mc)
-		{
-			beginFill(fillColor, fillAlpha); 
-			moveTo(x + radius, y);
-			curveTo(radius + x, Math.tan(Math.PI / 8) * radius + y, Math.sin(Math.PI / 4) * radius + x, Math.sin(Math.PI / 4) * radius + y);
-			curveTo(Math.tan(Math.PI / 8) * radius + x, radius + y, x, radius + y);
-			curveTo(-Math.tan(Math.PI / 8) * radius + x, radius+ y, -Math.sin(Math.PI / 4) * radius + x, Math.sin(Math.PI / 4) * radius + y);
-			curveTo(-radius + x, Math.tan(Math.PI / 8) * radius + y, -radius + x, y);
-			curveTo(-radius + x, -Math.tan(Math.PI / 8) * radius + y, -Math.sin(Math.PI / 4) * radius + x, -Math.sin(Math.PI / 4) * radius + y);
-			curveTo(-Math.tan(Math.PI / 8) * radius + x, -radius + y, x, -radius + y);
-			curveTo(Math.tan(Math.PI / 8) * radius + x, -radius + y, Math.sin(Math.PI / 4) * radius + x, -Math.sin(Math.PI / 4) * radius + y);
-			curveTo(radius + x, -Math.tan(Math.PI / 8) * radius + y, radius + x, y);
-			endFill();
 		}
 	}
 }

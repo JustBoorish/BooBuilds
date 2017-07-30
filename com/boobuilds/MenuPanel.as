@@ -1,12 +1,11 @@
 import caurina.transitions.Tweener;
+import com.boobuilds.Graphics;
 import com.boobuilds.MenuPanel;
 import com.boobuilds.DebugWindow;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
 import com.Utils.Text;
-import flash.filters.GlowFilter;
-import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
@@ -86,20 +85,8 @@ class com.boobuilds.MenuPanel
 		m_parent = parent;
 		m_menu = m_parent.createEmptyMovieClip("menuPanel_" + m_name, m_parent.getNextHighestDepth());
 
-		m_textFormat = new TextFormat();
-		m_textFormat.align = "left";
-		m_textFormat.font = "arial";
-		m_textFormat.size = 14;
-		m_textFormat.color = 0xFFFFFF;
-		m_textFormat.bold = true;
-		
-		m_italicFormat = new TextFormat();
-		m_italicFormat.align = "left";
-		m_italicFormat.font = "arial";
-		m_italicFormat.size = 14;
-		m_italicFormat.color = 0xFFFFFF;
-		m_italicFormat.bold = false;
-		m_italicFormat.italic = true;
+		m_textFormat = Graphics.GetTextFormat();
+		m_italicFormat = Graphics.GetItalicTextFormat();
 	}
 	
 	public function GetMovieClip():MovieClip
@@ -420,79 +407,33 @@ class com.boobuilds.MenuPanel
 	
 	private function DrawEntry(indx:Number):Void
 	{
-		var radius:Number = 4;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
-		var alphas:Array = [100, 100];
-		var ratios:Array = [0, 245];
-		var matrix:Matrix = new Matrix();
-		
-		matrix.createGradientBox(m_maxWidth, m_elementHeight, 90 / 180 * Math.PI, 0, 0);
 		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
+		Graphics.DrawGradientFilledRoundedRectangle(menuCell, 0x000000, 0, m_cellColors[indx], 0, 0, m_maxWidth, m_elementHeight);
 		menuCell._x = 0;
 		menuCell._y = (indx * m_elementHeight) + (indx * m_margin);
-		menuCell.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuCell.beginGradientFill("linear", m_cellColors[indx], alphas, ratios, matrix);
-		menuCell.moveTo(radius, 0);
-		menuCell.lineTo((m_maxWidth-radius), 0);
-		menuCell.curveTo(m_maxWidth, 0, m_maxWidth, radius);
-		menuCell.lineTo(m_maxWidth, (m_elementHeight-radius));
-		menuCell.curveTo(m_maxWidth, m_elementHeight, (m_maxWidth-radius), m_elementHeight);
-		menuCell.lineTo(radius, m_elementHeight);
-		menuCell.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuCell.lineTo(0, radius);
-		menuCell.curveTo(0, 0, radius, 0);
-		menuCell.endFill();
 		
 		var menuMask:MovieClip = m_menu.createEmptyMovieClip(m_names[indx] + "Mask", m_menu.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, m_maxWidth, m_elementHeight);
 		menuMask._x = 0;
 		menuMask._y = (indx * m_elementHeight) + (indx * m_margin);
-		menuMask.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuMask.beginFill(0x000000, 100);
-		menuMask.moveTo(radius, 0);
-		menuMask.lineTo(m_maxWidth, 0);
-		menuMask.lineTo(m_maxWidth, m_elementHeight);
-		menuMask.lineTo(radius, m_elementHeight);
-		menuMask.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuMask.lineTo(0, radius);
-		menuMask.curveTo(0, 0, radius, 0);
-		menuMask.endFill();
 		menuCell.setMask(menuMask);
 		
 		var menuHover:MovieClip = menuCell.createEmptyMovieClip(m_names[indx] + "Hover", menuCell.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, m_maxWidth, m_elementHeight);
 		menuHover._x = 0;
 		menuHover._y = 0;
-		menuHover.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuHover.beginFill(0xFFFFFF, 70);
-		menuHover.moveTo(radius, 0);
-		menuHover.lineTo((m_maxWidth-radius), 0);
-		menuHover.curveTo(m_maxWidth, 0, m_maxWidth, radius);
-		menuHover.lineTo(m_maxWidth, (m_elementHeight-radius));
-		menuHover.curveTo(m_maxWidth, m_elementHeight, (m_maxWidth-radius), m_elementHeight);
-		menuHover.lineTo(radius, m_elementHeight);
-		menuHover.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuHover.lineTo(0, radius);
-		menuHover.curveTo(0, 0, radius, 0);
-		menuHover.endFill();
 		menuHover._alpha = 0;
 
-		var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_textFormat, menuCell);
-		var menuText:TextField = menuCell.createTextField(m_names[indx] + "MenuText", menuCell.getNextHighestDepth(), m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
-		menuText.embedFonts = true;
-		menuText.selectable = false;
-		menuText.antiAliasType = "advanced";
-		menuText.autoSize = true;
-		menuText.border = false;
-		menuText.background = false;
 		if (m_italics[indx] == true)
 		{
-			menuText.setNewTextFormat(m_italicFormat);
+			var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_italicFormat, menuCell);
+			Graphics.DrawText(m_names[indx] + "MenuText", menuCell, m_names[indx], m_italicFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		}
 		else
 		{
-			menuText.setNewTextFormat(m_textFormat);
+			var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_textFormat, menuCell);
+			Graphics.DrawText(m_names[indx] + "MenuText", menuCell, m_names[indx], m_textFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		}
-		menuText.text = m_names[indx];
 		
 		if (m_subMenus[indx] != null)
 		{
@@ -512,7 +453,7 @@ class com.boobuilds.MenuPanel
 		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); this.ShowTooltip(indx); } );
 		menuCell.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; this.CloseTooltip(); } );
 		menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; this.CellPressed(i); }, indx);
-		
+
 		m_cells.push(menuCell);
 		m_masks.push(menuMask);
 	}

@@ -1,9 +1,8 @@
 import com.boobuilds.DebugWindow;
+import com.boobuilds.Graphics;
 import com.boobuilds.ScrollPane;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
-import flash.filters.GlowFilter;
-import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
 /**
@@ -64,12 +63,7 @@ class com.boobuilds.ComboBox
 		m_combo._x = x;
 		m_combo._y = y;
 
-		m_textFormat = new TextFormat();
-		m_textFormat.align = "left";
-		m_textFormat.font = "arial";
-		m_textFormat.size = 14;
-		m_textFormat.color = 0xFFFFFF;
-		m_textFormat.bold = true;
+		m_textFormat = Graphics.GetBoldTextFormat();
 		
 		m_margin = 4;
 		m_leftMargin = 2;
@@ -150,73 +144,27 @@ class com.boobuilds.ComboBox
 	
 	private function DrawComboEntry(indx:Number):Void
 	{
-		var radius:Number = 4;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
-		var alphas:Array = [100, 100];
-		var ratios:Array = [0, 245];
-		var matrix:Matrix = new Matrix();
 		var name:String = m_names[indx]
 		
-		matrix.createGradientBox(m_maxWidth, m_elementHeight, 90 / 180 * Math.PI, 0, 0);
 		var menuCell:MovieClip = m_list.createEmptyMovieClip(name, m_list.getNextHighestDepth());
+		Graphics.DrawGradientFilledRoundedRectangle(menuCell, 0x000000, 0, m_colors, 0, 0, m_maxWidth, m_elementHeight);
 		menuCell._x = 0;
 		menuCell._y = (indx * m_elementHeight) + (indx * m_margin);
-		menuCell.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuCell.beginGradientFill("linear", m_colors, alphas, ratios, matrix);
-		menuCell.moveTo(radius, 0);
-		menuCell.lineTo((m_maxWidth-radius), 0);
-		menuCell.curveTo(m_maxWidth, 0, m_maxWidth, radius);
-		menuCell.lineTo(m_maxWidth, (m_elementHeight-radius));
-		menuCell.curveTo(m_maxWidth, m_elementHeight, (m_maxWidth-radius), m_elementHeight);
-		menuCell.lineTo(radius, m_elementHeight);
-		menuCell.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuCell.lineTo(0, radius);
-		menuCell.curveTo(0, 0, radius, 0);
-		menuCell.endFill();
 		
 		var menuMask:MovieClip = m_list.createEmptyMovieClip(name + "Mask", m_list.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, m_maxWidth, m_elementHeight);
 		menuMask._x = 0;
 		menuMask._y = (indx * m_elementHeight) + (indx * m_margin);
-		menuMask.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuMask.beginFill(0x000000, 100);
-		menuMask.moveTo(radius, 0);
-		menuMask.lineTo(m_maxWidth, 0);
-		menuMask.lineTo(m_maxWidth, m_elementHeight);
-		menuMask.lineTo(radius, m_elementHeight);
-		menuMask.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuMask.lineTo(0, radius);
-		menuMask.curveTo(0, 0, radius, 0);
-		menuMask.endFill();
 		menuCell.setMask(menuMask);
 		
 		var menuHover:MovieClip = menuCell.createEmptyMovieClip(name + "Hover", m_list.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, m_maxWidth, m_elementHeight);
 		menuHover._x = 0;
 		menuHover._y = 0;
-		menuHover.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuHover.beginFill(0xFFFFFF, 70);
-		menuHover.moveTo(radius, 0);
-		menuHover.lineTo((m_maxWidth-radius), 0);
-		menuHover.curveTo(m_maxWidth, 0, m_maxWidth, radius);
-		menuHover.lineTo(m_maxWidth, (m_elementHeight-radius));
-		menuHover.curveTo(m_maxWidth, m_elementHeight, (m_maxWidth-radius), m_elementHeight);
-		menuHover.lineTo(radius, m_elementHeight);
-		menuHover.curveTo(0, m_elementHeight, 0, (m_elementHeight-radius));
-		menuHover.lineTo(0, radius);
-		menuHover.curveTo(0, 0, radius, 0);
-		menuHover.endFill();
 		menuHover._alpha = 0;
 
 		var labelExtents:Object = Text.GetTextExtent(name, m_textFormat, menuCell);
-		var menuText:TextField = menuCell.createTextField(name + "MenuText", menuCell.getNextHighestDepth(), m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
-		menuText.embedFonts = true;
-		menuText.selectable = false;
-		menuText.antiAliasType = "advanced";
-		menuText.autoSize = true;
-		menuText.border = false;
-		menuText.background = false;
-		menuText.setNewTextFormat(m_textFormat);
-		menuText.text = name;
+		Graphics.DrawText(name + "MenuText", menuCell, name, m_textFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		
 		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); } );
 		menuCell.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; } );
@@ -238,63 +186,24 @@ class com.boobuilds.ComboBox
 	
 	private function DrawButton(text:String):Void
 	{
-		var radius:Number = 4;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
-		var alphas:Array = [100, 100];
-		var ratios:Array = [0, 245];
-		var matrix:Matrix = new Matrix();
 		var elementHeight:Number;
 		var elementWidth:Number;
 		var margin:Number = 3;
 		
-		var menuCell:MovieClip = m_combo.createEmptyMovieClip(text, m_combo.getNextHighestDepth());
-		
 		elementHeight = m_elementHeight;
 		elementWidth = m_maxWidth;
 		
-		matrix.createGradientBox(elementWidth, elementHeight, 90 / 180 * Math.PI, 0, 0);
-		menuCell.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuCell.beginGradientFill("linear", m_colors, alphas, ratios, matrix);
-		menuCell.moveTo(radius, 0);
-		menuCell.lineTo((elementWidth-radius), 0);
-		menuCell.curveTo(elementWidth, 0, elementWidth, radius);
-		menuCell.lineTo(elementWidth, (elementHeight-radius));
-		menuCell.curveTo(elementWidth, elementHeight, (elementWidth-radius), elementHeight);
-		menuCell.lineTo(radius, elementHeight);
-		menuCell.curveTo(0, elementHeight, 0, (elementHeight-radius));
-		menuCell.lineTo(0, radius);
-		menuCell.curveTo(0, 0, radius, 0);
-		menuCell.endFill();
+		var menuCell:MovieClip = m_combo.createEmptyMovieClip(text, m_combo.getNextHighestDepth());
+		Graphics.DrawGradientFilledRoundedRectangle(menuCell, 0x000000, 0, m_colors, 0, 0, elementWidth, elementHeight);
 		
 		var menuMask:MovieClip = m_combo.createEmptyMovieClip(text + "Mask", m_combo.getNextHighestDepth());
-		menuMask.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuMask.beginFill(0x000000, 100);
-		menuMask.moveTo(radius, 0);
-		menuMask.lineTo(elementWidth, 0);
-		menuMask.lineTo(elementWidth, elementHeight);
-		menuMask.lineTo(radius, elementHeight);
-		menuMask.curveTo(0, elementHeight, 0, (elementHeight-radius));
-		menuMask.lineTo(0, radius);
-		menuMask.curveTo(0, 0, radius, 0);
-		menuMask.endFill();
+		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, elementWidth, elementHeight);
 		menuCell.setMask(menuMask);
 		
 		var menuHover:MovieClip = menuCell.createEmptyMovieClip(text + "Hover", menuCell.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, elementWidth, elementHeight);
 		menuHover._x = 0;
 		menuHover._y = 0;
-		menuHover.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
-		menuHover.beginFill(0xFFFFFF, 70);
-		menuHover.moveTo(radius, 0);
-		menuHover.lineTo((elementWidth-radius), 0);
-		menuHover.curveTo(elementWidth, 0, elementWidth, radius);
-		menuHover.lineTo(elementWidth, (elementHeight-radius));
-		menuHover.curveTo(elementWidth, elementHeight, (elementWidth-radius), elementHeight);
-		menuHover.lineTo(radius, elementHeight);
-		menuHover.curveTo(0, elementHeight, 0, (elementHeight-radius));
-		menuHover.lineTo(0, radius);
-		menuHover.curveTo(0, 0, radius, 0);
-		menuHover.endFill();
 		menuHover._alpha = 0;
 
 		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); } );
@@ -314,17 +223,7 @@ class com.boobuilds.ComboBox
 		}
 		
 		var labelExtents:Object = Text.GetTextExtent(text, m_textFormat, m_button);
-		var menuText:TextField = m_button.createTextField(text + "ButtonText", m_button.getNextHighestDepth(), m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
-		menuText.embedFonts = true;
-		menuText.selectable = false;
-		menuText.antiAliasType = "advanced";
-		menuText.autoSize = true;
-		menuText.border = false;
-		menuText.background = false;
-		menuText.setNewTextFormat(m_textFormat);
-		menuText.text = text;
-		
-		m_buttonText = menuText;
+		m_buttonText = Graphics.DrawText(text + "ButtonText", m_button, text, m_textFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);		
 	}
 	
 	private function ButtonPressed():Void

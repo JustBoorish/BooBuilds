@@ -1,13 +1,12 @@
 import caurina.transitions.Tweener;
-import com.boobuilds.DebugWindow;;
+import com.boobuilds.DebugWindow;
+import com.boobuilds.Graphics;
 import com.boobuilds.TreeCheck;
 import com.boobuilds.PopupMenu;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
 import com.Utils.Text;
-import flash.filters.GlowFilter;
-import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
@@ -66,12 +65,7 @@ class com.boobuilds.PopupMenu
 		m_menu = m_parent.createEmptyMovieClip("PopupMenu_" + m_name, m_parent.getNextHighestDepth());
 		m_menu._visible = false;
 
-		m_textFormat = new TextFormat();
-		m_textFormat.align = "left";
-		m_textFormat.font = "arial";
-		m_textFormat.size = 14;
-		m_textFormat.color = 0xFFFFFF;
-		m_textFormat.bold = true;
+		m_textFormat = Graphics.GetTextFormat();
 	}
 	
 	public function SetUserData(o:Object):Void
@@ -186,46 +180,16 @@ class com.boobuilds.PopupMenu
 	
 	private function DrawFrame():Void
 	{		
-		var radius:Number = 4;
-		var web20Glow:GlowFilter = new GlowFilter(0xF7A95C, 100, 6, 6, 3, 3, true, false);
-		var web20Filters:Array = [web20Glow];
-		var alphas:Array = [100, 100];
-		var ratios:Array = [0, 245];
-		var matrix:Matrix = new Matrix();
-		
-		matrix.createGradientBox(m_maxWidth, m_maxHeight, 90 / 180 * Math.PI, 0, 0);
-		var menuCell:MovieClip = m_menu;
-		menuCell._x = 0;
-		menuCell._y = 0;
-		menuCell.lineStyle(2, 0xFFFFFF, 100, true, "none", "square", "round");
-		menuCell.beginGradientFill("linear", m_colors, alphas, ratios, matrix);
-		menuCell.moveTo(radius, 0);
-		menuCell.lineTo((m_maxWidth-radius), 0);
-		menuCell.curveTo(m_maxWidth, 0, m_maxWidth, radius);
-		menuCell.lineTo(m_maxWidth, (m_maxHeight-radius));
-		menuCell.curveTo(m_maxWidth, m_maxHeight, (m_maxWidth-radius), m_maxHeight);
-		menuCell.lineTo(radius, m_maxHeight);
-		menuCell.curveTo(0, m_maxHeight, 0, (m_maxHeight-radius));
-		menuCell.lineTo(0, radius);
-		menuCell.curveTo(0, 0, radius, 0);
-		menuCell.endFill();
+		Graphics.DrawGradientFilledRoundedRectangle(m_menu, 0xFFFFFF, 2, m_colors, 0, 0, m_maxWidth, m_maxHeight);
 	}
 	
 	private function DrawEntry(indx:Number):Void
 	{
 		var y:Number = (indx * m_elementHeight) + m_margin;
-		var alpha:Number = 100;
 		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
+		Graphics.DrawFilledRectangle(menuCell, 0x000000, 0, 0x000000, 100, 2, 0, m_maxWidth - 2, m_elementHeight);
 		menuCell._x = 0;
 		menuCell._y = y;
-		menuCell.lineStyle(0, 0x000000, alpha, true, "none", "square", "round");
-		menuCell.beginFill(0x000000, alpha);
-		menuCell.moveTo(2, 0);
-		menuCell.lineTo(m_maxWidth - 2, 0);
-		menuCell.lineTo(m_maxWidth - 2, m_elementHeight);
-		menuCell.lineTo(2, m_elementHeight);
-		menuCell.lineTo(2, 0);
-		menuCell.endFill();
 		menuCell._alpha = 0;
 		
 		if (m_names[indx] == SEPARATOR)
@@ -242,17 +206,9 @@ class com.boobuilds.PopupMenu
 		else
 		{
 			var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_textFormat, m_menu);
-			var menuText:TextField = m_menu.createTextField(m_names[indx] + "MenuText", m_menu.getNextHighestDepth(), m_margin, y + Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
-			menuText.embedFonts = true;
-			menuText.selectable = false;
-			menuText.antiAliasType = "advanced";
-			menuText.autoSize = true;
-			menuText.border = false;
-			menuText.background = false;
-			menuText.setNewTextFormat(m_textFormat);
-			menuText.text = m_names[indx];
+			var menuText:TextField = Graphics.DrawText(m_names[indx] + "MenuText", m_menu, m_names[indx], m_textFormat, m_margin, y + Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 
-			menuCell.onRollOver = Proxy.create(this, function() { menuCell._alpha = 0; Tweener.addTween(menuCell, { _alpha:alpha, time:0.2, transition:"linear" } ); } );
+			menuCell.onRollOver = Proxy.create(this, function() { menuCell._alpha = 0; Tweener.addTween(menuCell, { _alpha:100, time:0.2, transition:"linear" } ); } );
 			menuCell.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(menuCell); menuCell._alpha = 0; } );
 			menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuCell); menuCell._alpha = 0; this.CellPressed(i); }, indx);
 		}
