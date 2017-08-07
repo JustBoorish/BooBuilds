@@ -29,11 +29,15 @@ class com.boobuilds.EditBuildDialog
 	private var m_addonMC:MovieClip;
 	private var m_textFormat:TextFormat;
 	private var m_buildName:String;
+	private var m_includeSkills:Boolean;
+	private var m_includePassives:Boolean;
 	private var m_includeWeapons:Boolean;
 	private var m_includeTalismans:Boolean;
 	private var m_includeGadget:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
+	private var m_includeSkillsCheck:Checkbox;
+	private var m_includePassivesCheck:Checkbox;
 	private var m_includeWeaponsCheck:Checkbox;
 	private var m_includeTalismansCheck:Checkbox;
 	private var m_includeGadgetCheck:Checkbox;
@@ -46,10 +50,12 @@ class com.boobuilds.EditBuildDialog
 	private var m_removeOutfitButton:MovieClip;
 	private var m_outfitSelector:OutfitSelector;
 	
-	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, buildName:String, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
+	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, buildName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
 	{
 		m_addonMC = addonMC;
 		m_buildName = buildName;
+		m_includeSkills = includeSkills;
+		m_includePassives = includePassives;
 		m_includeWeapons = includeWeapons;
 		m_includeTalismans = includeTalismans;
 		m_includeGadget = includeGadget;
@@ -129,18 +135,30 @@ class com.boobuilds.EditBuildDialog
 
 		var checkY:Number = 30 + labelExtents.height * 3;
 		var checkSize:Number = 13;
-		var text:String = "Include weapons";
+		var text:String = "Include skills";
 		var extents:Object = Text.GetTextExtent(text, textFormat, modalMC);
-		Graphics.DrawText("IncludeWeaponsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);		
+		Graphics.DrawText("IncludeSkillsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);		
+		m_includeSkillsCheck = new Checkbox("IncludeSkillsCheck", modalMC, 30, checkY, checkSize, null, false);
+		
+		checkY = 35 + labelExtents.height * 4;
+		text = "Include passives";
+		extents = Text.GetTextExtent(text, textFormat, modalMC);
+		Graphics.DrawText("IncludePassivesText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		m_includePassivesCheck = new Checkbox("IncludePassivesCheck", modalMC, 30, checkY, checkSize, null, false);
+		
+		checkY = 40 + labelExtents.height * 5;
+		text = "Include weapons";
+		extents = Text.GetTextExtent(text, textFormat, modalMC);
+		Graphics.DrawText("IncludeWeaponsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, false);
 		
-		checkY = 40 + labelExtents.height * 4;
+		checkY = 45 + labelExtents.height * 6;
 		text = "Include talismans";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
 		Graphics.DrawText("IncludeTalismansText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		m_includeTalismansCheck = new Checkbox("IncludeTalismansCheck", modalMC, 30, checkY, checkSize, null, false);
 		
-		checkY = 45 + labelExtents.height * 5;
+		checkY = 50 + labelExtents.height * 7;
 		text = "Include gadget";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
 		Graphics.DrawText("IncludeGadgetText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
@@ -153,6 +171,8 @@ class com.boobuilds.EditBuildDialog
 		m_outfitY = checkY + checkSize * 2;
 		DrawOutfitButton(modalMC);
 		
+		m_includeSkillsCheck.SetChecked(m_includeSkills);
+		m_includePassivesCheck.SetChecked(m_includePassives);
 		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 		m_includeTalismansCheck.SetChecked(m_includeTalismans);
 		m_includeGadgetCheck.SetChecked(m_includeGadget);
@@ -250,11 +270,11 @@ class com.boobuilds.EditBuildDialog
 		{
 			if (success)
 			{
-				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_includeGadgetCheck.IsChecked(), m_outfitID);
+				m_callback(m_input.text, m_includeSkillsCheck.IsChecked(), m_includePassivesCheck.IsChecked(), m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_includeGadgetCheck.IsChecked(), m_outfitID);
 			}
 			else
 			{
-				m_callback(null, false, false, false, null);
+				m_callback(null, false, false, false, false, false, null);
 			}
 		}
 	}

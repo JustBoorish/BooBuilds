@@ -1,3 +1,4 @@
+import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
 import com.GameInterface.Game.Shortcut;
 import com.GameInterface.Game.ShortcutData;
@@ -117,7 +118,10 @@ class com.boobuilds.CooldownMonitor
 			var abilitySlot:Number = GetAbilitySlotID(itemPos);
 			if (cooldownFlags > 0 && timeLeft > 1)
 			{
-				SkillCooldownStart(abilitySlot, timeLeft);
+				if (Build.IsSprinting() != true)
+				{
+					SkillCooldownStart(abilitySlot, timeLeft);
+				}
 			}
 			else if (cooldownFlags == 0 && timeLeft <= 1)
 			{

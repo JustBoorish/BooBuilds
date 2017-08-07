@@ -92,7 +92,7 @@ class com.boobuilds.InfoWindow
 	{
 		var error_mc:MovieClip = m_parent.createEmptyMovieClip("ErrorMsg" + m_errorCount, m_parent.getNextHighestDepth());
 		
-		var textFormat:TextFormat = Graphics.GetBoldTextFormat();
+		var textFormat:TextFormat = Graphics.GetLargeBoldTextFormat();
 		var labelExtents:Object = Text.GetTextExtent(msg, textFormat, error_mc);
 		Graphics.DrawText("ErrorMsgText", error_mc, msg, textFormat, 0, 0, labelExtents.width, labelExtents.height);
 		

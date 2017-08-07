@@ -93,7 +93,7 @@ class com.boobuilds.TreePanel
 		m_parent = parent;
 		m_menu = m_parent.createEmptyMovieClip("TreePanel_" + m_name, m_parent.getNextHighestDepth());
 
-		m_textFormat = Graphics.GetTextFormat()
+		m_textFormat = Graphics.GetBoldTextFormat()
 		m_italicFormat = Graphics.GetItalicTextFormat();
 	}
 	

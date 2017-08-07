@@ -85,7 +85,7 @@ class com.boobuilds.MenuPanel
 		m_parent = parent;
 		m_menu = m_parent.createEmptyMovieClip("menuPanel_" + m_name, m_parent.getNextHighestDepth());
 
-		m_textFormat = Graphics.GetTextFormat();
+		m_textFormat = Graphics.GetBoldTextFormat();
 		m_italicFormat = Graphics.GetItalicTextFormat();
 	}
 	

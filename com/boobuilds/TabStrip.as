@@ -53,7 +53,7 @@ class com.boobuilds.TabStrip
 		m_maxWidth = width;
 		m_selectedTab = selectedTab;
 		
-		m_textFormat = Graphics.GetTextFormat();
+		m_textFormat = Graphics.GetBoldTextFormat();
 	}
 	
 	public function GetSelectedTab():Number

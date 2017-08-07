@@ -1,3 +1,6 @@
+import com.boobuilds.DebugWindow;
+import com.Utils.Signal;
+import mx.utils.Delegate;
 /**
  * There is no copyright on this code
  *
@@ -16,63 +19,158 @@
  */
 class com.boobuilds.InventoryThrottle
 {
-	public static var MAX_THROTTLE:Number = 6;
+	private static var MUST_WAIT_ENG:String = "You must wait a little while before you can perform that action again";
+	private static var MUST_WAIT_FR:String = "Vous devez attendre un peu avant d'entreprendre à nouveau cette action";
+	private static var MUST_WAIT_DE:String = "Sie müssen ein wenig warten, bevor Sie das erneut machen können";
 	
 	private static var m_inventoryThrottleMode:Number = 0;
 
-	private var m_inventoryUseCounter:Number;
+	private var m_actionCallback:Function;
+	private var m_checkCallback:Function;
+	private var m_completionCallback:Function;
+	private var m_errorCallback:Function;
+	private var m_intervalID:Number;
+	private var m_checkCounter:Number;
+	private var m_throttleErrorSeen:Boolean;
 	
 	public function InventoryThrottle() 
 	{
-		m_inventoryUseCounter = 0;
+		m_intervalID = -1;
+		m_checkCounter = 0;
+		m_throttleErrorSeen = false;
 	}
 	
-	public function DoNextInventoryAction(callback:Function):Void
+	public function Cleanup():Void
 	{
-		var shortTimeout:Number = 20;
-		var longTimeout:Number = 2000;
+		EndLoad();
+	}
+	
+	public function StartLoad():Void
+	{
+		com.GameInterface.Chat.SignalShowFIFOMessage.Connect(FIFOMessageHandler, this);
+	}
+	
+	public function EndLoad():Void
+	{
+		com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
+		StopCheck();
+	}
+	
+	public function DoNextInventoryAction(actionCallback:Function, checkCallback:Function, completionCallback:Function, errorCallback:Function):Void
+	{
+		StopCheck();
+		
+		m_actionCallback = actionCallback;
+		m_checkCallback = checkCallback;
+		m_completionCallback = completionCallback;
+		m_errorCallback = errorCallback;
+		
+		var timeout:Number = 20;
 		
 		if (m_inventoryThrottleMode == 1)
 		{
-			shortTimeout = 300;
-			longTimeout = 300;
+			timeout = 300;
 		}
 		else if (m_inventoryThrottleMode == 2)
 		{
-			shortTimeout = 400;
-			longTimeout = 400;
+			timeout = 400;
 		}
 		else if (m_inventoryThrottleMode == 3)
 		{
-			shortTimeout = 500;
-			longTimeout = 500;
+			timeout = 500;
 		}
-		else if (m_inventoryThrottleMode == 4)
+
+		setTimeout(Delegate.create(this, ActionWrapper), timeout);
+	}
+
+	private function FIFOMessageHandler(text:String, mode:Number):Void
+	{
+		if (text != null && (text.indexOf(MUST_WAIT_ENG, 0) == 0 || text.indexOf(MUST_WAIT_FR, 0) == 0 || text.indexOf(MUST_WAIT_DE) == 0))
 		{
-			shortTimeout = 20;
-			longTimeout = 2250;
+			m_throttleErrorSeen = true;
 		}
-		else if (m_inventoryThrottleMode == 5)
+	}
+	
+	private function ActionWrapper():Void
+	{
+		if (m_intervalID != -1)
 		{
-			shortTimeout = 20;
-			longTimeout = 2500;
-		}
-		else if (m_inventoryThrottleMode == 6)
-		{
-			shortTimeout = 20;
-			longTimeout = 2750;
+			StopCheck();
+			m_errorCallback();
 		}
 		
-		++m_inventoryUseCounter;
-		
-		var timeout:Number = shortTimeout;
-		if (m_inventoryUseCounter > 5)
+		if (m_actionCallback != null)
 		{
-			timeout = longTimeout;
-			m_inventoryUseCounter = 0;
+			var moveOn:Boolean = m_actionCallback();
+			if (moveOn == true)
+			{
+				if (m_completionCallback != null)
+				{
+					m_completionCallback();
+				}
+			}
+			else
+			{
+				if (m_checkCallback != null)
+				{
+					m_checkCounter = 0;
+					m_intervalID = setInterval(Delegate.create(this, CheckWrapper), 20);
+				}
+			}
+		}
+	}
+	
+	private function CheckWrapper():Void
+	{
+		var moveOn:Boolean = false;
+		++m_checkCounter;
+		if (m_checkCallback != null)
+		{
+			moveOn = m_checkCallback();
+			if (moveOn == true)
+			{
+				StopCheck();
+			}
 		}
 		
-		setTimeout(callback, timeout);
+		if (moveOn != true)
+		{
+			if (m_throttleErrorSeen == true)
+			{
+				StopCheck();
+				setTimeout(Delegate.create(this, ActionWrapper), 500);
+			}
+			else if (m_checkCounter > 100)
+			{
+				moveOn = true;
+				StopCheck();
+				if (m_errorCallback != null)
+				{
+					m_errorCallback();
+				}
+			}
+		}
+		
+		if (moveOn == true)
+		{
+			StopCheck();
+			if (m_completionCallback != null)
+			{
+				m_completionCallback();
+			}
+		}
+	}
+	
+	private function StopCheck():Void
+	{
+		if (m_intervalID != -1)
+		{
+			clearInterval(m_intervalID);
+		}
+		
+		m_intervalID = -1;
+		m_checkCounter = 0;
+		m_throttleErrorSeen = false;
 	}
 	
 	public static function GetInventoryThrottleMode():Number

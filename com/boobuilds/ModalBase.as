@@ -134,6 +134,6 @@ class com.boobuilds.ModalBase
 		elementWidth = extents.width + margin * 2;
 		elementHeight = extents.height + margin * 2;
 		
-		return Graphics.DrawButton(text + "Button", m_modal, text, m_textFormat, x - elementWidth / 2, y - elementHeight, elementWidth, colors, callback);
+		return Graphics.DrawButton(text + "Button", m_modal, text, m_textFormat, x - elementWidth / 2, y - elementHeight, elementWidth, colors, Proxy.create(this, function(i) { if (callback != null) callback(i); }, text));
 	}
 }

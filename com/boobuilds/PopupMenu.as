@@ -65,7 +65,7 @@ class com.boobuilds.PopupMenu
 		m_menu = m_parent.createEmptyMovieClip("PopupMenu_" + m_name, m_parent.getNextHighestDepth());
 		m_menu._visible = false;
 
-		m_textFormat = Graphics.GetTextFormat();
+		m_textFormat = Graphics.GetBoldTextFormat();
 	}
 	
 	public function SetUserData(o:Object):Void

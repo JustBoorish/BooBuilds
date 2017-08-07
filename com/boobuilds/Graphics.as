@@ -52,6 +52,13 @@ class com.boobuilds.Graphics
 		return textFormat;
 	}
 	
+	public static function GetLargeBoldTextFormat():TextFormat
+	{
+		var textFormat:TextFormat = GetBoldTextFormat();
+		textFormat.size = 20;
+		return textFormat;
+	}
+	
 	public static function DrawButton(name:String, parent:MovieClip, text:String, textFormat:TextFormat, x:Number, y:Number, width:Number, inColours:Array, callback:Function):MovieClip
 	{
 		var colours:Array = [0x2E2E2E, 0x585858]

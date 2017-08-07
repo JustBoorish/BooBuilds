@@ -9,10 +9,7 @@
 			<clip id="BooBuildsNoSign" import="NoSign.png"/>
 			<clip id="BooBuildsWarning" import="warning_sign_bold.png"/>
 			<clip id="BooBuildsHelp" import="questionButton.png"/>
-			<font id="arial" import="fonts/arial.ttf" name="Arial "/>
-			<font id="comicsansms" import="fonts/comic.ttf" name="Comic Sans MS "/>
 			<font id="tahoma" import="fonts/tahoma.ttf" name="Tahoma "/>
-			<font id="timesnewroman" import="fonts/times.ttf" name="Times New Roman "/>
 		</library>
 		<place id="appBuilds" name="appBuilds" depth="100" />
 		<place id="BooBuildsIcon" name="BooBuildsIcon" depth="101" />

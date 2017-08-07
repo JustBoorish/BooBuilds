@@ -201,7 +201,7 @@ class com.boobuilds.OutfitList implements ITabPane
 			if (thisOutfit != null && thisOutfit.GetGroup() == groupID)
 			{
 				//DebugWindow.Log(DebugWindow.Info, "Added outfit " + thisOutfit.GetName() + " " + thisOutfit.toString());
-				subTree.AddItem(thisOutfit.GetName(), Delegate.create(this, PreviewOutfit), thisOutfit.GetID());
+				subTree.AddItem(thisOutfit.GetName(), Delegate.create(this, ApplyOutfit), thisOutfit.GetID());
 			}
 		}
 	}
@@ -351,6 +351,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentOutfit != null)
 		{
 			UnloadDialogs();
+			
 			m_exportOutfitDialog = new ExportDialog("ExportOutfit", m_parent, "Outfit " + m_currentOutfit.GetName(), m_currentOutfit.toString());
 			m_exportOutfitDialog.Show();
 		}

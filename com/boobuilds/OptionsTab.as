@@ -35,16 +35,15 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.OptionsTab implements ITabPane
 {
-	public static var INVENTORY_THROTTLE:String = "INVENTORY_THROTTLE";
+	public static var INVENTORY_THROTTLE:String = "INVENTORY_THROTTLE_MODE";
 	public static var DISMOUNT_PRELOAD:String = "DISMOUNT_PRELOAD";
+	public static var USE_SECOND_DUPLICATE:String = "USE_SECOND_DUPLICATE";
 	
-	private static var THROTTLE_MODE0:String = "Fastest";
+	private static var MAX_THROTTLE:Number = 3;
+	private static var THROTTLE_MODE0:String = "Fast";
 	private static var THROTTLE_MODE1:String = "Slow";
 	private static var THROTTLE_MODE2:String = "Slower";
 	private static var THROTTLE_MODE3:String = "Slowest";
-	private static var THROTTLE_MODE4:String = "Fast";
-	private static var THROTTLE_MODE5:String = "Medium Fast";
-	private static var THROTTLE_MODE6:String = "Medium";
 	
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;
@@ -65,6 +64,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_buildList:BuildList;
 	private var m_outfitList:OutfitList;
 	private var m_dismountCheckbox:Checkbox;
+	private var m_duplicateCheckbox:Checkbox;
 	
 	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, buildList:BuildList, outfitList:OutfitList)
 	{
@@ -103,6 +103,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		if (visible == true && m_settings != null)
 		{
 			m_dismountCheckbox.SetChecked(m_settings[DISMOUNT_PRELOAD] == 1);
+			m_duplicateCheckbox.SetChecked(m_settings[USE_SECOND_DUPLICATE] == 1);
 			
 			RebuildMenu();
 		}
@@ -139,6 +140,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				Build.SetDismountBeforeBuild(settings[DISMOUNT_PRELOAD] == 1);
 			}
+			
+			if (settings[USE_SECOND_DUPLICATE] != null)
+			{
+				Outfit.SetUseSecondDuplicate(settings[USE_SECOND_DUPLICATE] == 1);
+			}
 		}
 	}
 	
@@ -158,7 +164,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 			if (m_settings[INVENTORY_THROTTLE] != null)
 			{
 				var tempMode:Number = m_settings[INVENTORY_THROTTLE];
-				if (tempMode > 0 && tempMode <= InventoryThrottle.MAX_THROTTLE)
+				if (tempMode > 0 && tempMode <= MAX_THROTTLE)
 				{
 					throttleMode = tempMode;
 				}
@@ -175,12 +181,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 				return THROTTLE_MODE2;
 			case 3:
 				return THROTTLE_MODE3;
-			case 4:
-				return THROTTLE_MODE4;
-			case 5:
-				return THROTTLE_MODE5;
-			case 6:
-				return THROTTLE_MODE6;
 			default:
 				return THROTTLE_MODE0;
 		}
@@ -203,18 +203,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 			{
 				throttleMode = 3;
 			}
-			else if (newMode == THROTTLE_MODE4)
-			{
-				throttleMode = 4;
-			}
-			else if (newMode == THROTTLE_MODE5)
-			{
-				throttleMode = 5;
-			}
-			else if (newMode == THROTTLE_MODE6)
-			{
-				throttleMode = 6;
-			}
 			
 			m_settings[INVENTORY_THROTTLE] = throttleMode;
 		}
@@ -225,6 +213,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 		if (m_settings != null)
 		{
 			m_settings[DISMOUNT_PRELOAD] = newValue;
+		}
+	}
+	
+	private function DuplicateChanged(newValue:Boolean):Void
+	{
+		if (m_settings != null)
+		{
+			m_settings[USE_SECOND_DUPLICATE] = newValue;
 		}
 	}
 	
@@ -244,12 +240,17 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_dismountCheckbox = new Checkbox("DismountCheck", m_frame, 25, 40 + 2 * extents.height + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DismountPreloadChanged), false);		
 		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, 40 + 2 * extents.height, extents.width, extents.height);
 
+		text = "Use second duplicate outfit item";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		m_duplicateCheckbox = new Checkbox("DuplicateCheck", m_frame, 25, 40 + 4 * extents.height + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DuplicateChanged), false);		
+		Graphics.DrawText("DuplicateLabel", m_frame, text, textFormat, 25 + checkSize + 5, 40 + 4 * extents.height, extents.width, extents.height);
+
 		text = "Backup builds and outfits";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 4 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
 
 		text = "Restore build and outfits";
-		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 8 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
@@ -260,9 +261,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_menu = new MenuPanel(modalMC, "ThrottleMenu", 4, colours[0], colours[1]);
 		var subMenu:MenuPanel = new MenuPanel(modalMC, "ThrottlePanel", 4, colours[0], colours[1]);
 		AddItem(subMenu, THROTTLE_MODE0, colours);
-		AddItem(subMenu, THROTTLE_MODE4, colours);
-		AddItem(subMenu, THROTTLE_MODE5, colours);
-		AddItem(subMenu, THROTTLE_MODE6, colours);
 		AddItem(subMenu, THROTTLE_MODE1, colours);
 		AddItem(subMenu, THROTTLE_MODE2, colours);
 		AddItem(subMenu, THROTTLE_MODE3, colours);
@@ -654,6 +652,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 							clothes.push(GetClothesItem(outfitItems, 10));
 							clothes.push(GetClothesItem(outfitItems, 7));
 							clothes.push(GetClothesItem(outfitItems, 8));
+							clothes.push(GetClothesItem(outfitItems, 6));
+							clothes.push(GetClothesItem(outfitItems, 4));
+							clothes.push(GetClothesItem(outfitItems, 3));
+							clothes.push(GetClothesItem(outfitItems, 5));
+							clothes.push(GetClothesItem(outfitItems, 2));
+							clothes.push(GetClothesItem(outfitItems, 1));
+							clothes.push(null);
+							clothes.push(null);
 							clothes.push(GetClothesItem(outfitItems, 9));
 						}
 						

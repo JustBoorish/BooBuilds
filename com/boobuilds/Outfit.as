@@ -35,11 +35,12 @@ class com.boobuilds.Outfit
 	public static var OUTFIT_PREFIX:String = "OUTFIT";
 	public static var GROUP_PREFIX:String = "OutfitGroup";
 	
-	private static var FULL_OUTFIT_SIZE:Number = 4;
+	private static var FULL_OUTFIT_SIZE:Number = 12;
 	private static var NORMAL_OUTFIT_SIZE:Number = 11;
 
 	private static var m_outfitStillLoading:Boolean = false;
 	private static var m_outfitLoadingID:Number = -1;
+	private static var m_useSecondDuplicate:Boolean = false;
 	
 	private var m_id:String;
 	private var m_name:String;
@@ -49,10 +50,9 @@ class com.boobuilds.Outfit
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_sprintTag:Number;
+	private var m_ownInventoryThrottle:InventoryThrottle;
 	private var m_inventoryThrottle:InventoryThrottle;
 	private var m_equipOutfitSlot:Number;
-	private var m_equipOutfitCounter:Number;
-	private var m_equipOutfitInterval:Number;
 	private var m_outfitErrorCount:Number;
 	private var m_applyEndCallback:Function;
 	
@@ -82,9 +82,14 @@ class com.boobuilds.Outfit
 		m_sprintTag = newTag;
 	}
 	
+	public static function SetUseSecondDuplicate(newValue:Boolean):Void
+	{
+		m_useSecondDuplicate = newValue;
+	}
+	
 	public function AreWeaponsSet():Boolean
 	{
-		return m_primaryWeaponHidden || m_secondaryWeaponHidden;
+		return m_primaryWeaponHidden != null;
 	}
 	
 	public function UpdateFromCurrent():Void
@@ -113,8 +118,8 @@ class com.boobuilds.Outfit
 	
 	public function ClearWeaponVisibility():Void
 	{
-		m_primaryWeaponHidden = false;
-		m_secondaryWeaponHidden = false;
+		m_primaryWeaponHidden = null;
+		m_secondaryWeaponHidden = null;
 	}
 	
 	public function ClearSprint():Void
@@ -354,8 +359,13 @@ class com.boobuilds.Outfit
 	
 	private function GetFullOutfitSlotID(indx:Number):Number
 	{
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_FullOutfit, _global.Enums.ItemEquipLocation.e_Wear_Hat,
-								_global.Enums.ItemEquipLocation.e_Wear_Face, _global.Enums.ItemEquipLocation.e_HeadAccessory ];
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_FullOutfit,
+								_global.Enums.ItemEquipLocation.e_Wear_Hat, _global.Enums.ItemEquipLocation.e_Wear_Face,
+								_global.Enums.ItemEquipLocation.e_Wear_Neck, _global.Enums.ItemEquipLocation.e_Wear_Back,
+								_global.Enums.ItemEquipLocation.e_Wear_Chest, _global.Enums.ItemEquipLocation.e_Wear_Hands,
+								_global.Enums.ItemEquipLocation.e_Wear_Legs, _global.Enums.ItemEquipLocation.e_Wear_Feet,
+								_global.Enums.ItemEquipLocation.e_Ring_1, _global.Enums.ItemEquipLocation.e_Ring_2,
+								_global.Enums.ItemEquipLocation.e_HeadAccessory];
 		return positions[indx];
 	}
 	
@@ -398,7 +408,7 @@ class com.boobuilds.Outfit
 		var ret:String = "CS" + Build.SEPARATOR + "-" + Build.SEPARATOR + "VER" + Build.SEPARATOR + "-" + Build.SEPARATOR + "1.0" + Build.SEPARATOR;
 		if (IsFullOutfit() == true)
 		{
-			ret = ret + Build.GetArrayString("FO", m_outfit);
+			ret = ret + Build.GetArrayString("FL", m_outfit);
 		}
 		else
 		{
@@ -444,6 +454,10 @@ class com.boobuilds.Outfit
 					i += NORMAL_OUTFIT_SIZE + 1;
 					break;
 				case "FO":
+					ret.SetOutfitFromFOArray(i + 1, items);
+					i += 4 + 1;
+					break;
+				case "FL":
 					ret.SetOutfitFromArray(i + 1, items, FULL_OUTFIT_SIZE);
 					i += FULL_OUTFIT_SIZE + 1;
 					break;
@@ -463,6 +477,27 @@ class com.boobuilds.Outfit
 		return ret;
 	}
 	
+	private function SetOutfitFromFOArray(offset:Number, items:Array):Void
+	{
+		var positions:Array = [0, 1, 2, 11 ];
+
+		m_outfit = new Array();
+		for (var i:Number = 0; i < FULL_OUTFIT_SIZE; ++i)
+		{
+			m_outfit.push(null);
+		}
+			
+		for (var i:Number = 0; i < positions.length; ++i)
+		{
+			var indx:Number = i + offset;
+			if (indx < items.length && items[indx] != "undefined")
+			{
+				m_outfit[positions[i]] = items[indx];
+			}
+		}
+	}
+	
+	
 	private function SetOutfitFromArray(offset:Number, items:Array, size:Number):Void
 	{
 		m_outfit = new Array();
@@ -480,6 +515,7 @@ class com.boobuilds.Outfit
 	
 	private function SetWeaponHiddenFromArray(offset:Number, items:Array):Void
 	{
+		m_primaryWeaponHidden = null;
 		var primaryIndx:Number = 0 + offset;
 		if (primaryIndx < items.length && items[primaryIndx] != "undefined")
 		{
@@ -494,6 +530,7 @@ class com.boobuilds.Outfit
 			}			
 		}
 		
+		m_secondaryWeaponHidden = null;
 		var secondaryIndx:Number = 1 + offset;
 		if (secondaryIndx < items.length && items[secondaryIndx] != "undefined")
 		{
@@ -637,7 +674,14 @@ class com.boobuilds.Outfit
 		}
 		else
 		{
-			ApplyAfterBuild(new InventoryThrottle(), null);
+			if (m_ownInventoryThrottle != null)
+			{
+				m_ownInventoryThrottle.Cleanup();
+			}
+			
+			m_ownInventoryThrottle = new InventoryThrottle();
+			m_ownInventoryThrottle.StartLoad();
+			ApplyAfterBuild(m_ownInventoryThrottle, null);
 		}
 	}
 	
@@ -652,21 +696,26 @@ class com.boobuilds.Outfit
 		}
 		
 		Outfit.m_outfitStillLoading = true;
-		Outfit.m_outfitLoadingID = setTimeout(Delegate.create(this, function() { Outfit.m_outfitStillLoading = false; Outfit.m_outfitLoadingID = -1; }), 3000);
+		Outfit.m_outfitLoadingID = setTimeout(Delegate.create(this, function() { Outfit.m_outfitStillLoading = false; Outfit.m_outfitLoadingID = -1; }), 5000);
+		m_outfitErrorCount = 0;
 		
-		EquipOutfitSlot(0);
+		m_equipOutfitSlot = -1;
+		OutfitSlotCompletionCallback();
 		
-		GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
-		GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
+		if (AreWeaponsSet() == true)
+		{
+			GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
+			GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
+		}
 	}
 	
-	private function EquipOutfitSlot(slot:Number):Void
+	private function EquipOutfitSlot():Boolean
 	{
 		var moveOn:Boolean = false;
 		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var wearInv:Inventory = new Inventory(wearInvID);
-		var slotID:Number = GetSlotID(slot);
-		var itemName:String = m_outfit[slot];
+		var slotID:Number = GetSlotID(m_equipOutfitSlot);
+		var itemName:String = m_outfit[m_equipOutfitSlot];
 		var equipped:Boolean = IsSlotCorrect(wearInv, slotID, itemName);
 		
 		if (equipped == false)
@@ -680,10 +729,6 @@ class com.boobuilds.Outfit
 				if (inventorySlot != null)
 				{
 					wearInv.AddItem(wardrobeInvId, inventorySlot, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
-					
-					m_equipOutfitSlot = slot;
-					m_equipOutfitCounter = 0;
-					m_equipOutfitInterval = setInterval(Delegate.create(this, OutfitSlotEquippedCB), 20);
 				}
 				else
 				{
@@ -694,36 +739,27 @@ class com.boobuilds.Outfit
 			}
 			else
 			{
-				wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
-				
-				m_equipOutfitSlot = slot;
-				m_equipOutfitCounter = 0;
-				m_equipOutfitInterval = setInterval(Delegate.create(this, OutfitSlotEquippedCB), 20);
+				if (slotID == _global.Enums.ItemEquipLocation.e_Wear_Chest || slotID == _global.Enums.ItemEquipLocation.e_Wear_Legs)
+				{
+					moveOn = true;
+				}
+				else
+				{
+					wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
+				}
 			}
 		}
 		else
 		{
 			moveOn = true;
 		}
-		
-		if (moveOn == true)
-		{
-			if (slot < GetOutfitSize())
-			{
-				EquipOutfitSlot(slot + 1);
-			}
-			else
-			{
-				UnequipFullOutfitSlot();
-			}
-		}
+
+		return moveOn;
 	}
 
-	private function OutfitSlotEquippedCB():Void
+	private function OutfitSlotCheckCallback():Boolean
 	{
 		var moveOn:Boolean = false;
-		++m_equipOutfitCounter;
-		
 		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var wearInv:Inventory = new Inventory(wearInvID);
 		var slotID:Number = GetSlotID(m_equipOutfitSlot);
@@ -731,61 +767,59 @@ class com.boobuilds.Outfit
 		var equipped:Boolean = IsSlotCorrect(wearInv, slotID, itemName);
 		if (equipped == true)
 		{
-			clearInterval(m_equipOutfitInterval);
-			m_equipOutfitCounter = 0;
-			m_equipOutfitInterval = -1;
 			moveOn = true;
+		}
+		
+		return moveOn;
+	}
+	
+	private function OutfitSlotCompletionCallback():Void
+	{
+		++m_equipOutfitSlot;
+		if (m_equipOutfitSlot < GetOutfitSize())
+		{
+			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EquipOutfitSlot), Delegate.create(this, OutfitSlotCheckCallback), Delegate.create(this, OutfitSlotCompletionCallback), Delegate.create(this, OutfitSlotErrorCallback));
 		}
 		else
 		{
-			if (m_equipOutfitCounter > 100)
-			{
-				clearInterval(m_equipOutfitInterval);
-				m_equipOutfitCounter = 0;
-				m_equipOutfitInterval = -1;
-				if (itemName == null)
-				{
-					InfoWindow.LogError("Failed to unequip outfit item");
-				}
-				else
-				{
-					InfoWindow.LogError("Failed to equip outfit item " + itemName);
-				}
-				++m_outfitErrorCount;
-				moveOn = true;
-			}
+			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, UnequipFullOutfitSlot), Delegate.create(this, UnequipFullOutfitSlotCheckCallback), Delegate.create(this, UnequipFullOutfitSlotCompletionCallback), Delegate.create(this, UnequipFullOutfitSlotErrorCallback));
 		}
-		
-		if (moveOn == true)
+	}
+	
+	private function OutfitSlotErrorCallback():Void
+	{
+		var itemName:String = m_outfit[m_equipOutfitSlot];
+		if (itemName == null)
 		{
-			if (m_equipOutfitSlot < GetOutfitSize())
-			{
-				var nextSlot:Number = m_equipOutfitSlot + 1;
-				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, function() { this.EquipOutfitSlot(nextSlot); }));
-			}
-			else
-			{
-				m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, UnequipFullOutfitSlot));
-			}
+			InfoWindow.LogError("Failed to unequip outfit item " + m_equipOutfitSlot);
+		}
+		else
+		{
+			InfoWindow.LogError("Failed to equip outfit item " + itemName);
 		}
 	}
 	
 	private function FindInventoryItem(inv:Inventory, itemName:String):Number
 	{
+		var ret:Number = null;
 		var inventorySlot:Number = 0;
 		for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
 		{
 			var tempItem:InventoryItem = inv.GetItemAt(indx);
 			if (tempItem != null && itemName == tempItem.m_Name)
 			{
-				return indx;
+				ret = indx;
+				if (m_useSecondDuplicate != true)
+				{
+					break;
+				}
 			}
 		}
 		
-		return null;
+		return ret;
 	}
 	
-	private function UnequipFullOutfitSlot():Void
+	private function UnequipFullOutfitSlot():Boolean
 	{
 		var moveOn:Boolean = true;
 		if (IsFullOutfit() != true)
@@ -800,56 +834,47 @@ class com.boobuilds.Outfit
 				var wardrobeInv:Inventory = new Inventory(wardrobeInvId);
 
 				wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
-				
 				moveOn = false;
-				m_equipOutfitSlot = 0;
-				m_equipOutfitCounter = 0;
-				m_equipOutfitInterval = setInterval(Delegate.create(this, UnequipFullOutfitSlotCB), 20);
 			}
 		}
-		
-		if (moveOn == true)
-		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EndOutfitApply));
-		}
+
+		return moveOn;
 	}
 
-	private function UnequipFullOutfitSlotCB():Void
+	private function UnequipFullOutfitSlotCheckCallback():Boolean
 	{
-		++m_equipOutfitCounter;
 		var moveOn:Boolean = false;
 		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var wearInv:Inventory = new Inventory(wearInvID);
-		var slotID:Number = GetFullOutfitSlotID(m_equipOutfitSlot);
+		var slotID:Number = GetFullOutfitSlotID(0);
 		var empty:Boolean = IsSlotEmpty(wearInv, slotID);
 		if (empty == true)
 		{
-			clearInterval(m_equipOutfitInterval);
-			m_equipOutfitCounter = 0;
-			m_equipOutfitInterval = -1;
 			moveOn = true;
 		}
-		else
-		{
-			if (m_equipOutfitCounter > 100)
-			{
-				clearInterval(m_equipOutfitInterval);
-				m_equipOutfitCounter = 0;
-				m_equipOutfitInterval = -1;
-				InfoWindow.LogError("Failed to unequip full outfit item");
-				++m_outfitErrorCount;
-				moveOn = true;
-			}
-		}
 		
-		if (moveOn == true)
-		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EndOutfitApply));
-		}
+		return moveOn;
+	}
+	
+	private function UnequipFullOutfitSlotCompletionCallback():Void
+	{
+		EndOutfitApply();
+	}
+	
+	private function UnequipFullOutfitSlotErrorCallback():Void
+	{
+		InfoWindow.LogError("Failed to unequip full outfit item");
+		++m_outfitErrorCount;
 	}
 	
 	private function EndOutfitApply():Void
 	{
+		if (m_ownInventoryThrottle != null)
+		{
+			m_ownInventoryThrottle.EndLoad();
+			m_ownInventoryThrottle = null;
+		}
+		
 		if (m_sprintTag != null)
 		{
 			SpellBase.SummonMountFromTag(m_sprintTag);
@@ -865,7 +890,7 @@ class com.boobuilds.Outfit
 		
 		if (m_applyEndCallback != null)
 		{
-			m_applyEndCallback();
+			m_applyEndCallback(m_outfitErrorCount);
 		}
 		else
 		{

@@ -33,8 +33,6 @@ import com.Utils.Signal;
 import com.Utils.StringUtils;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
-import org.aswing.ASWingUtils;
-import org.aswing.JTextComponent;
 
 /**
  * There is no copyright on this code
@@ -102,8 +100,6 @@ class com.boobuilds.Controller extends MovieClip
 	//On Load
 	function onLoad():Void
 	{
-		ASWingUtils.setRootMovieClip(this);
-		JTextComponent.setDefaultRegainTextFocusEnabled(false);
 		Settings.SetVersion(VERSION);
 		
 		m_mc = this;
@@ -113,7 +109,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_debug == null)
 		{
-			if (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Boor")
+			if (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Boor" || m_clientCharacter.GetName() == "BoorGirl")
 			{
 				m_debug = new DebugWindow(m_mc, DebugWindow.Debug);
 			}
@@ -208,6 +204,7 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[BIcon.ICON_Y] = -1;
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 		m_defaults[OptionsTab.DISMOUNT_PRELOAD] = 0;
+		m_defaults[OptionsTab.USE_SECOND_DUPLICATE] = 0;
 	}
 	
 	private function SetDefaultBuildGroups():Void
@@ -252,7 +249,7 @@ class com.boobuilds.Controller extends MovieClip
 			var thisGroup:BuildGroup = BuildGroup.FromArchive(Build.GROUP_PREFIX, archive, indx + 1);
 			if (thisGroup != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Loaded build group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Loaded build group " + thisGroup.GetName());
 				m_buildGroups.push(thisGroup);
 			}
 		}
@@ -287,7 +284,7 @@ class com.boobuilds.Controller extends MovieClip
 			var thisBuild:Build = Build.FromArchive(indx + 1, archive);
 			if (thisBuild != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Loaded build " + thisBuild.GetName() + " ID " + thisBuild.GetID() + " Group " + thisBuild.GetGroup() + " Order " + thisBuild.GetOrder());
+				//DebugWindow.Log(DebugWindow.Info, "Loaded build " + thisBuild.GetName() + " ID " + thisBuild.GetID() + " Group " + thisBuild.GetGroup() + " Order " + thisBuild.GetOrder());
 				
 				if (FindGroupWithID(m_buildGroups, thisBuild.GetGroup()) != null)
 				{
@@ -330,7 +327,7 @@ class com.boobuilds.Controller extends MovieClip
 			var thisGroup:BuildGroup = BuildGroup.FromArchive(Outfit.GROUP_PREFIX, archive, indx + 1);
 			if (thisGroup != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Loaded outfit group " + thisGroup.GetName());
+				//DebugWindow.Log(DebugWindow.Info, "Loaded outfit group " + thisGroup.GetName());
 				m_outfitGroups.push(thisGroup);
 			}
 		}
@@ -365,7 +362,7 @@ class com.boobuilds.Controller extends MovieClip
 			var thisOutfit:Outfit = Outfit.FromArchive(indx + 1, archive);
 			if (thisOutfit != null)
 			{
-				DebugWindow.Log(DebugWindow.Info, "Loaded outfit " + thisOutfit.GetName() + " ID " + thisOutfit.GetID() + " Group " + thisOutfit.GetGroup() + " Order " + thisOutfit.GetOrder());
+				//DebugWindow.Log(DebugWindow.Info, "Loaded outfit " + thisOutfit.GetName() + " ID " + thisOutfit.GetID() + " Group " + thisOutfit.GetGroup() + " Order " + thisOutfit.GetOrder());
 				
 				if (FindGroupWithID(m_outfitGroups, thisOutfit.GetGroup()) != null)
 				{
@@ -496,7 +493,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (show == true)
 		{
-			m_outfitSelectorWindow = new OutfitSelector(m_mc, "Outfit Selector", m_outfitGroups, m_outfits);
+			m_outfitSelectorWindow = new OutfitSelector(m_mc, "Outfit Selector", m_outfitGroups, m_outfits, Delegate.create(this, OutfitSelected));
 			var icon:MovieClip = m_icon.GetIcon();
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
