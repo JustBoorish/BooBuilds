@@ -9,7 +9,7 @@ import com.Utils.ID32;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
-import com.boobuilds.CooldownMonitor;
+import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.InventoryThrottle;
 import com.boobuilds.Outfit;
@@ -802,15 +802,26 @@ class com.boobuilds.Outfit
 	private function FindInventoryItem(inv:Inventory, itemName:String):Number
 	{
 		var ret:Number = null;
-		var inventorySlot:Number = 0;
-		for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
+		if (m_useSecondDuplicate == true)
 		{
-			var tempItem:InventoryItem = inv.GetItemAt(indx);
-			if (tempItem != null && itemName == tempItem.m_Name)
+			for (var indx:Number = inv.GetMaxItems() - 1; indx >= 0; --indx)
 			{
-				ret = indx;
-				if (m_useSecondDuplicate != true)
+				var tempItem:InventoryItem = inv.GetItemAt(indx);
+				if (tempItem != null && itemName == tempItem.m_Name)
 				{
+					ret = indx;
+					break;
+				}
+			}
+		}
+		else
+		{
+			for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
+			{
+				var tempItem:InventoryItem = inv.GetItemAt(indx);
+				if (tempItem != null && itemName == tempItem.m_Name)
+				{
+					ret = indx;
 					break;
 				}
 			}
@@ -878,6 +889,17 @@ class com.boobuilds.Outfit
 		if (m_sprintTag != null)
 		{
 			SpellBase.SummonMountFromTag(m_sprintTag);
+			
+			var sprintVarName:String = "BooSprint_Name";
+			if (DistributedValue.DoesVariableExist(sprintVarName) == true)
+			{
+				var sprintName:String = EditOutfitDialog.GetSprintFromTag(m_sprintTag);
+				if (sprintName != null)
+				{
+					var dv:DistributedValue = DistributedValue.Create(sprintVarName);
+					dv.SetValue(sprintName);
+				}
+			}
 		}
 		
 		if (Outfit.m_outfitLoadingID != -1)

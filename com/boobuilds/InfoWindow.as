@@ -94,7 +94,8 @@ class com.boobuilds.InfoWindow
 		
 		var textFormat:TextFormat = Graphics.GetLargeBoldTextFormat();
 		var labelExtents:Object = Text.GetTextExtent(msg, textFormat, error_mc);
-		Graphics.DrawText("ErrorMsgText", error_mc, msg, textFormat, 0, 0, labelExtents.width, labelExtents.height);
+		var textField:TextField = Graphics.DrawText("ErrorMsgText", error_mc, msg, textFormat, 0, 0, labelExtents.width, labelExtents.height);
+		textField.textColor = colour;
 		
 		error_mc._x = Stage.width / 2 - labelExtents.width / 2;
 		error_mc._y = Stage.height / 6;

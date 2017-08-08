@@ -16,7 +16,6 @@ import com.Utils.Archive;
 import com.Utils.ID32;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
-import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.InfoWindow;
@@ -58,6 +57,10 @@ class com.boobuilds.Build
 	public static var MAX_WEAPONS:Number = 2;
 	public static var SEPARATOR = "%";
 	
+	private static var CANT_UNEQUIP_ENG:String = "You cannot unequip abilities that are recharging";
+	private static var CANT_UNEQUIP_FR:String = "Vous ne pouvez pas vous déséquiper de pouvoirs en train de se recharger";
+	private static var CANT_UNEQUIP_DE:String = "Sie können Kräfte nicht ablegen, während sie aufgeladen werden";
+	
 	private static var m_buildStillLoading:Boolean = false;
 	private static var m_buildLoadingID:Number = -1;
 	private static var m_dismountBeforeBuild:Boolean = false;
@@ -84,6 +87,11 @@ class com.boobuilds.Build
 	private var m_buildApplyQueue:Array;
 	private var m_buildErrorCount:Number;
 	private var m_inventoryThrottle:InventoryThrottle;
+	private var m_weaponOldSlots:Array;
+	private var m_weaponOldNames:Array;
+	private var m_weaponNewSlots:Array;
+	private var m_savedSkills:Array;
+	private var m_unequipErrorSeen:Boolean;
 
 	public function Build(id:String, name:String, order:Number, group:String)
 	{
@@ -300,167 +308,6 @@ class com.boobuilds.Build
 		m_dismountBeforeBuild = newValue;
 	}
 
-	public function Apply(cdMon:CooldownMonitor, outfits:Object):Void
-	{
-		if (m_buildStillLoading == true)
-		{
-			InfoWindow.LogError("Please wait on previous build to load");
-		}
-		else if (Character.GetClientCharacter().IsInCombat() == true)
-		{
-			InfoWindow.LogError("Cannot load a build while in combat");
-		}
-		else if (cdMon.IsSkillCooldownActive() == true)
-		{
-			InfoWindow.LogError("Cannot load a build while skill on cooldown");
-		}
-		else
-		{
-			if (Build.m_buildLoadingID != -1)
-			{
-				clearTimeout(Build.m_buildLoadingID);
-			}
-			
-			Build.m_buildStillLoading = true;
-			Build.m_buildLoadingID = setTimeout(Delegate.create(this, function() { Build.m_buildStillLoading = false; Build.m_buildLoadingID = -1; }), 5000);
-			
-			var doWeapons:Boolean = false;
-			var doTalismans:Boolean = false;
-			var weaponCount:Number = 0;
-			for (var indx:Number = 0; indx < m_weapons.length; ++indx)
-			{
-				if (GetWeapon(indx) != null)
-				{
-					++weaponCount;
-				}
-			}
-			
-			if (weaponCount > 0)
-			{
-				if (EquippedWeaponsAreSame() == true)
-				{
-					GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
-					GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
-				}
-				else
-				{
-					if (AvailableBagSpace() < 2)
-					{
-						InfoWindow.LogError("You must have two free bag slots to equip this build!");
-						return;
-					}
-					
-					doWeapons = true;
-				}
-			}
-			
-			if (m_dismountBeforeBuild == true)
-			{
-				Dismount();
-			}
-			
-			doTalismans = true;
-			var talismanCount:Number = 0;
-			for (var indx:Number = 0; indx < m_gear.length; ++indx)
-			{
-				if (GetGear(indx) != null)
-				{
-					++talismanCount;
-				}
-			}
-			
-			if (talismanCount < 1)
-			{
-				doTalismans = false;
-			}
-			
-			m_buildApplyQueue = new Array();
-			
-			if (m_inventoryThrottle != null)
-			{
-				m_inventoryThrottle.Cleanup();
-			}
-			
-			m_inventoryThrottle = new InventoryThrottle();
-			m_inventoryThrottle.StartLoad();
-			m_buildErrorCount = 0;
-			
-			if (m_outfit != null && outfits[m_outfit] != null)
-			{
-				var endCallback:Function = Delegate.create(this, function (i:Number) { this.m_buildErrorCount += i; this.ApplyBuildQueue(); } );
-				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(this.m_inventoryThrottle, endCallback); }));
-			}
-			
-			if (doWeapons == true)
-			{
-				m_buildApplyQueue.push(Delegate.create(this, ApplyWeapons));
-			}
-			
-			if (doTalismans == true)
-			{
-				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
-			}
-			
-			ApplyPassives();
-			
-			if (m_buildApplyQueue.length > 0)
-			{
-				m_logAfterSkills = false;
-				ApplySkills();
-				ApplyBuildQueue();
-			}
-			else
-			{
-				m_logAfterSkills = true;
-				ApplySkills();
-			}
-		}
-	}
-	
-	private function ApplyBuildQueue():Void
-	{
-		var finished:Boolean = false;
-		if (m_logAfterSkills == true)
-		{
-			finished = true;
-		}
-		else if (m_buildApplyQueue == null || m_buildApplyQueue.length < 1)
-		{
-			finished = true;
-		}
-		
-		if (finished == true)
-		{
-			if (m_inventoryThrottle != null)
-			{
-				m_inventoryThrottle.EndLoad();
-				m_inventoryThrottle = null;
-			}
-			
-			if (Build.m_buildLoadingID != -1)
-			{
-				clearTimeout(Build.m_buildLoadingID);
-				Build.m_buildLoadingID = -1;
-			}
-			
-			Build.m_buildStillLoading = false;
-			
-			if (m_buildErrorCount > 0)
-			{
-				InfoWindow.LogError("Build load failed");
-			}
-			else
-			{
-				InfoWindow.LogInfo("Build loaded");
-			}
-		}		
-		else
-		{
-			var nextFunc:Function = Function(m_buildApplyQueue.pop());
-			nextFunc();
-		}
-	}
-	
 	public function ClearSkills():Void
 	{
 		for (var i:Number = 0; i < MAX_SKILLS; ++i)
@@ -1153,7 +1000,196 @@ class com.boobuilds.Build
 		}
 	}
 	
-	private function ApplySkills():Void
+	public function Apply(outfits:Object):Void
+	{
+		if (m_buildStillLoading == true)
+		{
+			InfoWindow.LogError("Please wait on previous build to load");
+		}
+		else if (Character.GetClientCharacter().IsInCombat() == true)
+		{
+			InfoWindow.LogError("Cannot load a build while in combat");
+		}
+		else
+		{
+			if (Build.m_buildLoadingID != -1)
+			{
+				clearTimeout(Build.m_buildLoadingID);
+			}
+			
+			Build.m_buildStillLoading = true;
+			Build.m_buildLoadingID = setTimeout(Delegate.create(this, function() { Build.m_buildStillLoading = false; Build.m_buildLoadingID = -1; }), 5000);
+			
+			var doWeapons:Boolean = false;
+			var doTalismans:Boolean = false;
+			var weaponCount:Number = 0;
+			for (var indx:Number = 0; indx < m_weapons.length; ++indx)
+			{
+				if (GetWeapon(indx) != null)
+				{
+					++weaponCount;
+				}
+			}
+			
+			if (weaponCount > 0)
+			{
+				if (EquippedWeaponsAreSame() == true)
+				{
+					GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
+					GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
+				}
+				else
+				{
+					if (AvailableBagSpace() < 2)
+					{
+						InfoWindow.LogError("You must have two free bag slots to equip this build!");
+						return;
+					}
+					
+					doWeapons = true;
+				}
+			}
+			
+			if (m_dismountBeforeBuild == true)
+			{
+				Dismount();
+			}
+			
+			doTalismans = true;
+			var talismanCount:Number = 0;
+			for (var indx:Number = 0; indx < m_gear.length; ++indx)
+			{
+				if (GetGear(indx) != null)
+				{
+					++talismanCount;
+				}
+			}
+			
+			if (talismanCount < 1)
+			{
+				doTalismans = false;
+			}
+			
+			m_buildApplyQueue = new Array();
+			
+			if (m_inventoryThrottle != null)
+			{
+				m_inventoryThrottle.Cleanup();
+			}
+			
+			m_inventoryThrottle = new InventoryThrottle();
+			m_inventoryThrottle.StartLoad();
+			m_buildErrorCount = 0;
+			
+			if (m_outfit != null && outfits[m_outfit] != null)
+			{
+				var endCallback:Function = Delegate.create(this, function (i:Number) { this.m_buildErrorCount += i; this.ApplyBuildQueue(); } );
+				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(this.m_inventoryThrottle, endCallback); }));
+			}
+			
+			if (doWeapons == true)
+			{
+				m_buildApplyQueue.push(Delegate.create(this, ApplyWeapons));
+			}
+			
+			if (doTalismans == true)
+			{
+				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
+			}
+			
+			CheckSkillsAndContinue();
+		}
+	}
+	
+	private function ContinueApply():Void
+	{
+			ApplyPassives();
+			
+			if (m_buildApplyQueue.length > 0)
+			{
+				m_logAfterSkills = false;
+				ApplySkills();
+				ApplyBuildQueue();
+			}
+			else
+			{
+				m_logAfterSkills = true;
+				ApplySkills();
+			}
+	}
+	
+	private function ApplyBuildQueue():Void
+	{
+		var finished:Boolean = false;
+		if (m_logAfterSkills == true)
+		{
+			finished = true;
+		}
+		else if (m_buildApplyQueue == null || m_buildApplyQueue.length < 1)
+		{
+			finished = true;
+		}
+		
+		if (finished == true)
+		{
+			if (m_inventoryThrottle != null)
+			{
+				m_inventoryThrottle.EndLoad();
+				m_inventoryThrottle = null;
+			}
+			
+			ClearBuildLoading();
+			
+			if (m_buildErrorCount > 0)
+			{
+				InfoWindow.LogError("Build load failed");
+			}
+			else
+			{
+				InfoWindow.LogInfo("Build loaded");
+			}
+		}		
+		else
+		{
+			var nextFunc:Function = Function(m_buildApplyQueue.pop());
+			nextFunc();
+		}
+	}
+	
+	private function ClearBuildLoading():Void
+	{
+			if (Build.m_buildLoadingID != -1)
+			{
+				clearTimeout(Build.m_buildLoadingID);
+				Build.m_buildLoadingID = -1;
+			}
+			
+			Build.m_buildStillLoading = false;			
+	}
+	
+	private function CheckSkillsAndContinue():Void
+	{
+		m_savedSkills = new Array();
+		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
+		{
+			var slotID:Number = GetSkillSlotID(indx);
+			m_savedSkills.push(Shortcut.m_ShortcutList[slotID]);
+		}
+		
+		m_unequipErrorSeen = false;
+		com.GameInterface.Chat.SignalShowFIFOMessage.Connect(FIFOMessageHandler, this);
+		RemoveSkills();
+	}
+	
+	private function FIFOMessageHandler(text:String, mode:Number):Void
+	{
+		if (text != null && (text.indexOf(CANT_UNEQUIP_ENG, 0) == 0 || text.indexOf(CANT_UNEQUIP_FR, 0) == 0 || text.indexOf(CANT_UNEQUIP_DE) == 0))
+		{
+			m_unequipErrorSeen = true;
+		}
+	}
+	
+	private function RemoveSkills():Void
 	{
 		if (m_unequipSkillsInterval != -1)
 		{
@@ -1177,25 +1213,59 @@ class com.boobuilds.Build
 	
 	private function ShortRemovedCB():Void
 	{
+		var moveOn:Boolean = false;
+		var cleanUp:Boolean = false;
 		++m_unequipSkillsCounter;
 		var empty:Boolean = AreShortcutsEmpty();
 		if (empty == true)
 		{
+			moveOn = true;
+		}
+		else
+		{
+			if (m_unequipErrorSeen == true)
+			{
+				cleanUp = true;
+				InfoWindow.LogError("Cannot load a build when skill is on cooldown");
+			}
+			else if (m_unequipSkillsCounter > 200)
+			{
+				cleanUp = true;
+				InfoWindow.LogError("Failed to unequip skills");
+			}
+		}
+		
+		if (moveOn == true || cleanUp == true)
+		{
+			com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
 			clearInterval(m_unequipSkillsInterval);
 			m_unequipSkillsCounter = 0;
 			m_unequipSkillsInterval = -1;
 			
-			AddShortcuts();
-		}
-		else
-		{
-			if (m_unequipSkillsCounter > 200)
+			if (moveOn == true)
 			{
-				clearInterval(m_unequipSkillsInterval);
-				InfoWindow.LogError("Failed to unequip skills");
-				++m_buildErrorCount;
+				ContinueApply();
+			}
+			else
+			{
+				RestoreSkills();
 			}
 		}
+	}
+	
+	private function RestoreSkills():Void
+	{
+		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
+		{
+			var skill:ShortcutData = m_savedSkills[indx];
+			if (skill != null)
+			{
+				var slotID:Number = GetSkillSlotID(indx);
+				Shortcut.AddSpell(slotID, skill.m_SpellId);
+			}
+		}
+		
+		ClearBuildLoading();
 	}
 	
 	private function AreShortcutsEmpty():Boolean
@@ -1215,7 +1285,7 @@ class com.boobuilds.Build
 		return true;
 	}
 	
-	private function AddShortcuts():Void
+	private function ApplySkills():Void
 	{
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
@@ -1330,15 +1400,27 @@ class com.boobuilds.Build
 
 	private function ApplyWeapons():Void
 	{
+		m_weaponNewSlots = [ -1, -1 ];
+		m_weaponOldSlots = [ -1, -1 ];
+		m_weaponOldNames = [ null, null ];
 		m_equipWeaponSlot = -1;
 		WeaponUnequippedCompletionCallback();
 	}
 	
 	private function UnequipWeapon():Boolean
 	{
+		var weaponSlot:Number = GetWeaponSlotID(m_equipWeaponSlot);
+		
 		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 		var charInv:Inventory = new Inventory(charInvId);
-		charInv.UseItem(GetWeaponSlotID(m_equipWeaponSlot));
+		var item:InventoryItem = charInv.GetItemAt(weaponSlot);
+		m_weaponOldNames[m_equipWeaponSlot] = item.m_Name;
+		
+		var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var bagInv:Inventory = new Inventory(bagInvId);
+		m_weaponOldSlots[m_equipWeaponSlot] = bagInv.GetFirstFreeItemSlot();
+		
+		charInv.UseItem(weaponSlot);
 		return false;
 	}
 	
@@ -1388,6 +1470,8 @@ class com.boobuilds.Build
 			{
 				var itemSlot:Number = obj.indx;
 				var foundItem = obj.item;
+				m_weaponNewSlots[m_equipWeaponSlot] = itemSlot;
+				
 				var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
 				var charInv:Inventory = new Inventory(charInvId);
 				charInv.AddItem(bagInvId, itemSlot, GetWeaponSlotID(m_equipWeaponSlot));
@@ -1435,7 +1519,8 @@ class com.boobuilds.Build
 		}
 		else
 		{
-			ApplyBuildQueue();
+			m_equipWeaponSlot = -1;
+			MoveWeaponCompletionCallback();
 		}
 	}
 	
@@ -1444,6 +1529,57 @@ class com.boobuilds.Build
 		var gear:GearItem = GetWeapon(m_equipWeaponSlot);
 		InfoWindow.LogError("Failed to equip weapon " + gear.GetName());
 		++m_buildErrorCount;
+	}
+	
+	private function MoveWeapon():Boolean
+	{
+		var moveOn:Boolean = true;
+		var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var bagInv:Inventory = new Inventory(bagInvId);
+		if (m_weaponOldSlots[m_equipWeaponSlot] != -1 && m_weaponOldNames[m_equipWeaponSlot] != null && m_weaponNewSlots[m_equipWeaponSlot] != -1)
+		{
+			var oldItem:InventoryItem = bagInv.GetItemAt(m_weaponOldSlots[m_equipWeaponSlot]);
+			if (oldItem != null && oldItem.m_Name == m_weaponOldNames[m_equipWeaponSlot])
+			{
+				// move the weapon to the freed up slot
+				bagInv.AddItem(bagInvId, m_weaponOldSlots[m_equipWeaponSlot], m_weaponNewSlots[m_equipWeaponSlot]);
+				moveOn = false;
+			}
+		}
+		
+		return moveOn;
+	}
+	
+	private function MoveWeaponCheckCallback():Boolean
+	{
+		var moveOn:Boolean = false;
+		var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var bagInv:Inventory = new Inventory(bagInvId);
+		var item:InventoryItem = bagInv.GetItemAt(m_weaponNewSlots[m_equipWeaponSlot]);
+		if (item != null && item.m_Name == m_weaponOldNames[m_equipWeaponSlot])
+		{
+			moveOn = true;
+		}
+		
+		return moveOn;
+	}
+	
+	private function MoveWeaponCompletionCallback():Void
+	{
+		++m_equipWeaponSlot;
+		if (m_equipWeaponSlot < m_weaponNewSlots.length && m_weaponNewSlots.length == m_weaponOldNames.length && m_weaponOldNames.length == m_weaponOldSlots.length)
+		{
+			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, MoveWeapon), Delegate.create(this, MoveWeaponCheckCallback), Delegate.create(this, MoveWeaponCompletionCallback), Delegate.create(this, MoveWeaponErrorCallback));
+		}
+		else
+		{
+			ApplyBuildQueue();
+		}
+	}
+	
+	private function MoveWeaponErrorCallback():Void
+	{
+		DebugWindow.Log(DebugWindow.Info, "Failed to move weapon " + m_equipWeaponSlot);
 	}
 	
 	private function IsWeaponSameType(inItem:InventoryItem, slot:Number):Boolean

@@ -72,7 +72,6 @@
     <compile path="com\boobuilds\OptionsTab.as" />
     <compile path="com\boobuilds\InfoWindow.as" />
     <compile path="com\boobuilds\EditBuildDialog.as" />
-    <compile path="com\boobuilds\CooldownMonitor.as" />
     <compile path="com\boobuilds\Outfit.as" />
     <compile path="com\boobuilds\EditOutfitDialog.as" />
     <compile path="com\boobuilds\ImportOutfitDialog.as" />

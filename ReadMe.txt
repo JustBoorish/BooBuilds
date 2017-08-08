@@ -22,6 +22,12 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 1.6
+Complete rewrite of the inventory throttle code
+Fix issue with male clothing being applied to female characters
+Fix weapon visibility for outfits
+Add a sprint to outfits
+
 Version 1.5
 Initial support for switching outfits
 Added Backup and restore features

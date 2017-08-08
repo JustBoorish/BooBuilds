@@ -2,7 +2,6 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildWindow;
 import com.boobuilds.ChangeGroupDialog;
-import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditBuildDialog;
@@ -63,10 +62,9 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_exportBuildDialog:ExportDialog;
 	private var m_changeGroupDialog:ChangeGroupDialog
 	private var m_settings:Object;
-	private var m_cooldownMonitor:CooldownMonitor;
 	private var m_forceRedraw:Boolean;
 	
-	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, cdMon:CooldownMonitor, outfits:Object, outfitGroups:Array)
+	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, outfits:Object, outfitGroups:Array)
 	{
 		m_name = name;
 		m_groups = groups;
@@ -74,7 +72,6 @@ class com.boobuilds.BuildList implements ITabPane
 		m_outfits = outfits;
 		m_outfitGroups = outfitGroups;
 		m_settings = settings;
-		m_cooldownMonitor = cdMon;
 		m_forceRedraw = false;
 	}
 
@@ -305,7 +302,7 @@ class com.boobuilds.BuildList implements ITabPane
 		var thisBuild:Build = m_builds[buildID];
 		if (thisBuild != null)
 		{
-			thisBuild.Apply(m_cooldownMonitor, m_outfits);
+			thisBuild.Apply(m_outfits);
 		}
 	}
 	

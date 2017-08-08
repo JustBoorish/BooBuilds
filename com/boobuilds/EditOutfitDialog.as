@@ -187,7 +187,7 @@ class com.boobuilds.EditOutfitDialog
 		}
 	}
 	
-	private function GetSprintFromTag(sprintTag:Number):String
+	public static function GetSprintFromTag(sprintTag:Number):String
 	{
 		var ret:String = "None";
 		
@@ -229,7 +229,7 @@ class com.boobuilds.EditOutfitDialog
 		return ret;
 	}
 	
-	private function GetSprintData():Array
+	private static function GetSprintData():Array
 	{
 		var allNodes:Array = Lore.GetMountTree().m_Children;
 		allNodes.sortOn("m_Name");

@@ -5,7 +5,6 @@ import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildList;
 import com.boobuilds.BuildSelector;
 import com.boobuilds.Controller;
-import com.boobuilds.CooldownMonitor;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.GearItem;
@@ -95,7 +94,6 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_redrawCount:Number;
 	private var m_loadBuildDV:DistributedValue;
 	private var m_loadOutfitDV:DistributedValue;
-	private var m_cooldownMonitor:CooldownMonitor;
 	
 	//On Load
 	function onLoad():Void
@@ -132,8 +130,6 @@ class com.boobuilds.Controller extends MovieClip
 		SetDefaults();
 		
 		Localisation.SetLocalisation();
-		
-		m_cooldownMonitor = new CooldownMonitor();
 		
 		m_loadBuildDV = DistributedValue.Create("BooBuilds_LoadBuild");
 		m_loadBuildDV.SetValue("");
@@ -463,7 +459,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		if (thisBuild != null)
 		{
-			thisBuild.Apply(m_cooldownMonitor, m_outfits);
+			thisBuild.Apply(m_outfits);
 		}
 	}
 	
@@ -531,8 +527,8 @@ class com.boobuilds.Controller extends MovieClip
 		{
 			FeatInterface.BuildFeatList();
 		
-			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_cooldownMonitor, m_outfits, m_outfitGroups);
-			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings, m_cooldownMonitor);
+			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
+			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_buildList, m_outfitList);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
