@@ -1,6 +1,7 @@
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Checkbox;
 import com.boobuilds.ComboBox;
+import com.boobuilds.Graphics;
 import com.boobuilds.ModalBase;
 import com.boobuilds.DebugWindow;
 import com.GameInterface.Utils;
@@ -35,17 +36,22 @@ class com.boobuilds.EditOutfitDialog
 	private var m_includeWeapons:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
-	private var m_combo:ComboBox;
+	private var m_sprintCombo:ComboBox;
 	private var m_sprintX:Number;
 	private var m_sprintY:Number;
 	private var m_sprintTag:Number;
+	private var m_petCombo:ComboBox;
+	private var m_petX:Number;
+	private var m_petY:Number;
+	private var m_petTag:Number;
 	private var m_includeWeaponsCheck:Checkbox;
 	
-	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, sprintTag:Number) 
+	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, sprintTag:Number, petTag:Number) 
 	{
 		m_outfitName = outfitName;
 		m_includeWeapons = includeWeapons;
 		m_sprintTag = sprintTag;
+		m_petTag = petTag;
 		
 		m_addonMC = addonMC;
 		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.75, 0.75);
@@ -60,7 +66,8 @@ class com.boobuilds.EditOutfitDialog
 	{
 		Selection.setFocus(m_input);
 		Selection.setSelection(m_outfitName.length, m_outfitName.length);
-		m_combo.HidePopup();
+		m_sprintCombo.HidePopup();
+		m_petCombo.HidePopup();
 		m_callback = callback;
 		m_modalBase.Show(m_callback);
 	}
@@ -68,14 +75,16 @@ class com.boobuilds.EditOutfitDialog
 	public function Hide():Void
 	{
 		Selection.setFocus(null);
-		m_combo.HidePopup();
+		m_sprintCombo.HidePopup();
+		m_petCombo.HidePopup();
 		m_modalBase.Hide();
 	}
 	
 	public function Unload():Void
 	{
 		Selection.setFocus(null);
-		m_combo.Unload();
+		m_sprintCombo.Unload();
+		m_petCombo.Unload();
 		m_modalBase.Unload();
 	}
 	
@@ -86,15 +95,7 @@ class com.boobuilds.EditOutfitDialog
 		var text1:String = "Outfit name";
 		var labelExtents:Object;
 		labelExtents = Text.GetTextExtent(text1, m_textFormat, modalMC);
-		var line1:TextField = modalMC.createTextField("Line1", modalMC.getNextHighestDepth(), modalMC._width / 2 - labelExtents.width / 2, labelExtents.height, labelExtents.width, labelExtents.height);
-		line1.embedFonts = true;
-		line1.selectable = false;
-		line1.antiAliasType = "advanced";
-		line1.autoSize = true;
-		line1.border = false;
-		line1.background = false;
-		line1.setNewTextFormat(m_textFormat);
-		line1.text = text1;
+		var line1:TextField = Graphics.DrawText("Line1", modalMC, text1, m_textFormat, modalMC._width / 2 - labelExtents.width / 2, labelExtents.height, labelExtents.width, labelExtents.height);
 		
 		var input:TextField = modalMC.createTextField("Input", modalMC.getNextHighestDepth(), 30, line1._y + line1._height + 10, modalMC._width - 60, labelExtents.height + 6);
 		input.type = "input";
@@ -117,39 +118,31 @@ class com.boobuilds.EditOutfitDialog
 		var checkSize:Number = 13;
 		var text:String = "Include weapon visibility";
 		var extents:Object = Text.GetTextExtent(text, textFormat, modalMC);
-		var includeWeaponsText:TextField = modalMC.createTextField("IncludeWeaponsText", modalMC.getNextHighestDepth(), 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
-		includeWeaponsText.embedFonts = true;
-		includeWeaponsText.selectable = false;
-		includeWeaponsText.antiAliasType = "advanced";
-		includeWeaponsText.autoSize = true;
-		includeWeaponsText.border = false;
-		includeWeaponsText.background = false;
-		includeWeaponsText.setNewTextFormat(textFormat);
-		includeWeaponsText.text = text;
+		Graphics.DrawText("IncludeWeaponsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		
 		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, false);
 	
 		checkY = 40 + line1._y + line1._height * 3;
 		text = "Sprint";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
-		var includeTalismansText:TextField = modalMC.createTextField("IncludeSprintText", modalMC.getNextHighestDepth(), 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
-		includeTalismansText.embedFonts = true;
-		includeTalismansText.selectable = false;
-		includeTalismansText.antiAliasType = "advanced";
-		includeTalismansText.autoSize = true;
-		includeTalismansText.border = false;
-		includeTalismansText.background = false;
-		includeTalismansText.setNewTextFormat(textFormat);
-		includeTalismansText.text = text;
-		
-		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
+		Graphics.DrawText("IncludeSprintText", modalMC, text, m_textFormat, 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		
 		m_sprintX = 35 + extents.width;
 		m_sprintY = checkY - 5;
-		BuildCombo(modalMC, m_sprintX, m_sprintY);
+		BuildSprintCombo(modalMC, m_sprintX, m_sprintY);
+		
+		checkY = 60 + line1._y + line1._height * 4;
+		text = "Pet";
+		Graphics.DrawText("IncludePetText", modalMC, text, m_textFormat, 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		
+		m_petX = 35 + extents.width;
+		m_petY = checkY - 5;
+		BuildPetCombo(modalMC, m_petX, m_petY);
+		
+		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 	}
 	
-	private function BuildCombo(modalMC:MovieClip, x:Number, y:Number):Void
+	private function BuildSprintCombo(modalMC:MovieClip, x:Number, y:Number):Void
 	{
 		var ownedNodes:Array = GetSprintData();
 		var names:Array = new Array();
@@ -161,7 +154,22 @@ class com.boobuilds.EditOutfitDialog
 		}
 		
 		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
-		m_combo = new ComboBox(modalMC, "Sprint", m_addonMC, x, y, colours[0], colours[1], 6, GetSprintFromTag(m_sprintTag), names);
+		m_sprintCombo = new ComboBox(modalMC, "Sprint", m_addonMC, x, y, colours[0], colours[1], 6, GetSprintFromTag(m_sprintTag), names);
+	}
+	
+	private function BuildPetCombo(modalMC:MovieClip, x:Number, y:Number):Void
+	{
+		var ownedNodes:Array = GetPetData();
+		var names:Array = new Array();
+		names.push("None");
+		for (var indx:Number = 0; indx < ownedNodes.length; ++indx)
+		{
+			var node:LoreNode = LoreNode(ownedNodes[indx]);
+			names.push(node.m_Name);
+		}
+		
+		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		m_petCombo = new ComboBox(modalMC, "Pet", m_addonMC, x, y, colours[0], colours[1], 6, GetPetFromTag(m_petTag), names);
 	}
 	
 	private function ButtonPressed(text:String):Void
@@ -178,11 +186,11 @@ class com.boobuilds.EditOutfitDialog
 		{
 			if (success)
 			{
-				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), GetTagFromSprintName(m_combo.GetSelectedEntry()));
+				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), GetTagFromSprintName(m_sprintCombo.GetSelectedEntry()), GetTagFromPetName(m_petCombo.GetSelectedEntry()));
 			}
 			else
 			{
-				m_callback(null, false, null);
+				m_callback(null, false, null, null);
 			}
 		}
 	}
@@ -225,7 +233,6 @@ class com.boobuilds.EditOutfitDialog
 			}
 		}
 		
-		DebugWindow.Log(DebugWindow.Debug, "Sprint " + sprintName + " " + ret);
 		return ret;
 	}
 	
@@ -236,13 +243,73 @@ class com.boobuilds.EditOutfitDialog
 		var ownedNodes:Array = new Array();
 		for (var i = 0; i < allNodes.length; i++)
 		{
-			if (Utils.GetGameTweak("HideMount_" + allNodes[i].m_Id) == 0)
-			{
+			//if (Utils.GetGameTweak("HideMount_" + allNodes[i].m_Id) == 0)
+			//{
 				if (!LoreBase.IsLocked(allNodes[i].m_Id))
 				{
 					ownedNodes.push(allNodes[i]);
 				}
+			//}
+		}
+		
+		return ownedNodes;
+	}
+	
+	public static function GetPetFromTag(petTag:Number):String
+	{
+		var ret:String = "None";
+		
+		if (petTag != null)
+		{
+			var nodes:Array = GetPetData();
+			for (var indx:Number = 0; indx < nodes.length; ++indx)
+			{
+				var node:LoreNode = LoreNode(nodes[indx]);
+				if (node != null && node.m_Id == petTag)
+				{
+					ret = node.m_Name;
+					break;
+				}
 			}
+		}
+		
+		return ret;
+	}
+	
+	private function GetTagFromPetName(petName:String):Number
+	{
+		var ret:Number = null;
+		if (petName != null)
+		{
+			var nodes:Array = GetPetData();
+			for (var indx:Number = 0; indx < nodes.length; ++indx)
+			{
+				var node:LoreNode = LoreNode(nodes[indx]);
+				if (node != null && node.m_Name == petName)
+				{
+					ret = node.m_Id;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
+	private static function GetPetData():Array
+	{
+		var allNodes:Array = Lore.GetPetTree().m_Children;
+		allNodes.sortOn("m_Name");
+		var ownedNodes:Array = new Array();
+		for (var i = 0; i < allNodes.length; i++)
+		{
+			//if (Utils.GetGameTweak("HideMount_" + allNodes[i].m_Id) == 0)
+			//{
+				if (!LoreBase.IsLocked(allNodes[i].m_Id))
+				{
+					ownedNodes.push(allNodes[i]);
+				}
+			//}
 		}
 		
 		return ownedNodes;

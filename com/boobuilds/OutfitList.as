@@ -461,12 +461,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.GetSprintTag());
+			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.GetSprintTag(), m_currentOutfit.GetPetTag());
 			m_editOutfitDialog.Show(Delegate.create(this, UpdateOutfitCB));
 		}
 	}
 	
-	private function UpdateOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number):Void
+	private function UpdateOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number, newPetTag:Number):Void
 	{
 		if (inName != null)
 		{
@@ -504,6 +504,15 @@ class com.boobuilds.OutfitList implements ITabPane
 					else
 					{
 						m_currentOutfit.ClearSprint();
+					}
+					
+					if (newPetTag != null)
+					{
+						m_currentOutfit.SetPetTag(newPetTag);
+					}
+					else
+					{
+						m_currentOutfit.ClearPet();
 					}
 					
 					DrawList();
@@ -668,7 +677,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 	}
 	
-	private function CreateCurrentOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number):Void
+	private function CreateCurrentOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number, newPetTag:Number):Void
 	{
 		if (inName != null)
 		{
@@ -703,6 +712,15 @@ class com.boobuilds.OutfitList implements ITabPane
 					else
 					{
 						newOutfit.ClearSprint();
+					}
+					
+					if (newPetTag != null)
+					{
+						newOutfit.SetPetTag(newPetTag);
+					}
+					else
+					{
+						newOutfit.ClearPet();
 					}
 					
 					m_outfits[newID] = newOutfit;

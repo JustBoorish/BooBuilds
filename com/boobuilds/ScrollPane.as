@@ -103,8 +103,8 @@ class com.boobuilds.ScrollPane
 		if (visible == true)
 		{
 			var pt:Object = new Object();
-			pt.x = 1;
-			pt.y = 1;
+			pt.x = 0;
+			pt.y = 0;
 			m_mask.localToGlobal(pt);
 			m_content._parent.globalToLocal(pt);
 			m_content._x = pt.x;
@@ -124,20 +124,20 @@ class com.boobuilds.ScrollPane
 		{
 			var change:Number = m_maxWidth * (delta / 10);
 			m_scrollButton._y -= change;
-			if (m_scrollButton._y < 1)
+			if (m_scrollButton._y < 0)
 			{
-				m_scrollButton._y = 1;
+				m_scrollButton._y = 0;
 			}
-			else if (m_scrollButton._y > m_maxHeight - 1 - m_scrollButton._height)
+			else if (m_scrollButton._y > m_maxHeight - m_scrollButton._height)
 			{
-				m_scrollButton._y = m_maxHeight - 1 - m_scrollButton._height;
+				m_scrollButton._y = m_maxHeight - m_scrollButton._height;
 			}
 		}
 	}
 	
 	private function ScrollMoved():Void
 	{
-		m_content._y = m_contentYOffset - ((m_scrollButton._y - 1) / m_maxHeight * m_content._height);
+		m_content._y = m_contentYOffset - ((m_scrollButton._y - 0) / m_maxHeight * m_content._height);
 	}
 	
 	private function DrawFrame():Void

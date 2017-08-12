@@ -230,6 +230,7 @@ class com.boobuilds.ComboBox
 	{
 		if (m_scroll.GetVisible() == false)
 		{
+			m_scroll.Resize(m_list._height);
 			m_scroll.SetVisible(true);
 		}
 		else

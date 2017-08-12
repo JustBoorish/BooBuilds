@@ -6,6 +6,7 @@ import com.GameInterface.Tooltip.TooltipManager;
 import com.GameInterface.Log;
 import mx.utils.Delegate;
 import com.boobuilds.DebugWindow;
+import com.boobuilds.IntervalCounter;
 
 /**
  * There is no copyright on this code
@@ -47,8 +48,7 @@ class com.boobuilds.BIcon
 	private var m_VTIOIsLoadedMonitor:DistributedValue;
 
 	// Variables for checking if the compass is there
-	private var m_CompassCheckTimerID:Number;
-	private var m_CompassCheckTimerCount:Number = 0;
+	private var m_CompassCheckTimer:IntervalCounter;
 
 	// The add-on information string, separated into 5 segments.
 	// First is the add-on name as it will appear in the Add-on Manager list.
@@ -132,7 +132,15 @@ class com.boobuilds.BIcon
 		m_icon.onRollOver = Delegate.create(this, onRollover);
 		m_icon.onRollOut = Delegate.create(this, onRollout);
 		
-		m_CompassCheckTimerID = setInterval(Delegate.create(this, PositionIcon), 100);
+		if (m_x == -1 || m_y == -1)
+		{
+			m_CompassCheckTimer = new IntervalCounter("IconPosition", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, PositionIcon), Delegate.create(this, PositionOnCompassMissing), null, IntervalCounter.COMPLETE_ON_ERROR);
+		}
+		else
+		{
+			m_icon._x = m_x;
+			m_icon._y = m_y;
+		}
 
 		// Check if VTIO is loaded (if it loaded before this add-on was).
 		SlotCheckVTIOIsLoaded();
@@ -209,37 +217,36 @@ class com.boobuilds.BIcon
 	}
 
 	// The compass check function.
-	private function PositionIcon():Void
+	private function PositionIcon():Boolean
 	{
-		if (m_x != -1 && m_y != -1)
+		var finish:Boolean = false;
+		if (m_dragging == true)
 		{
-			clearInterval(m_CompassCheckTimerID);
-			m_icon._x = m_x;
-			m_icon._y = m_y;
+			finish = true;
 		}
 		else
 		{
-			m_CompassCheckTimerCount++;
-			if (m_dragging == true || m_CompassCheckTimerCount > 256)
-			{
-				clearInterval(m_CompassCheckTimerID);
-			}
-			
 			if (_root.compass != undefined && _root.compass._x != undefined && _root.compass._x > 0) {
 				var myPoint:Object = new Object();
-				myPoint.x = _root.compass._x - 250;
+				myPoint.x = _root.compass._x - 245;
 				myPoint.y = _root.compass._y + 0;
 				_root.localToGlobal(myPoint);
 				_root.boobuilds.globalToLocal(myPoint);
 				m_icon._x = myPoint.x;
 				m_icon._y = myPoint.y;
-				clearInterval(m_CompassCheckTimerID);
+				finish = true;
 			}
-			else
-			{
-				m_icon._x = Stage.width / 4 + 32;
-				m_icon._y = 2;
-			}
+		}
+		
+		return finish;
+	}
+	
+	private function PositionOnCompassMissing(isError:Boolean):Void
+	{
+		if (isError == true)
+		{
+			m_icon._x = Stage.width / 4 + 55;
+			m_icon._y = 2;
 		}
 	}
 

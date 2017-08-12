@@ -1,4 +1,5 @@
 import com.boobuilds.DebugWindow;
+import com.boobuilds.IntervalCounter;
 import com.Utils.Signal;
 import mx.utils.Delegate;
 /**
@@ -25,45 +26,28 @@ class com.boobuilds.InventoryThrottle
 	
 	private static var m_inventoryThrottleMode:Number = 0;
 
+	private var m_name:String;
 	private var m_actionCallback:Function;
 	private var m_checkCallback:Function;
 	private var m_completionCallback:Function;
 	private var m_errorCallback:Function;
-	private var m_intervalID:Number;
-	private var m_checkCounter:Number;
+	private var m_completionOnError:Boolean;
+	private var m_interval:IntervalCounter;
 	private var m_throttleErrorSeen:Boolean;
+	private var m_retryID:Number;
 	
-	public function InventoryThrottle() 
+	public function InventoryThrottle(name:String, actionCallback:Function, checkCallback:Function, completionCallback:Function, errorCallback:Function, completionOnError:Boolean) 
 	{
-		m_intervalID = -1;
-		m_checkCounter = 0;
-		m_throttleErrorSeen = false;
-	}
-	
-	public function Cleanup():Void
-	{
-		EndLoad();
-	}
-	
-	public function StartLoad():Void
-	{
-		com.GameInterface.Chat.SignalShowFIFOMessage.Connect(FIFOMessageHandler, this);
-	}
-	
-	public function EndLoad():Void
-	{
-		com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
-		StopCheck();
-	}
-	
-	public function DoNextInventoryAction(actionCallback:Function, checkCallback:Function, completionCallback:Function, errorCallback:Function):Void
-	{
-		StopCheck();
-		
+		m_name = name;
 		m_actionCallback = actionCallback;
 		m_checkCallback = checkCallback;
 		m_completionCallback = completionCallback;
 		m_errorCallback = errorCallback;
+		m_completionOnError = completionOnError;
+		m_throttleErrorSeen = false;
+		m_retryID = -1;
+		
+		com.GameInterface.Chat.SignalShowFIFOMessage.Connect(FIFOMessageHandler, this);
 		
 		var timeout:Number = 20;
 		
@@ -80,9 +64,18 @@ class com.boobuilds.InventoryThrottle
 			timeout = 500;
 		}
 
-		setTimeout(Delegate.create(this, ActionWrapper), timeout);
+		if (m_actionCallback != null && m_checkCallback != null)
+		{
+			m_retryID = setTimeout(Delegate.create(this, ActionWrapper), timeout);
+		}
 	}
-
+	
+	public function Cleanup():Void
+	{
+		StopCheck();
+		com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
+	}
+	
 	private function FIFOMessageHandler(text:String, mode:Number):Void
 	{
 		if (text != null && (text.indexOf(MUST_WAIT_ENG, 0) == 0 || text.indexOf(MUST_WAIT_FR, 0) == 0 || text.indexOf(MUST_WAIT_DE) == 0))
@@ -93,84 +86,62 @@ class com.boobuilds.InventoryThrottle
 	
 	private function ActionWrapper():Void
 	{
-		if (m_intervalID != -1)
+		m_retryID = -1;
+		if (m_interval != null)
 		{
 			StopCheck();
 			m_errorCallback();
 		}
-		
-		if (m_actionCallback != null)
+		else
 		{
 			var moveOn:Boolean = m_actionCallback();
 			if (moveOn == true)
 			{
 				if (m_completionCallback != null)
 				{
-					m_completionCallback();
+					m_completionCallback(false);
 				}
 			}
 			else
 			{
-				if (m_checkCallback != null)
-				{
-					m_checkCounter = 0;
-					m_intervalID = setInterval(Delegate.create(this, CheckWrapper), 20);
-				}
+				m_interval = new IntervalCounter(m_name, IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, CheckWrapper), m_completionCallback, m_errorCallback, m_completionOnError);
 			}
 		}
 	}
 	
-	private function CheckWrapper():Void
+	private function CheckWrapper():Boolean
 	{
-		var moveOn:Boolean = false;
-		++m_checkCounter;
-		if (m_checkCallback != null)
-		{
-			moveOn = m_checkCallback();
-			if (moveOn == true)
-			{
-				StopCheck();
-			}
-		}
-		
+		var moveOn:Boolean = m_checkCallback();
 		if (moveOn != true)
 		{
 			if (m_throttleErrorSeen == true)
 			{
+				m_throttleErrorSeen = false;
 				StopCheck();
-				setTimeout(Delegate.create(this, ActionWrapper), 500);
-			}
-			else if (m_checkCounter > 100)
-			{
-				moveOn = true;
-				StopCheck();
-				if (m_errorCallback != null)
+				if (m_retryID != -1)
 				{
-					m_errorCallback();
+					clearTimeout(m_retryID);
+					m_retryID = -1;
+					DebugWindow.Log(DebugWindow.Error, "Duplicate retry in inventory throttle " + m_name);
+				}
+				else
+				{
+					m_retryID = setTimeout(Delegate.create(this, ActionWrapper), 500);
 				}
 			}
 		}
 		
-		if (moveOn == true)
-		{
-			StopCheck();
-			if (m_completionCallback != null)
-			{
-				m_completionCallback();
-			}
-		}
+		return moveOn;
 	}
 	
 	private function StopCheck():Void
 	{
-		if (m_intervalID != -1)
-		{
-			clearInterval(m_intervalID);
-		}
-		
-		m_intervalID = -1;
-		m_checkCounter = 0;
 		m_throttleErrorSeen = false;
+		if (m_interval != null)
+		{
+			m_interval.Stop();
+			m_interval = null;
+		}
 	}
 	
 	public static function GetInventoryThrottleMode():Number

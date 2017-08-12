@@ -22,6 +22,10 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 1.7
+Add a pet to outfits
+Add new Manage duplicate clothing feature
+
 Version 1.6
 Complete rewrite of the inventory throttle code
 Fix issue with male clothing being applied to female characters

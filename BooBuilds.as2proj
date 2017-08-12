@@ -84,6 +84,8 @@
     <compile path="com\boobuilds\RestoreDialog.as" />
     <compile path="com\boobuilds\ExportDialog.as" />
     <compile path="com\boobuilds\ChangeGroupDialog.as" />
+    <compile path="com\boobuilds\IntervalCounter.as" />
+    <compile path="com\boobuilds\MountHelper.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

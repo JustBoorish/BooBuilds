@@ -19,7 +19,9 @@ import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.InfoWindow;
+import com.boobuilds.IntervalCounter;
 import com.boobuilds.InventoryThrottle;
+import com.boobuilds.MountHelper;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -77,10 +79,8 @@ class com.boobuilds.Build
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_unequipPassives:Array;
-	private var m_unequipSkillsInterval:Number;
-	private var m_unequipSkillsCounter:Number;
-	private var m_unequipPassivesInterval:Number;
-	private var m_unequipPassivesCounter:Number;
+	private var m_unequipSkillsInterval:IntervalCounter;
+	private var m_unequipPassivesInterval:IntervalCounter;
 	private var m_equipWeaponSlot:Number;
 	private var m_equipTalismanSlot:Number;
 	private var m_logAfterSkills:Boolean;
@@ -106,8 +106,6 @@ class com.boobuilds.Build
 		m_outfit = null;
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
-		m_unequipSkillsInterval = -1;
-		m_unequipPassivesInterval = -1;
 		InitialiseArray(m_skills, MAX_SKILLS);
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
@@ -1050,11 +1048,6 @@ class com.boobuilds.Build
 				}
 			}
 			
-			if (m_dismountBeforeBuild == true)
-			{
-				Dismount();
-			}
-			
 			doTalismans = true;
 			var talismanCount:Number = 0;
 			for (var indx:Number = 0; indx < m_gear.length; ++indx)
@@ -1071,20 +1064,13 @@ class com.boobuilds.Build
 			}
 			
 			m_buildApplyQueue = new Array();
-			
-			if (m_inventoryThrottle != null)
-			{
-				m_inventoryThrottle.Cleanup();
-			}
-			
-			m_inventoryThrottle = new InventoryThrottle();
-			m_inventoryThrottle.StartLoad();
+			ClearInventoryThrottle();			
 			m_buildErrorCount = 0;
 			
 			if (m_outfit != null && outfits[m_outfit] != null)
 			{
 				var endCallback:Function = Delegate.create(this, function (i:Number) { this.m_buildErrorCount += i; this.ApplyBuildQueue(); } );
-				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(this.m_inventoryThrottle, endCallback); }));
+				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(endCallback); }));
 			}
 			
 			if (doWeapons == true)
@@ -1097,8 +1083,20 @@ class com.boobuilds.Build
 				m_buildApplyQueue.push(Delegate.create(this, ApplyTalismans));
 			}
 			
-			CheckSkillsAndContinue();
+			if (m_dismountBeforeBuild == true)
+			{
+				MountHelper.Dismount(Delegate.create(this, ContinueAfterDismount));
+			}
+			else
+			{
+				ContinueAfterDismount();
+			}			
 		}
+	}
+
+	private function ContinueAfterDismount():Void
+	{
+		CheckSkillsAndContinue();
 	}
 	
 	private function ContinueApply():Void
@@ -1132,22 +1130,7 @@ class com.boobuilds.Build
 		
 		if (finished == true)
 		{
-			if (m_inventoryThrottle != null)
-			{
-				m_inventoryThrottle.EndLoad();
-				m_inventoryThrottle = null;
-			}
-			
-			ClearBuildLoading();
-			
-			if (m_buildErrorCount > 0)
-			{
-				InfoWindow.LogError("Build load failed");
-			}
-			else
-			{
-				InfoWindow.LogInfo("Build loaded");
-			}
+			EndApply();
 		}		
 		else
 		{
@@ -1156,15 +1139,31 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function EndApply():Void
+	{
+		ClearInventoryThrottle();
+		ClearBuildLoading();
+		m_buildApplyQueue = null;
+		
+		if (m_buildErrorCount > 0)
+		{
+			InfoWindow.LogError("Build load failed");
+		}
+		else
+		{
+			InfoWindow.LogInfo("Build loaded");
+		}
+	}
+	
 	private function ClearBuildLoading():Void
 	{
-			if (Build.m_buildLoadingID != -1)
-			{
-				clearTimeout(Build.m_buildLoadingID);
-				Build.m_buildLoadingID = -1;
-			}
-			
-			Build.m_buildStillLoading = false;			
+		if (Build.m_buildLoadingID != -1)
+		{
+			clearTimeout(Build.m_buildLoadingID);
+			Build.m_buildLoadingID = -1;
+		}
+		
+		Build.m_buildStillLoading = false;			
 	}
 	
 	private function CheckSkillsAndContinue():Void
@@ -1189,12 +1188,21 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function ClearInventoryThrottle():Void
+	{
+		if (m_inventoryThrottle != null)
+		{
+			m_inventoryThrottle.Cleanup();
+			m_inventoryThrottle = null;
+		}
+	}
+	
 	private function RemoveSkills():Void
 	{
-		if (m_unequipSkillsInterval != -1)
+		if (m_unequipSkillsInterval != null)
 		{
-			clearInterval(m_unequipSkillsInterval);
-			m_unequipSkillsInterval = -1;
+			m_unequipSkillsInterval.Stop();
+			m_unequipPassivesInterval = null;
 		}
 		
 		// Remove all shortcuts
@@ -1207,52 +1215,47 @@ class com.boobuilds.Build
 			}
 		}
 		
-		m_unequipSkillsCounter = 0;
-		m_unequipSkillsInterval = setInterval(Delegate.create(this, ShortRemovedCB), 20);
+		m_unequipSkillsInterval = new IntervalCounter("Unequip skills", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, ShortRemovedCheck), Delegate.create(this, ShortRemovedComplete), Delegate.create(this, ShortRemovedError), IntervalCounter.NO_COMPLETE_ON_ERROR);
 	}
 	
-	private function ShortRemovedCB():Void
+	private function ShortRemovedCheck():Boolean
 	{
 		var moveOn:Boolean = false;
-		var cleanUp:Boolean = false;
-		++m_unequipSkillsCounter;
 		var empty:Boolean = AreShortcutsEmpty();
 		if (empty == true)
 		{
 			moveOn = true;
 		}
-		else
+		
+		if (m_unequipErrorSeen == true)
 		{
-			if (m_unequipErrorSeen == true)
-			{
-				cleanUp = true;
-				InfoWindow.LogError("Cannot load a build when skill is on cooldown");
-			}
-			else if (m_unequipSkillsCounter > 200)
-			{
-				cleanUp = true;
-				InfoWindow.LogError("Failed to unequip skills");
-			}
+			moveOn = true;
+			InfoWindow.LogError("Cannot load a build when skill is on cooldown");
 		}
 		
-		if (moveOn == true || cleanUp == true)
+		return moveOn;
+	}
+	
+	private function ShortRemovedComplete():Void
+	{
+		com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
+		
+		if (m_unequipErrorSeen == true)
 		{
-			com.GameInterface.Chat.SignalShowFIFOMessage.Disconnect(FIFOMessageHandler, this);
-			clearInterval(m_unequipSkillsInterval);
-			m_unequipSkillsCounter = 0;
-			m_unequipSkillsInterval = -1;
-			
-			if (moveOn == true)
-			{
-				ContinueApply();
-			}
-			else
-			{
-				RestoreSkills();
-			}
+			RestoreSkills();
+		}
+		else
+		{
+			ContinueApply();
 		}
 	}
 	
+	private function ShortRemovedError():Void
+	{
+		InfoWindow.LogError("Failed to unequip skills");
+		RestoreSkills();
+	}
+		
 	private function RestoreSkills():Void
 	{
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
@@ -1322,10 +1325,10 @@ class com.boobuilds.Build
 	
 	private function ApplyPassives():Void
 	{
-		if (m_unequipPassivesInterval != -1)
+		if (m_unequipPassivesInterval != null)
 		{
-			clearInterval(m_unequipPassivesInterval);
-			m_unequipPassivesInterval = -1;
+			m_unequipPassivesInterval.Stop();
+			m_unequipPassivesInterval = null;
 		}
 		
 		// Remove all passives
@@ -1337,33 +1340,30 @@ class com.boobuilds.Build
 			}
 		}
 		
-		m_unequipPassivesCounter = 0;
-		m_unequipPassivesInterval = setInterval(Delegate.create(this, PassiveRemovedCB), 20);
+		m_unequipPassivesInterval = new IntervalCounter("Unequip passives", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, PassiveRemovedCheck), Delegate.create(this, PassiveRemovedComplete), Delegate.create(this, PassiveRemovedError), IntervalCounter.NO_COMPLETE_ON_ERROR);
 	}
 	
-	private function PassiveRemovedCB():Void
+	private function PassiveRemovedCheck():Boolean
 	{
-		++m_unequipPassivesCounter;
+		var moveOn:Boolean = false;
 		var empty:Boolean = ArePassivesRemoved();
 		if (empty == true)
 		{
-			clearInterval(m_unequipPassivesInterval);
-			m_unequipPassivesCounter = 0;
-			m_unequipPassivesInterval = -1;
-			
-			AddPassives();
+			moveOn = true;
 		}
-		else
-		{
-			if (m_unequipPassivesCounter > 200)
-			{
-				clearInterval(m_unequipPassivesInterval);
-				m_unequipPassivesCounter = 0;
-				m_unequipPassivesInterval = -1;
-				InfoWindow.LogError("Failed to unequip passives");
-				++m_buildErrorCount;
-			}
-		}
+
+		return moveOn;
+	}
+	
+	private function PassiveRemovedComplete():Void
+	{
+		AddPassives();
+	}
+	
+	private function PassiveRemovedError():Void
+	{
+		InfoWindow.LogError("Failed to unequip passives");
+		++m_buildErrorCount;
 	}
 	
 	private function ArePassivesRemoved():Boolean
@@ -1441,6 +1441,7 @@ class com.boobuilds.Build
 	{
 		InfoWindow.LogError("Failed to unequip weapons");
 		++m_buildErrorCount;
+		EndApply();
 	}
 	
 	private function WeaponUnequippedCompletionCallback():Void
@@ -1448,7 +1449,8 @@ class com.boobuilds.Build
 		if (m_equipWeaponSlot < 1)
 		{
 			++m_equipWeaponSlot;
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, UnequipWeapon), Delegate.create(this, WeaponUnequippedCheckCallback), Delegate.create(this, WeaponUnequippedCompletionCallback), Delegate.create(this, WeaponUnequippedErrorCallback));
+			ClearInventoryThrottle();
+			m_inventoryThrottle = new InventoryThrottle("Unequip weapon", Delegate.create(this, UnequipWeapon), Delegate.create(this, WeaponUnequippedCheckCallback), Delegate.create(this, WeaponUnequippedCompletionCallback), Delegate.create(this, WeaponUnequippedErrorCallback), IntervalCounter.NO_COMPLETE_ON_ERROR);
 		}
 		else
 		{
@@ -1515,7 +1517,8 @@ class com.boobuilds.Build
 		if (m_equipWeaponSlot < 1)
 		{
 			++m_equipWeaponSlot;
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EquipWeapon), Delegate.create(this, WeaponEquippedCheckCallback), Delegate.create(this, WeaponEquippedCompletionCallback), Delegate.create(this, WeaponEquippedErrorCallback));
+			ClearInventoryThrottle();
+			m_inventoryThrottle = new InventoryThrottle("Equip weapon", Delegate.create(this, EquipWeapon), Delegate.create(this, WeaponEquippedCheckCallback), Delegate.create(this, WeaponEquippedCompletionCallback), Delegate.create(this, WeaponEquippedErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
 		}
 		else
 		{
@@ -1569,7 +1572,8 @@ class com.boobuilds.Build
 		++m_equipWeaponSlot;
 		if (m_equipWeaponSlot < m_weaponNewSlots.length && m_weaponNewSlots.length == m_weaponOldNames.length && m_weaponOldNames.length == m_weaponOldSlots.length)
 		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, MoveWeapon), Delegate.create(this, MoveWeaponCheckCallback), Delegate.create(this, MoveWeaponCompletionCallback), Delegate.create(this, MoveWeaponErrorCallback));
+			ClearInventoryThrottle();
+			m_inventoryThrottle = new InventoryThrottle("Move weapon", Delegate.create(this, MoveWeapon), Delegate.create(this, MoveWeaponCheckCallback), Delegate.create(this, MoveWeaponCompletionCallback), Delegate.create(this, MoveWeaponErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
 		}
 		else
 		{
@@ -1683,7 +1687,8 @@ class com.boobuilds.Build
 		++m_equipTalismanSlot;
 		if (m_equipTalismanSlot < MAX_GEAR)
 		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EquipTalisman), Delegate.create(this, TalismanEquippedCallback), Delegate.create(this, TalismanCompletionCallback), Delegate.create(this, TalismanErrorCallback));
+			ClearInventoryThrottle();
+			m_inventoryThrottle = new InventoryThrottle("Equip talisman", Delegate.create(this, EquipTalisman), Delegate.create(this, TalismanEquippedCallback), Delegate.create(this, TalismanCompletionCallback), Delegate.create(this, TalismanErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
 		}
 		else
 		{
@@ -1731,28 +1736,5 @@ class com.boobuilds.Build
 		}
 		
 		return spaces;
-	}
-	
-	private function Dismount():Void
-	{
-		if (IsSprinting() == true)
-		{
-			SpellBase.SummonMountFromTag();
-		}
-	}
-	
-	public static function IsSprinting():Boolean
-	{
-		var SPRINT_BUFFS:Array = [7481588, 7758936, 7758937, 7758938, 9114480, 9115262];
-		for (var i:Number = 0; i < SPRINT_BUFFS.length; i++)
-		{
-			var buff:BuffData = Character.GetClientCharacter().m_InvisibleBuffList[SPRINT_BUFFS[i]];
-			if (buff != undefined)
-			{
-				return true;
-			}
-		}
-		
-		return false;
-	}
+	}	
 }

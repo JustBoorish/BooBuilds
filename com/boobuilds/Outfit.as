@@ -11,7 +11,9 @@ import com.boobuilds.Build;
 import com.boobuilds.DebugWindow;
 import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.InfoWindow;
+import com.boobuilds.IntervalCounter;
 import com.boobuilds.InventoryThrottle;
+import com.boobuilds.MountHelper;
 import com.boobuilds.Outfit;
 import mx.utils.Delegate;
 /**
@@ -50,7 +52,7 @@ class com.boobuilds.Outfit
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_sprintTag:Number;
-	private var m_ownInventoryThrottle:InventoryThrottle;
+	private var m_petTag:Number;
 	private var m_inventoryThrottle:InventoryThrottle;
 	private var m_equipOutfitSlot:Number;
 	private var m_outfitErrorCount:Number;
@@ -65,6 +67,7 @@ class com.boobuilds.Outfit
 		m_outfit = new Array();
 		ClearWeaponVisibility();
 		ClearSprint();
+		ClearPet();
 		
 		for (var indx:Number = 0; indx < FULL_OUTFIT_SIZE; ++indx)
 		{
@@ -80,6 +83,16 @@ class com.boobuilds.Outfit
 	public function SetSprintTag(newTag:Number):Void
 	{
 		m_sprintTag = newTag;
+	}
+	
+	public function GetPetTag():Number
+	{
+		return m_petTag;
+	}
+	
+	public function SetPetTag(newTag:Number):Void
+	{
+		m_petTag = newTag;
 	}
 	
 	public static function SetUseSecondDuplicate(newValue:Boolean):Void
@@ -125,6 +138,11 @@ class com.boobuilds.Outfit
 	public function ClearSprint():Void
 	{
 		m_sprintTag = null;
+	}
+	
+	public function ClearPet():Void
+	{
+		m_petTag = null;
 	}
 	
 	public function IsFullOutfit():Boolean
@@ -417,6 +435,7 @@ class com.boobuilds.Outfit
 
 		ret = ret + Build.GetArrayString("WV", [ m_primaryWeaponHidden, m_secondaryWeaponHidden ]);
 		ret = ret + Build.GetArrayStringInternal("SP", [ m_sprintTag ], false);
+		ret = ret + Build.GetArrayStringInternal("PT", [ m_petTag ], false);
 		
 		return ret;
 	}
@@ -467,6 +486,10 @@ class com.boobuilds.Outfit
 					break;
 				case "SP":
 					ret.SetSprintFromArray(i + 1, items);
+					i += 1 + 1;
+					break;
+				case "PT":
+					ret.SetPetFromArray(i + 1, items);
 					i += 1 + 1;
 					break;
 				default:
@@ -553,6 +576,16 @@ class com.boobuilds.Outfit
 		{
 			var item:Number = Number(items[indx]);
 			m_sprintTag = item;
+		}
+	}
+	
+	private function SetPetFromArray(offset:Number, items:Array):Void
+	{
+		var indx:Number = 0 + offset;
+		if (indx < items.length && items[indx] != "undefined")
+		{
+			var item:Number = Number(items[indx]);
+			m_petTag = item;
 		}
 	}
 	
@@ -674,20 +707,13 @@ class com.boobuilds.Outfit
 		}
 		else
 		{
-			if (m_ownInventoryThrottle != null)
-			{
-				m_ownInventoryThrottle.Cleanup();
-			}
-			
-			m_ownInventoryThrottle = new InventoryThrottle();
-			m_ownInventoryThrottle.StartLoad();
-			ApplyAfterBuild(m_ownInventoryThrottle, null);
+			ClearInventoryThrottle();
+			ApplyAfterBuild(null);
 		}
 	}
 	
-	public function ApplyAfterBuild(inventoryThrottle:InventoryThrottle, endCallback:Function):Void
+	public function ApplyAfterBuild(endCallback:Function):Void
 	{
-		m_inventoryThrottle = inventoryThrottle;
 		m_applyEndCallback = endCallback;
 		
 		if (Outfit.m_outfitLoadingID != -1)
@@ -775,14 +801,15 @@ class com.boobuilds.Outfit
 	
 	private function OutfitSlotCompletionCallback():Void
 	{
+		ClearInventoryThrottle();
 		++m_equipOutfitSlot;
 		if (m_equipOutfitSlot < GetOutfitSize())
 		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, EquipOutfitSlot), Delegate.create(this, OutfitSlotCheckCallback), Delegate.create(this, OutfitSlotCompletionCallback), Delegate.create(this, OutfitSlotErrorCallback));
+			m_inventoryThrottle = new InventoryThrottle("Equip outfit", Delegate.create(this, EquipOutfitSlot), Delegate.create(this, OutfitSlotCheckCallback), Delegate.create(this, OutfitSlotCompletionCallback), Delegate.create(this, OutfitSlotErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
 		}
 		else
 		{
-			m_inventoryThrottle.DoNextInventoryAction(Delegate.create(this, UnequipFullOutfitSlot), Delegate.create(this, UnequipFullOutfitSlotCheckCallback), Delegate.create(this, UnequipFullOutfitSlotCompletionCallback), Delegate.create(this, UnequipFullOutfitSlotErrorCallback));
+			m_inventoryThrottle = new InventoryThrottle("Unequip full outfit", Delegate.create(this, UnequipFullOutfitSlot), Delegate.create(this, UnequipFullOutfitSlotCheckCallback), Delegate.create(this, UnequipFullOutfitSlotCompletionCallback), Delegate.create(this, UnequipFullOutfitSlotErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
 		}
 	}
 	
@@ -878,18 +905,21 @@ class com.boobuilds.Outfit
 		++m_outfitErrorCount;
 	}
 	
+	private function ClearInventoryThrottle():Void
+	{
+		if (m_inventoryThrottle != null)
+		{
+			m_inventoryThrottle.Cleanup();
+			m_inventoryThrottle = null;
+		}
+	}
+	
 	private function EndOutfitApply():Void
 	{
-		if (m_ownInventoryThrottle != null)
-		{
-			m_ownInventoryThrottle.EndLoad();
-			m_ownInventoryThrottle = null;
-		}
+		ClearInventoryThrottle();
 		
 		if (m_sprintTag != null)
 		{
-			SpellBase.SummonMountFromTag(m_sprintTag);
-			
 			var sprintVarName:String = "BooSprint_Name";
 			if (DistributedValue.DoesVariableExist(sprintVarName) == true)
 			{
@@ -899,6 +929,36 @@ class com.boobuilds.Outfit
 					var dv:DistributedValue = DistributedValue.Create(sprintVarName);
 					dv.SetValue(sprintName);
 				}
+			}
+			else
+			{
+				MountHelper.Mount(m_sprintTag);
+			}
+		}
+		
+		var petVarName:String = "BooSprint_Pet";
+		if (m_petTag != null)
+		{
+			if (DistributedValue.DoesVariableExist(petVarName) == true)
+			{
+				var petName:String = EditOutfitDialog.GetPetFromTag(m_petTag);
+				if (petName != null)
+				{
+					var dv:DistributedValue = DistributedValue.Create(petVarName);
+					dv.SetValue(petName);
+				}
+			}
+			else
+			{
+				SpellBase.SummonPetFromTag(m_petTag);
+			}
+		}
+		else
+		{
+			if (DistributedValue.DoesVariableExist(petVarName) == true)
+			{
+				var dv:DistributedValue = DistributedValue.Create(petVarName);
+				dv.SetValue("None");
 			}
 		}
 		

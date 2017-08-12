@@ -51,7 +51,7 @@ import org.sitedaniel.utils.Proxy;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "1.6";
+	public static var VERSION = "1.7";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -593,7 +593,7 @@ class com.boobuilds.Controller extends MovieClip
 			if (thisBuild != null && thisBuild.GetName() == buildName)
 			{
 				buildFound = true;
-				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_cooldownMonitor, this.m_outfits); }), 20);
+				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_outfits); }), 20);
 				break;
 			}
 		}

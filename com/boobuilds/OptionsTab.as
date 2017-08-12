@@ -249,7 +249,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
 		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
 
-		text = "Restore build and outfits";
+		text = "Restore builds and outfits";
 		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 8 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
 	}
 	
