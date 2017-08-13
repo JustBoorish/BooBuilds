@@ -9,6 +9,7 @@ import com.boobuilds.ExportDialog;
 import com.boobuilds.InfoWindow;
 import com.boobuilds.ITabPane;
 import com.boobuilds.ImportOutfitDialog;
+import com.boobuilds.ManageDuplicatesDialog;
 import com.boobuilds.ModalBase;
 import com.boobuilds.PopupMenu;
 import com.boobuilds.TreePanel;
@@ -57,6 +58,7 @@ class com.boobuilds.OutfitList implements ITabPane
 	private var m_importOutfitDialog:ImportOutfitDialog;
 	private var m_exportOutfitDialog:ExportDialog;
 	private var m_changeGroupDialog:ChangeGroupDialog;
+	private var m_manageDuplicatesDialog:ManageDuplicatesDialog;
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
 	
@@ -83,6 +85,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_itemPopup.AddItem("Export", Delegate.create(this, ExportOutfit));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameOutfit));
 		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateOutfit));
+		m_itemPopup.AddItem("Manage duplicates", Delegate.create(this, ManageDuplicates));
 		m_itemPopup.AddItem("Change group", Delegate.create(this, ChangeGroup));
 		m_itemPopup.AddItem("Move Up", Delegate.create(this, MoveOutfitUp));
 		m_itemPopup.AddItem("Move Down", Delegate.create(this, MoveOutfitDown));
@@ -270,6 +273,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			m_editOutfitDialog.Unload();
 			m_editOutfitDialog = null;
+		}
+		
+		if (m_manageDuplicatesDialog != null)
+		{
+			m_manageDuplicatesDialog.Unload();
+			m_manageDuplicatesDialog = null;
 		}
 		
 		if (m_importOutfitDialog != null)
@@ -525,6 +534,64 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 		
 		m_currentOutfit = null;
+	}
+	
+	private function ManageDuplicates(outfitID:String):Void
+	{
+		m_currentOutfit = m_outfits[outfitID];
+		if (m_currentOutfit != null)
+		{
+			UnloadDialogs();
+			
+			var slotNames:Array = new Array();
+			var slotValues:Array = new Array();
+			for (var indx:Number = 0; indx < m_currentOutfit.GetSize(); ++indx)
+			{
+				if (m_currentOutfit.IsDuplicateItem(indx) == true)
+				{
+					slotNames.push(m_currentOutfit.GetItemName(indx));
+					slotValues.push(m_currentOutfit.GetReverseLookup(indx));
+				}
+			}
+			
+			m_manageDuplicatesDialog = new ManageDuplicatesDialog("ManageDuplicates", m_parent, m_addonMC, slotNames, slotValues);
+			m_manageDuplicatesDialog.Show(Delegate.create(this, ManageDuplicatesCB));
+		}
+	}
+	
+	private function ManageDuplicatesCB(slotNames:Array, slotValues:Array):Void
+	{
+		if (slotNames != null && slotValues != null)
+		{
+			for (var indx:Number = 0; indx < slotNames.length; ++indx)
+			{
+				var slot:Number = FindItemSlot(slotNames[indx]);
+				if (slot != null)
+				{
+					m_currentOutfit.SetReverseLookup(slot, slotValues[indx]);
+				}
+			}
+		}
+		
+		m_currentOutfit = null;
+	}
+	
+	private function FindItemSlot(name:String):Number
+	{
+		var ret:Number = null;
+		if (name != null)
+		{
+			for (var indx:Number = 0; indx < m_currentOutfit.GetSize(); ++indx)
+			{
+				if (m_currentOutfit.GetItemName(indx) == name)
+				{
+					ret = indx;
+					break;
+				}
+			}
+		}
+		
+		return ret;
 	}
 	
 	private function ChangeGroup(outfitID:String):Void

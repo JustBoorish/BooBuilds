@@ -37,7 +37,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 {
 	public static var INVENTORY_THROTTLE:String = "INVENTORY_THROTTLE_MODE";
 	public static var DISMOUNT_PRELOAD:String = "DISMOUNT_PRELOAD";
-	public static var USE_SECOND_DUPLICATE:String = "USE_SECOND_DUPLICATE";
 	
 	private static var MAX_THROTTLE:Number = 3;
 	private static var THROTTLE_MODE0:String = "Fast";
@@ -64,7 +63,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_buildList:BuildList;
 	private var m_outfitList:OutfitList;
 	private var m_dismountCheckbox:Checkbox;
-	private var m_duplicateCheckbox:Checkbox;
 	
 	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, buildList:BuildList, outfitList:OutfitList)
 	{
@@ -103,7 +101,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 		if (visible == true && m_settings != null)
 		{
 			m_dismountCheckbox.SetChecked(m_settings[DISMOUNT_PRELOAD] == 1);
-			m_duplicateCheckbox.SetChecked(m_settings[USE_SECOND_DUPLICATE] == 1);
 			
 			RebuildMenu();
 		}
@@ -139,11 +136,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 			if (settings[DISMOUNT_PRELOAD] != null)
 			{
 				Build.SetDismountBeforeBuild(settings[DISMOUNT_PRELOAD] == 1);
-			}
-			
-			if (settings[USE_SECOND_DUPLICATE] != null)
-			{
-				Outfit.SetUseSecondDuplicate(settings[USE_SECOND_DUPLICATE] == 1);
 			}
 		}
 	}
@@ -216,14 +208,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 		}
 	}
 	
-	private function DuplicateChanged(newValue:Boolean):Void
-	{
-		if (m_settings != null)
-		{
-			m_settings[USE_SECOND_DUPLICATE] = newValue;
-		}
-	}
-	
 	private function DrawFrame():Void
 	{
 		var textFormat:TextFormat = Graphics.GetTextFormat();
@@ -240,17 +224,12 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_dismountCheckbox = new Checkbox("DismountCheck", m_frame, 25, 40 + 2 * extents.height + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DismountPreloadChanged), false);		
 		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, 40 + 2 * extents.height, extents.width, extents.height);
 
-		text = "Use second duplicate outfit item";
-		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		m_duplicateCheckbox = new Checkbox("DuplicateCheck", m_frame, 25, 40 + 4 * extents.height + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DuplicateChanged), false);		
-		Graphics.DrawText("DuplicateLabel", m_frame, text, textFormat, 25 + checkSize + 5, 40 + 4 * extents.height, extents.width, extents.height);
-
 		text = "Backup builds and outfits";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 4 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
 
 		text = "Restore builds and outfits";
-		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 8 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void

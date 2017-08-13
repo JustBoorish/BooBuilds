@@ -187,6 +187,10 @@ class com.boobuilds.Controller extends MovieClip
 		m_loadBuildDV.SignalChanged.Disconnect(LoadBuildCmd, this);
 		m_loadOutfitDV.SignalChanged.Disconnect(LoadOutfitCmd, this);
 		var ret:Archive = Settings.GetArchive();
+		
+		// remove obsolete settings
+		ret.DeleteEntry("USE_SECOND_DUPLICATE");
+		
 		//DebugWindow.Log("BooBuilds OnModuleDeactivated: " + ret.toString());
 		return ret;
 	}
@@ -200,7 +204,6 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[BIcon.ICON_Y] = -1;
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 		m_defaults[OptionsTab.DISMOUNT_PRELOAD] = 0;
-		m_defaults[OptionsTab.USE_SECOND_DUPLICATE] = 0;
 	}
 	
 	private function SetDefaultBuildGroups():Void
