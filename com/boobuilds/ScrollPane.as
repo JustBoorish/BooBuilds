@@ -80,7 +80,11 @@ class com.boobuilds.ScrollPane
 	
 	public function Resize(newHeight:Number):Void
 	{
-		m_contentHeight = newHeight;
+		if (newHeight != null && newHeight >= 0)
+		{
+			m_contentHeight = newHeight;
+		}
+		
 		var newRatio:Number = m_mask._height / m_contentHeight;
 		if (newRatio >= 1)
 		{
