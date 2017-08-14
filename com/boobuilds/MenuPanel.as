@@ -27,6 +27,7 @@ class com.boobuilds.MenuPanel
 {
 	private var m_parent:MovieClip;
 	private var m_menu:MovieClip;
+	private var m_mask:MovieClip;
 	private var m_name:String;
 	private var m_margin:Number;
 	private var m_leftMargin:Number;
@@ -35,7 +36,6 @@ class com.boobuilds.MenuPanel
 	private var m_funcs:Array;
 	private var m_subMenus:Array;
 	private var m_cells:Array;
-	private var m_masks:Array;
 	private var m_hiddenCells:Array;
 	private var m_tooltips:Array;
 	private var m_maxWidth:Number;
@@ -73,7 +73,6 @@ class com.boobuilds.MenuPanel
 		m_funcs = new Array();
 		m_subMenus = new Array();
 		m_cells = new Array();
-		m_masks = new Array();
 		m_hiddenCells = new Array();
 		m_cellColors = new Array();
 		m_tooltips = new Array();
@@ -151,13 +150,25 @@ class com.boobuilds.MenuPanel
 	{
 		if (m_isBuilt != true)
 		{
+			ClearCells();
 			m_cells = new Array();
 		
+			var row:Number = 0;
+			var col:Number = 0;
 			for (var i:Number = 0; i < m_names.length; ++i)
 			{
-				DrawEntry(i);
+				var y:Number = (row * m_elementHeight) + (row * m_margin);
+				if (y + m_elementHeight >= Stage.height)
+				{
+					row = 0;
+					++col;
+				}
+				
+				DrawEntry(i, row, col);
+				++row;
 			}
 			
+			CreateMask();
 			m_isBuilt = true;
 		}
 	}
@@ -178,6 +189,23 @@ class com.boobuilds.MenuPanel
 		}
 	}
 	
+	private function ClearCells():Void
+	{
+		if (m_cells != null)
+		{
+			for (var indx:Number = 0; indx < m_cells.length; ++indx)
+			{
+				if (m_cells[indx] != null)
+				{
+					m_cells[indx].removeMovieClip();
+					m_cells[indx] = null;
+				}
+			}
+		}
+		
+		m_cells = new Array();
+	}
+	
 	public function GetVisible():Boolean
 	{
 		return m_menu._visible;
@@ -185,6 +213,8 @@ class com.boobuilds.MenuPanel
 	
 	public function SetVisible(visible:Boolean):Void
 	{
+		ClearMask();
+		
 		if (visible == true)
 		{
 			RebuildSubmenus();
@@ -193,7 +223,6 @@ class com.boobuilds.MenuPanel
 			{
 				m_cells[i]._alpha = 100;
 				m_cells[i]._visible = !m_hiddenCells[i];
-				m_masks[i]._width = m_cells[i]._width;
 			}
 		}
 		else
@@ -336,11 +365,9 @@ class com.boobuilds.MenuPanel
 		for (var i:Number = 0; i < m_cells.length; ++i)
 		{
 			m_cells[i]._alpha = 60;
-			if (subMenuBottom.maxY > m_masks[i]._y && subMenuBottom.y <= m_masks[i]._y)
-			{
-				m_masks[i]._width = 30;
-			}
 		}
+		
+		CreateMask();
 		
 		// show the sub menu
 		m_subMenuShown = indx;
@@ -405,18 +432,13 @@ class com.boobuilds.MenuPanel
 		m_maxWidth += m_leftMargin + m_rightMargin;
 	}
 	
-	private function DrawEntry(indx:Number):Void
+	private function DrawEntry(indx:Number, row:Number, col:Number):Void
 	{
+		var y:Number = (row * m_elementHeight) + (row * m_margin);
 		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
 		Graphics.DrawGradientFilledRoundedRectangle(menuCell, 0x000000, 0, m_cellColors[indx], 0, 0, m_maxWidth, m_elementHeight);
-		menuCell._x = 0;
-		menuCell._y = (indx * m_elementHeight) + (indx * m_margin);
-		
-		var menuMask:MovieClip = m_menu.createEmptyMovieClip(m_names[indx] + "Mask", m_menu.getNextHighestDepth());
-		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, m_maxWidth, m_elementHeight);
-		menuMask._x = 0;
-		menuMask._y = (indx * m_elementHeight) + (indx * m_margin);
-		menuCell.setMask(menuMask);
+		menuCell._x = col * (m_maxWidth + m_margin * 2);
+		menuCell._y = y;
 		
 		var menuHover:MovieClip = menuCell.createEmptyMovieClip(m_names[indx] + "Hover", menuCell.getNextHighestDepth());
 		Graphics.DrawFilledRoundedRectangle(menuHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, m_maxWidth, m_elementHeight);
@@ -455,6 +477,28 @@ class com.boobuilds.MenuPanel
 		menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; this.CellPressed(i); }, indx);
 
 		m_cells.push(menuCell);
-		m_masks.push(menuMask);
+	}
+	
+	private function ClearMask():Void
+	{
+		if (m_mask != null)
+		{
+			m_mask._visible = false;
+			m_menu.setMask(null);
+			m_mask.removeMovieClip();
+		}
+		
+		m_mask = null;
+	}
+	
+	private function CreateMask():Void
+	{
+		ClearMask();
+		var menuMask:MovieClip = m_parent.createEmptyMovieClip("menuMask_" + m_name, m_parent.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, 30, m_menu._height + 3);
+		menuMask._x = m_menu._x;
+		menuMask._y = m_menu._y;
+		m_menu.setMask(menuMask);
+		m_mask = menuMask;
 	}
 }

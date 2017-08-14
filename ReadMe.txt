@@ -22,6 +22,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 1.8
+Fix crash when a build or outfit group had more than 25 entries
+
 Version 1.7
 Add a pet to outfits
 Add new Manage duplicate clothing feature
