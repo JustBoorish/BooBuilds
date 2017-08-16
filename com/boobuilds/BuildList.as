@@ -313,7 +313,6 @@ class com.boobuilds.BuildList implements ITabPane
 			
 			m_buildWindow = new BuildWindow("Build: " + thisBuild.GetName(), m_addonMC);
 			m_buildWindow.SetBuild(thisBuild);
-			m_buildWindow.SetCenterCoords(m_parent._x + m_parent._width, m_parent._y + m_parent._height / 2);
 			m_buildWindow.SetVisible(true);
 		}
 	}

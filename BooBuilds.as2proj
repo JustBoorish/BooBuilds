@@ -87,6 +87,7 @@
     <compile path="com\boobuilds\IntervalCounter.as" />
     <compile path="com\boobuilds\MountHelper.as" />
     <compile path="com\boobuilds\ManageDuplicatesDialog.as" />
+    <compile path="com\boobuilds\BuildDisplay.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>
