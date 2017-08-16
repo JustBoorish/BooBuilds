@@ -92,6 +92,13 @@ class com.boocommon.IconButton
 		DeleteIcon();
 	}
 	
+	public function Unload():Void
+	{
+		m_pips.removeMovieClip();
+		m_icon.removeMovieClip();
+		m_frame.removeMovieClip();
+	}
+	
 	public function GetData():Object
 	{
 		return m_data;
@@ -402,7 +409,10 @@ class com.boocommon.IconButton
 	{
 		if (m_enabled == true)
 		{
-			m_callback.call(m_data);
+			if (m_callback != null)
+			{
+				m_callback.call(m_data);
+			}
 		}
 	}
 }

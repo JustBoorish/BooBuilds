@@ -523,7 +523,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_buildList, m_outfitList);
-			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
+			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
 			m_configWindow.AddTab("Options", m_optionsTab);

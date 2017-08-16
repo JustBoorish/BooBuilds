@@ -290,6 +290,11 @@ class com.boobuilds.BuildList implements ITabPane
 			m_changeGroupDialog.Unload();
 			m_changeGroupDialog = null;
 		}
+
+		if (m_buildWindow != null)
+		{
+			m_buildWindow.Unload();
+		}	
 	}
 	
 	private function ApplyBuild(buildID:String):Void
@@ -306,13 +311,9 @@ class com.boobuilds.BuildList implements ITabPane
 		var thisBuild:Build = m_builds[buildID];
 		if (thisBuild != null)
 		{
-			if (m_buildWindow != null)
-			{
-				m_buildWindow.Unload();
-			}
+			UnloadDialogs();
 			
-			m_buildWindow = new BuildWindow("Build: " + thisBuild.GetName(), m_addonMC);
-			m_buildWindow.SetBuild(thisBuild);
+			m_buildWindow = new BuildWindow("Build: " + thisBuild.GetName(), m_parent, thisBuild);
 			m_buildWindow.SetVisible(true);
 		}
 	}

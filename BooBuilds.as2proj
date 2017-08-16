@@ -48,7 +48,6 @@
     <compile path="com\boobuilds\TabStrip.as" />
     <compile path="com\boobuilds\ConfigWindow.as" />
     <compile path="com\boobuilds\IconButton.as" />
-    <compile path="com\boobuilds\GearSelector.as" />
     <compile path="com\boobuilds\BuildWindow.as" />
     <compile path="com\boobuilds\Build.as" />
     <compile path="com\boobuilds\Checkbox.as" />

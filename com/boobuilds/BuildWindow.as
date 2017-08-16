@@ -1,6 +1,8 @@
 import com.boobuilds.Build;
 import com.boobuilds.BuildDisplay;
+import com.boocommon.Graphics;
 import com.boocommon.ModalBase;
+import com.Utils.Text;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -24,12 +26,19 @@ class com.boobuilds.BuildWindow
 	private var m_parent:MovieClip;
 	private var m_name:String;
 	private var m_display:BuildDisplay;
+	private var m_build:Build;
 	
-	public function BuildWindow(name:String, parent:MovieClip) 
+	public function BuildWindow(name:String, parent:MovieClip, build:Build) 
 	{
 		m_name = name;
 		m_parent = parent;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls));
+		m_build = build;
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.45, 0.97);
+		
+		var modalMC:MovieClip = m_modalBase.GetMovieClip();
+		var x:Number = modalMC._width / 2;
+		var y:Number = modalMC._height - 10;
+		m_modalBase.DrawButton("OK", x, y, Delegate.create(this, ButtonPressed));
 	}
 
 	public function SetVisible(visible:Boolean):Void
@@ -50,13 +59,18 @@ class com.boobuilds.BuildWindow
 		m_modalBase.Unload();
 	}
 	
-	public function SetBuild(build:Build):Void
-	{
-		m_display.SetBuild(build);
-	}
-	
 	private function DrawControls(modalMC:MovieClip, textFormat:TextFormat):Void
 	{
-		m_display = new BuildDisplay("Inspect", modalMC, textFormat, 0, 30);
+		var boldTextFormat:TextFormat = Graphics.GetBoldTextFormat();
+		var extents:Object = Text.GetTextExtent(m_build.GetName(), textFormat, modalMC);
+		Graphics.DrawText("Title", modalMC, m_build.GetName(), textFormat, modalMC._width / 2 - extents.width / 2, 5, extents.width, extents.height);
+		
+		m_display = new BuildDisplay("Inspect", modalMC, textFormat, 0, 30, false);
+		m_display.SetBuild(m_build);
+	}
+	
+	private function ButtonPressed():Void
+	{
+		m_modalBase.Hide();
 	}
 }
