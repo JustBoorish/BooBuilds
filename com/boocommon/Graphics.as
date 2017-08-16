@@ -1,4 +1,4 @@
-import com.boobuilds.DebugWindow;
+import com.boocommon.DebugWindow;
 import caurina.transitions.Tweener;
 import com.Utils.Text;
 import flash.geom.Matrix;
@@ -18,7 +18,7 @@ import flash.geom.Matrix;
  * 
  * Author: Boorish
  */
-class com.boobuilds.Graphics
+class com.boocommon.Graphics
 {
 	private static var m_radius:Number = 4;
 	private static var m_margin:Number = 3;

@@ -1,6 +1,6 @@
 import com.Utils.Archive;
-import com.boobuilds.DebugWindow;
-import com.boobuilds.SubArchive;
+import com.boocommon.DebugWindow;
+import com.boocommon.SubArchive;
 import com.Utils.StringUtils;
 /**
  * There is no copyright on this code
@@ -20,7 +20,7 @@ import com.Utils.StringUtils;
  * 
  * This code is based on the icon handling from BooDecks by Aedani, original code by Viper.  Thanks to Aedani and Viper.
  */
-class com.boobuilds.SubArchive extends Archive
+class com.boocommon.SubArchive extends Archive
 {
 	private static var TAG:String = "~SUBARC~";
 	private static var SEPARATOR:String = "|";

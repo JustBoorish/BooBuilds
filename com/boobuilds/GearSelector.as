@@ -1,7 +1,3 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.GearItem;
-import com.boobuilds.Graphics;
-import com.boobuilds.IconButton;
 import com.GameInterface.Game.Character;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
@@ -10,6 +6,9 @@ import com.GameInterface.Tooltip.TooltipDataProvider;
 import com.GameInterface.Utils;
 import com.Utils.Colors;
 import com.Utils.ID32;
+import com.boobuilds.GearItem;
+import com.boocommon.Graphics;
+import com.boocommon.IconButton;
 import flash.geom.Matrix;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;

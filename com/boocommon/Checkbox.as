@@ -16,7 +16,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boobuilds.Checkbox
+class com.boocommon.Checkbox
 {
 	private var m_name:String;
 	private var m_parent:MovieClip;

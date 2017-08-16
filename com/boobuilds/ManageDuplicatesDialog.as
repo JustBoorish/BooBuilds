@@ -1,16 +1,8 @@
-import com.boobuilds.BuildGroup;
-import com.boobuilds.Checkbox;
-import com.boobuilds.ComboBox;
-import com.boobuilds.Graphics;
-import com.boobuilds.ModalBase;
-import com.boobuilds.DebugWindow;
-import com.GameInterface.Utils;
 import com.Utils.Text;
-import com.GameInterface.Lore;
-import com.GameInterface.LoreBase;
-import com.GameInterface.LoreNode;
+import com.boocommon.Checkbox;
+import com.boocommon.Graphics;
+import com.boocommon.ModalBase;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
  *

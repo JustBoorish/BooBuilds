@@ -1,6 +1,6 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.Graphics;
-import com.boobuilds.InfoWindow;
+import com.boocommon.DebugWindow;
+import com.boocommon.Graphics;
+import com.boocommon.InfoWindow;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 /**
@@ -19,7 +19,7 @@ import caurina.transitions.Tweener;
  * 
  * Author: Boorish
  */
-class com.boobuilds.InfoWindow
+class com.boocommon.InfoWindow
 {
 	private static var m_instance:InfoWindow;
 	private static var MAX_MSGS:Number = 4;

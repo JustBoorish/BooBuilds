@@ -1,12 +1,9 @@
-import com.boobuilds.BuildGroup;
-import com.boobuilds.Checkbox;
-import com.boobuilds.ComboBox;
-import com.boobuilds.Graphics;
-import com.boobuilds.ModalBase;
-import com.boobuilds.DebugWindow;
 import com.Utils.Text;
+import com.boobuilds.BuildGroup;
+import com.boocommon.ComboBox;
+import com.boocommon.Graphics;
+import com.boocommon.ModalBase;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
  *

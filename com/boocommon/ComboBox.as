@@ -1,6 +1,6 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.Graphics;
-import com.boobuilds.ScrollPane;
+import com.boocommon.DebugWindow;
+import com.boocommon.Graphics;
+import com.boocommon.ScrollPane;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 import org.sitedaniel.utils.Proxy;
@@ -21,7 +21,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.ComboBox
+class com.boocommon.ComboBox
 {
 	private var m_parent:MovieClip;
 	private var m_combo:MovieClip;

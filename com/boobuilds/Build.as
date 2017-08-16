@@ -11,17 +11,16 @@ import com.GameInterface.SpellBase;
 import com.GameInterface.SpellData;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipDataProvider;
-import com.GameInterface.Game.BuffData;
 import com.Utils.Archive;
 import com.Utils.ID32;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
-import com.boobuilds.DebugWindow;
 import com.boobuilds.GearItem;
-import com.boobuilds.InfoWindow;
-import com.boobuilds.IntervalCounter;
-import com.boobuilds.InventoryThrottle;
-import com.boobuilds.MountHelper;
+import com.boocommon.DebugWindow;
+import com.boocommon.InfoWindow;
+import com.boocommon.IntervalCounter;
+import com.boocommon.InventoryThrottle;
+import com.boocommon.MountHelper;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code

@@ -1,12 +1,11 @@
 import com.GameInterface.DistributedValue;
-import com.GameInterface.Tooltip.Tooltip;
+import com.GameInterface.Log;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
-import com.GameInterface.Log;
+import com.boocommon.DebugWindow;
+import com.boocommon.IntervalCounter;
 import mx.utils.Delegate;
-import com.boobuilds.DebugWindow;
-import com.boobuilds.IntervalCounter;
 
 /**
  * There is no copyright on this code

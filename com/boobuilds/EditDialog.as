@@ -1,6 +1,5 @@
-import com.boobuilds.ModalBase;
-import com.boobuilds.DebugWindow;;
 import com.Utils.Text;
+import com.boocommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code

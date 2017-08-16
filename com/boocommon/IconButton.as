@@ -1,8 +1,7 @@
-import com.boobuilds.Graphics;
-import com.boobuilds.Localisation;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
+import com.boocommon.Graphics;
 import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 /**
@@ -21,7 +20,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boobuilds.IconButton
+class com.boocommon.IconButton
 {
 	public static var PLUS:Number = 1;
 	public static var MINUS:Number = 2;
@@ -114,7 +113,7 @@ class com.boobuilds.IconButton
 	public function DeleteIcon():Void
 	{
 		ClearIcon();
-		if (m_tooltipData == null)
+		/*if (m_tooltipData == null)
 		{
 			if (m_buttonStyle == MINUS)
 			{
@@ -131,7 +130,7 @@ class com.boobuilds.IconButton
 				m_tooltipData.AddDescription(Localisation.IconTooltipDesc);
 				m_tooltipData.m_MiscItemInfo = Localisation.IconTooltipMisc;
 			}
-		}
+		}*/
 		
 		CreateIconFrame(m_name, m_frame, m_backgroundColors, null, false, m_frameColors, false);
 	}

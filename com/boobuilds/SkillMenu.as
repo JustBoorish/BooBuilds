@@ -1,6 +1,3 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.Localisation;
-import com.boobuilds.MenuPanel;
 import com.GameInterface.FeatData;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.SkillWheel.Cell;
@@ -9,6 +6,8 @@ import com.GameInterface.Spell;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipDataProvider;
 import com.Utils.Colors;
+import com.boobuilds.Localisation;
+import com.boocommon.MenuPanel;
 import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code

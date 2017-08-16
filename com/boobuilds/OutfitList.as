@@ -1,26 +1,21 @@
-import com.boobuilds.Outfit;
+import com.Utils.StringUtils;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.ChangeGroupDialog;
-import com.boobuilds.DebugWindow;
 import com.boobuilds.EditDialog;
-import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.EditGroupDialog;
+import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.ExportDialog;
-import com.boobuilds.InfoWindow;
-import com.boobuilds.ITabPane;
 import com.boobuilds.ImportOutfitDialog;
 import com.boobuilds.ManageDuplicatesDialog;
-import com.boobuilds.ModalBase;
-import com.boobuilds.PopupMenu;
-import com.boobuilds.TreePanel;
-import com.boobuilds.ScrollPane;
-import com.boobuilds.YesNoDialog;
-import com.boobuilds.OKDialog;
-import com.boobuilds.OptionsTab;
-import com.GameInterface.Game.Character;
-import com.Utils.StringUtils;
+import com.boobuilds.Outfit;
+import com.boocommon.ITabPane;
+import com.boocommon.InfoWindow;
+import com.boocommon.OKDialog;
+import com.boocommon.PopupMenu;
+import com.boocommon.ScrollPane;
+import com.boocommon.TreePanel;
+import com.boocommon.YesNoDialog;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
  *

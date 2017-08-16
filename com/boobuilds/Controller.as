@@ -1,37 +1,27 @@
 //Imports
+import com.GameInterface.DistributedValue;
+import com.GameInterface.FeatInterface;
+import com.GameInterface.Game.Character;
+import com.GameInterface.Log;
+import com.Utils.Archive;
+import com.Utils.StringUtils;
 import com.boobuilds.BIcon;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildList;
 import com.boobuilds.BuildSelector;
 import com.boobuilds.Controller;
-import com.boobuilds.DebugWindow;
-import com.boobuilds.InfoWindow;
-import com.boobuilds.GearItem;
+import com.boobuilds.Localisation;
 import com.boobuilds.OptionsTab;
 import com.boobuilds.Outfit;
-import com.boobuilds.Localisation;
 import com.boobuilds.OutfitList;
 import com.boobuilds.OutfitSelector;
 import com.boobuilds.Settings;
-import com.boobuilds.SkillMenu;
-import com.boobuilds.TabWindow;
-import com.boobuilds.BuildWindow;
-import com.boobuilds.PopupMenu;
-import com.boobuilds.ScrollPane;
-import com.boobuilds.TreeCheck;
-import com.boobuilds.TreePanel;
-import com.GameInterface.ProjectUtils;
-import com.GameInterface.DistributedValue;
-import com.GameInterface.FeatInterface;
-import com.GameInterface.Game.Character;
-import com.GameInterface.Log;
-import com.GameInterface.Lore;
-import com.Utils.Archive;
-import com.Utils.Signal;
-import com.Utils.StringUtils;
+import com.boocommon.DebugWindow;
+import com.boocommon.IconButton;
+import com.boocommon.InfoWindow;
+import com.boocommon.TabWindow;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 
 /**
  * There is no copyright on this code
@@ -533,7 +523,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_buildList, m_outfitList);
-			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, Delegate.create(this, ConfigClosed), "BooBuildsHelp");
+			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 300, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
 			m_configWindow.AddTab("Options", m_optionsTab);

@@ -8,13 +8,12 @@ import com.Utils.Archive;
 import com.Utils.ID32;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
-import com.boobuilds.DebugWindow;
 import com.boobuilds.EditOutfitDialog;
-import com.boobuilds.InfoWindow;
-import com.boobuilds.IntervalCounter;
-import com.boobuilds.InventoryThrottle;
-import com.boobuilds.MountHelper;
 import com.boobuilds.Outfit;
+import com.boocommon.InfoWindow;
+import com.boocommon.IntervalCounter;
+import com.boocommon.InventoryThrottle;
+import com.boocommon.MountHelper;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code

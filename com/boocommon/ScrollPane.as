@@ -1,5 +1,5 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.Graphics;
+import com.boocommon.DebugWindow;
+import com.boocommon.Graphics;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -17,7 +17,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.ScrollPane
+class com.boocommon.ScrollPane
 {
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;

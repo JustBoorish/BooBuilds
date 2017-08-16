@@ -1,5 +1,5 @@
 import com.Utils.Text;
-import com.boobuilds.ModalBase;
+import com.boocommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -17,7 +17,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.OKDialog
+class com.boocommon.OKDialog
 {
 	private var m_modalBase:ModalBase;
 	private var m_line1:String;

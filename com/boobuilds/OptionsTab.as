@@ -1,21 +1,19 @@
-import com.Utils.Archive;
-import com.boobuilds.ITabPane;
+import com.Utils.Text;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildList;
-import com.boobuilds.Checkbox;
 import com.boobuilds.Controller;
-import com.boobuilds.DebugWindow;
 import com.boobuilds.ExportDialog;
-import com.boobuilds.Graphics;
-import com.boobuilds.InfoWindow;
-import com.boobuilds.InventoryThrottle;
-import com.boobuilds.MenuPanel;
 import com.boobuilds.Outfit;
 import com.boobuilds.OutfitList;
 import com.boobuilds.RestoreDialog;
-import com.Utils.Text;
-import com.boobuilds.SubArchive;
+import com.boocommon.Checkbox;
+import com.boocommon.Graphics;
+import com.boocommon.ITabPane;
+import com.boocommon.InfoWindow;
+import com.boocommon.InventoryThrottle;
+import com.boocommon.MenuPanel;
+import com.boocommon.SubArchive;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code

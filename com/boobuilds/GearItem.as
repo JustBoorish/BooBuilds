@@ -1,4 +1,4 @@
-import com.boobuilds.DebugWindow;
+import com.boocommon.DebugWindow;
 import com.boobuilds.GearItem;
 import com.boobuilds.Localisation;
 import com.GameInterface.Game.Character;

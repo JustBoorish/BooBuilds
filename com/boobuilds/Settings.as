@@ -1,4 +1,4 @@
-import com.boobuilds.DebugWindow;
+import com.boocommon.DebugWindow;
 import com.Utils.Archive;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.FeatData;

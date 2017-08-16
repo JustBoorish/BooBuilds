@@ -1,5 +1,5 @@
-import com.boobuilds.DebugWindow;
-import com.boobuilds.Graphics;
+import com.boocommon.DebugWindow;
+import com.boocommon.Graphics;
 import caurina.transitions.Tweener;
 import com.Utils.Colors;
 import com.Utils.ID32;
@@ -23,7 +23,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boobuilds.ModalBase
+class com.boocommon.ModalBase
 {
 	private var m_blocker:MovieClip;
 	private var m_modal:MovieClip;

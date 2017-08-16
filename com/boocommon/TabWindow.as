@@ -1,7 +1,6 @@
-import com.boobuilds.Controller;
-import com.boobuilds.IconButton;
-import com.boobuilds.ITabPane;
-import com.boobuilds.TabStrip;
+import com.boocommon.IconButton;
+import com.boocommon.ITabPane;
+import com.boocommon.TabStrip;
 import com.Utils.Text;
 import com.GameInterface.DistributedValue;
 import caurina.transitions.Tweener;
@@ -25,7 +24,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.TabWindow
+class com.boocommon.TabWindow
 {
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;
@@ -41,7 +40,7 @@ class com.boobuilds.TabWindow
 	private var m_firstTime:Boolean;
 	private var m_helpIcon:MovieClip;
 	
-	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, closedCallback:Function, helpIcon:String) 
+	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, height:Number, closedCallback:Function, helpIcon:String) 
 	{
 		m_name = title;
 		m_parent = parent;
@@ -53,7 +52,7 @@ class com.boobuilds.TabWindow
 		m_maxWidth = width;
 		m_margin = 6;
 		m_titleHeight = 60;
-		m_maxHeight = IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + m_margin * (Controller.MAX_BUTTONS + 1) + (210 - m_titleHeight);
+		m_maxHeight = height + (210 - m_titleHeight);
 		m_tabs = new Array();
 		m_firstTime = true;
 		
@@ -280,7 +279,7 @@ class com.boobuilds.TabWindow
 	
 	private function onHelpPress():Void
 	{
-		var newURL:String = "https://tswact.wordpress.com/boobuilds/";
+		var newURL:String = "https://tswact.wordpress.com/boocommon/";
 		DistributedValue.SetDValue("WebBrowserStartURL", newURL);
 		DistributedValue.SetDValue("web_browser", true);
 	}
