@@ -480,9 +480,81 @@ class com.boobuilds.BuildDisplay
 			
 			if (m_showCheckboxes == true)
 			{
-				var check:Checkbox = new Checkbox(prefix + "Check" + i, m_frame, x + m_buttonWidth / 2 - m_checkSize / 2, y + m_buttonHeight + m_margin, m_checkSize, callback, false);
+				var check:Checkbox = new Checkbox(prefix + "Check" + i, m_frame, x + m_buttonWidth / 2 - m_checkSize / 2, y + m_buttonHeight + 1, m_checkSize, callback, false);
 				checks.push(check);
 			}
 		}
-	}	
+	}
+	
+	public function GetSkillChecks():Array
+	{
+		var ret:Array = new Array();
+		for (var indx:Number = 0; indx < m_skillChecks.length; ++indx)
+		{
+			if (m_skillChecks[indx] != null)
+			{
+				ret.push(m_skillChecks[indx].IsChecked());
+			}
+			else
+			{
+				ret.push(false);
+			}
+		}
+		
+		return ret;
+	}
+	
+	public function GetPassiveChecks():Array
+	{
+		var ret:Array = new Array();
+		for (var indx:Number = 0; indx < m_passiveChecks.length; ++indx)
+		{
+			if (m_passiveChecks[indx] != null)
+			{
+				ret.push(m_passiveChecks[indx].IsChecked());
+			}
+			else
+			{
+				ret.push(false);
+			}
+		}
+		
+		return ret;
+	}
+	
+	public function GetWeaponChecks():Array
+	{
+		var ret:Array = new Array();
+		for (var indx:Number = 0; indx < m_weaponChecks.length; ++indx)
+		{
+			if (m_weaponChecks[indx] != null)
+			{
+				ret.push(m_weaponChecks[indx].IsChecked());
+			}
+			else
+			{
+				ret.push(false);
+			}
+		}
+		
+		return ret;
+	}
+	
+	public function GetGearChecks():Array
+	{
+		var ret:Array = new Array();
+		for (var indx:Number = 0; indx < m_gearChecks.length; ++indx)
+		{
+			if (m_gearChecks[indx] != null)
+			{
+				ret.push(m_gearChecks[indx].IsChecked());
+			}
+			else
+			{
+				ret.push(false);
+			}
+		}
+		
+		return ret;
+	}
 }

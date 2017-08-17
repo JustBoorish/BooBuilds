@@ -42,6 +42,7 @@ class com.boobuilds.Build
 {
 	public static var GROUP_PREFIX:String = "Group";
 	public static var BUILD_PREFIX:String = "BUILD";
+	public static var QUICK_BUILD_PREFIX:String = "QUICKBUILD";
 	public static var ID_PREFIX:String = "ID";
 	public static var NAME_PREFIX:String = "Name";
 	public static var PARENT_PREFIX:String = "Parent";
@@ -635,29 +636,29 @@ class com.boobuilds.Build
 		archive.DeleteEntry(keyName);
 	}
 	
-	public function Save(archive:Archive, buildNumber:Number):Void
+	public function Save(prefix:String, archive:Archive, buildNumber:Number):Void
 	{
-		var prefix:String = BUILD_PREFIX + buildNumber;
-		SetArchiveEntry(prefix, archive, ID_PREFIX, m_id);
-		SetArchiveEntry(prefix, archive, NAME_PREFIX, m_name);		
-		SetArchiveEntry(prefix, archive, GROUP_PREFIX, m_group);
-		SetArchiveEntry(prefix, archive, ORDER_PREFIX, String(m_order));
-		SetArchiveEntry(prefix, archive, OUTFIT_PREFIX, m_outfit);
+		var key:String = prefix + buildNumber;
+		SetArchiveEntry(key, archive, ID_PREFIX, m_id);
+		SetArchiveEntry(key, archive, NAME_PREFIX, m_name);		
+		SetArchiveEntry(key, archive, GROUP_PREFIX, m_group);
+		SetArchiveEntry(key, archive, ORDER_PREFIX, String(m_order));
+		SetArchiveEntry(key, archive, OUTFIT_PREFIX, m_outfit);
 		
 		var bdString:String = toString();
-		SetArchiveEntry(prefix, archive, BUILD_PREFIX, bdString);
+		SetArchiveEntry(key, archive, BUILD_PREFIX, bdString);
 	}
 	
-	public static function ClearArchive(archive:Archive, buildNumber:Number):Void
+	public static function ClearArchive(prefix:String, archive:Archive, buildNumber:Number):Void
 	{
-		var prefix:String = BUILD_PREFIX + buildNumber;
-		DeleteArchiveEntry(prefix, archive, ID_PREFIX);
-		DeleteArchiveEntry(prefix, archive, NAME_PREFIX);
-		DeleteArchiveEntry(prefix, archive, PARENT_PREFIX);
-		DeleteArchiveEntry(prefix, archive, GROUP_PREFIX);
-		DeleteArchiveEntry(prefix, archive, ORDER_PREFIX);
-		DeleteArchiveEntry(prefix, archive, OUTFIT_PREFIX);
-		DeleteArchiveEntry(prefix, archive, BUILD_PREFIX);
+		var key:String = prefix + buildNumber;
+		DeleteArchiveEntry(key, archive, ID_PREFIX);
+		DeleteArchiveEntry(key, archive, NAME_PREFIX);
+		DeleteArchiveEntry(key, archive, PARENT_PREFIX);
+		DeleteArchiveEntry(key, archive, GROUP_PREFIX);
+		DeleteArchiveEntry(key, archive, ORDER_PREFIX);
+		DeleteArchiveEntry(key, archive, OUTFIT_PREFIX);
+		DeleteArchiveEntry(key, archive, BUILD_PREFIX);
 	}
 	
 	public static function SplitArrayString(buildString:String):Array
@@ -833,18 +834,18 @@ class com.boobuilds.Build
 		return archive.FindEntry(keyName, defaultValue);
 	}
 	
-	public static function FromArchive(buildNumber:Number, archive:Archive):Build
+	public static function FromArchive(prefix:String, buildNumber:Number, archive:Archive):Build
 	{
 		var ret:Build = null;
-		var prefix:String = BUILD_PREFIX + buildNumber;
-		var id:String = GetArchiveEntry(prefix, archive, ID_PREFIX, null);
+		var key:String = prefix + buildNumber;
+		var id:String = GetArchiveEntry(key, archive, ID_PREFIX, null);
 		if (id != null)
 		{
-			var name:String = GetArchiveEntry(prefix, archive, NAME_PREFIX, null);
-			var group:String = GetArchiveEntry(prefix, archive, GROUP_PREFIX, null);
-			var order:String = GetArchiveEntry(prefix, archive, ORDER_PREFIX, "-1");
-			var outfit:String = GetArchiveEntry(prefix, archive, OUTFIT_PREFIX, null);
-			var bdString:String = GetArchiveEntry(prefix, archive, BUILD_PREFIX, null);
+			var name:String = GetArchiveEntry(key, archive, NAME_PREFIX, null);
+			var group:String = GetArchiveEntry(key, archive, GROUP_PREFIX, null);
+			var order:String = GetArchiveEntry(key, archive, ORDER_PREFIX, "-1");
+			var outfit:String = GetArchiveEntry(key, archive, OUTFIT_PREFIX, null);
+			var bdString:String = GetArchiveEntry(key, archive, BUILD_PREFIX, null);
 			ret = Build.FromString(id, name, Number(order), group, bdString);
 			ret.SetOutfitID(outfit);
 		}
@@ -1032,14 +1033,14 @@ class com.boobuilds.Build
 			{
 				if (EquippedWeaponsAreSame() == true)
 				{
-					GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
-					GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
+					SetWeaponHidden(0);
+					SetWeaponHidden(1);
 				}
 				else
 				{
-					if (AvailableBagSpace() < 2)
+					if (AvailableBagSpace() < weaponCount)
 					{
-						InfoWindow.LogError("You must have two free bag slots to equip this build!");
+						InfoWindow.LogError("You must have " + weaponCount + " free bag slots to equip this build!");
 						return;
 					}
 					
@@ -1066,7 +1067,7 @@ class com.boobuilds.Build
 			ClearInventoryThrottle();			
 			m_buildErrorCount = 0;
 			
-			if (m_outfit != null && outfits[m_outfit] != null)
+			if (m_outfit != null && outfits != null && outfits[m_outfit] != null)
 			{
 				var endCallback:Function = Delegate.create(this, function (i:Number) { this.m_buildErrorCount += i; this.ApplyBuildQueue(); } );
 				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(endCallback); }));
@@ -1408,19 +1409,27 @@ class com.boobuilds.Build
 	
 	private function UnequipWeapon():Boolean
 	{
-		var weaponSlot:Number = GetWeaponSlotID(m_equipWeaponSlot);
-		
-		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
-		var charInv:Inventory = new Inventory(charInvId);
-		var item:InventoryItem = charInv.GetItemAt(weaponSlot);
-		m_weaponOldNames[m_equipWeaponSlot] = item.m_Name;
-		
-		var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
-		var bagInv:Inventory = new Inventory(bagInvId);
-		m_weaponOldSlots[m_equipWeaponSlot] = bagInv.GetFirstFreeItemSlot();
-		
-		charInv.UseItem(weaponSlot);
-		return false;
+		if (GetWeapon(m_equipWeaponSlot) == null)
+		{
+			DebugWindow.Log("Unequip null " + m_equipWeaponSlot);
+			return true;
+		}
+		else
+		{
+			var weaponSlot:Number = GetWeaponSlotID(m_equipWeaponSlot);
+			
+			var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+			var charInv:Inventory = new Inventory(charInvId);
+			var item:InventoryItem = charInv.GetItemAt(weaponSlot);
+			m_weaponOldNames[m_equipWeaponSlot] = item.m_Name;
+			
+			var bagInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
+			var bagInv:Inventory = new Inventory(bagInvId);
+			m_weaponOldSlots[m_equipWeaponSlot] = bagInv.GetFirstFreeItemSlot();
+			
+			charInv.UseItem(weaponSlot);
+			return false;
+		}
 	}
 	
 	private function WeaponUnequippedCheckCallback():Boolean
@@ -1485,6 +1494,11 @@ class com.boobuilds.Build
 				moveOn = true;
 			}
 		}
+		else
+		{
+			DebugWindow.Log("Equip null " + m_equipWeaponSlot);
+			moveOn = true;
+		}
 		
 		return moveOn;
 	}
@@ -1504,14 +1518,7 @@ class com.boobuilds.Build
 	
 	private function WeaponEquippedCompletionCallback():Void
 	{
-		if (m_equipWeaponSlot == 0)
-		{
-			GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
-		}
-		else if (m_equipWeaponSlot == 1)
-		{
-			GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
-		}
+		SetWeaponHidden(m_equipWeaponSlot);
 		
 		if (m_equipWeaponSlot < 1)
 		{
@@ -1531,6 +1538,22 @@ class com.boobuilds.Build
 		var gear:GearItem = GetWeapon(m_equipWeaponSlot);
 		InfoWindow.LogError("Failed to equip weapon " + gear.GetName());
 		++m_buildErrorCount;
+	}
+	
+	private function SetWeaponHidden(slot:Number):Void
+	{
+		if (GetWeapon(slot) != null)
+		{
+			if (slot == 0 && m_primaryWeaponHidden != null)
+			{
+				GearManager.SetPrimaryWeaponHidden(m_primaryWeaponHidden);
+			}
+			
+			if (slot == 1 && m_secondaryWeaponHidden != null)
+			{
+				GearManager.SetSecondaryWeaponHidden(m_secondaryWeaponHidden);
+			}
+		}
 	}
 	
 	private function MoveWeapon():Boolean
@@ -1600,12 +1623,19 @@ class com.boobuilds.Build
 	
 	private function EquippedWeaponsAreSame():Boolean
 	{
-		if (IsWeaponEquipped(GetWeapon(0), 0) == true && IsWeaponEquipped(GetWeapon(1), 1) == true)
+		var weaponOne:Boolean = false;
+		if (GetWeapon(0) == null || IsWeaponEquipped(GetWeapon(0), 0) == true)
 		{
-			return true;
+			weaponOne = true;
 		}
-		
-		return false;
+
+		var weaponTwo:Boolean = false;
+		if (GetWeapon(1) == null || IsWeaponEquipped(GetWeapon(1), 1) == true)
+		{
+			weaponTwo = true;
+		}
+
+		return weaponOne && weaponTwo;
 	}
 	
 	private function IsWeaponEquipped(gear:GearItem, slot:Number):Boolean

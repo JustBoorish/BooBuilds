@@ -16,6 +16,7 @@ import com.boobuilds.OptionsTab;
 import com.boobuilds.Outfit;
 import com.boobuilds.OutfitList;
 import com.boobuilds.OutfitSelector;
+import com.boobuilds.QuickBuildList;
 import com.boobuilds.Settings;
 import com.boocommon.DebugWindow;
 import com.boocommon.IconButton;
@@ -74,15 +75,19 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_optionsTab:OptionsTab;
 	private var m_buildList:BuildList;
 	private var m_outfitList:OutfitList;
+	private var m_quickBuildList:QuickBuildList;
 	private var m_buildSelectorWindow:BuildSelector;
 	private var m_outfitSelectorWindow:OutfitSelector;
 	private var m_builds:Object;
 	private var m_buildGroups:Array;
+	private var m_quickBuilds:Object;
+	private var m_quickBuildGroups:Array;
 	private var m_outfits:Object;
 	private var m_outfitGroups:Array;
 	private var m_redrawInterval:Number;
 	private var m_redrawCount:Number;
 	private var m_loadBuildDV:DistributedValue;
+	private var m_loadQuickBuildDV:DistributedValue;
 	private var m_loadOutfitDV:DistributedValue;
 	
 	//On Load
@@ -123,6 +128,8 @@ class com.boobuilds.Controller extends MovieClip
 		
 		m_loadBuildDV = DistributedValue.Create("BooBuilds_LoadBuild");
 		m_loadBuildDV.SetValue("");
+		m_loadQuickBuildDV = DistributedValue.Create("BooBuilds_LoadQuickBuild");
+		m_loadQuickBuildDV.SetValue("");
 		m_loadOutfitDV = DistributedValue.Create("BooBuilds_LoadOutfit");
 		m_loadOutfitDV.SetValue("");
 	}
@@ -133,6 +140,7 @@ class com.boobuilds.Controller extends MovieClip
 		Settings.SetArchive(config);
 		
 		m_loadBuildDV.SignalChanged.Connect(LoadBuildCmd, this);
+		m_loadQuickBuildDV.SignalChanged.Connect(LoadQuickBuildCmd, this);
 		m_loadOutfitDV.SignalChanged.Connect(LoadOutfitCmd, this);
 		
 		if (Character.GetClientCharacter().GetName() != m_characterName)
@@ -148,6 +156,8 @@ class com.boobuilds.Controller extends MovieClip
 			OptionsTab.ApplyOptions(m_settings);
 			LoadBuildGroups();
 			LoadBuilds();
+			SetQuickBuildGroups();
+			LoadQuickBuilds();
 			LoadOutfitGroups();
 			LoadOutfits();
 			
@@ -175,6 +185,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		SaveSettings();
 		m_loadBuildDV.SignalChanged.Disconnect(LoadBuildCmd, this);
+		m_loadQuickBuildDV.SignalChanged.Disconnect(LoadQuickBuildCmd, this);
 		m_loadOutfitDV.SignalChanged.Disconnect(LoadOutfitCmd, this);
 		var ret:Archive = Settings.GetArchive();
 		
@@ -244,6 +255,14 @@ class com.boobuilds.Controller extends MovieClip
 		}
 	}
 	
+	private function SetQuickBuildGroups():Void
+	{
+		m_quickBuildGroups = new Array();
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "DPS", BuildGroup.RED));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Heals", BuildGroup.GREEN));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Tank", BuildGroup.BLUE));
+	}
+	
 	private function SaveBuilds():Void
 	{
 		var archive:Archive = Settings.GetArchive();
@@ -253,14 +272,14 @@ class com.boobuilds.Controller extends MovieClip
 			var thisBuild:Build = m_builds[indx];
 			if (thisBuild != null)
 			{
-				thisBuild.Save(archive, buildNumber);
+				thisBuild.Save(Build.BUILD_PREFIX, archive, buildNumber);
 				++buildNumber;
 			}
 		}
 		
 		for (var indx:Number = buildNumber; indx <= MAX_BUILDS; ++indx)
 		{
-			Build.ClearArchive(archive, indx);
+			Build.ClearArchive(Build.BUILD_PREFIX, archive, indx);
 		}
 	}
 	
@@ -270,7 +289,7 @@ class com.boobuilds.Controller extends MovieClip
 		var archive:Archive = Settings.GetArchive();
 		for (var indx:Number = 0; indx < MAX_BUILDS; ++indx)
 		{
-			var thisBuild:Build = Build.FromArchive(indx + 1, archive);
+			var thisBuild:Build = Build.FromArchive(Build.BUILD_PREFIX, indx + 1, archive);
 			if (thisBuild != null)
 			{
 				//DebugWindow.Log(DebugWindow.Info, "Loaded build " + thisBuild.GetName() + " ID " + thisBuild.GetID() + " Group " + thisBuild.GetGroup() + " Order " + thisBuild.GetOrder());
@@ -281,7 +300,50 @@ class com.boobuilds.Controller extends MovieClip
 				}
 				else
 				{
-					Build.ClearArchive(archive, indx + 1);
+					Build.ClearArchive(Build.BUILD_PREFIX, archive, indx + 1);
+				}
+			}
+		}
+	}
+	
+	private function SaveQuickBuilds():Void
+	{
+		var archive:Archive = Settings.GetArchive();
+		var buildNumber:Number = 1;
+		for (var indx:String in m_quickBuilds)
+		{
+			var thisBuild:Build = m_quickBuilds[indx];
+			if (thisBuild != null)
+			{
+				thisBuild.Save(Build.QUICK_BUILD_PREFIX, archive, buildNumber);
+				++buildNumber;
+			}
+		}
+		
+		for (var indx:Number = buildNumber; indx <= MAX_BUILDS; ++indx)
+		{
+			Build.ClearArchive(Build.QUICK_BUILD_PREFIX, archive, indx);
+		}
+	}
+	
+	private function LoadQuickBuilds():Void
+	{
+		m_quickBuilds = new Object();
+		var archive:Archive = Settings.GetArchive();
+		for (var indx:Number = 0; indx < MAX_BUILDS; ++indx)
+		{
+			var thisBuild:Build = Build.FromArchive(Build.QUICK_BUILD_PREFIX, indx + 1, archive);
+			if (thisBuild != null)
+			{
+				//DebugWindow.Log(DebugWindow.Info, "Loaded build " + thisBuild.GetName() + " ID " + thisBuild.GetID() + " Group " + thisBuild.GetGroup() + " Order " + thisBuild.GetOrder());
+				
+				if (FindGroupWithID(m_quickBuildGroups, thisBuild.GetGroup()) != null)
+				{
+					m_quickBuilds[thisBuild.GetID()] = thisBuild;
+				}
+				else
+				{
+					Build.ClearArchive(Build.QUICK_BUILD_PREFIX, archive, indx + 1);
 				}
 			}
 		}
@@ -399,6 +461,7 @@ class com.boobuilds.Controller extends MovieClip
 		Settings.Save(m_settingsPrefix, m_settings, m_defaults);
 		SaveBuildGroups();
 		SaveBuilds();
+		SaveQuickBuilds();
 		SaveOutfitGroups();
 		SaveOutfits();
 	}
@@ -521,11 +584,13 @@ class com.boobuilds.Controller extends MovieClip
 			FeatInterface.BuildFeatList();
 		
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
+			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
-			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_buildList, m_outfitList);
+			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
+			m_configWindow.AddTab("Quick", m_quickBuildList);
 			m_configWindow.AddTab("Options", m_optionsTab);
 			m_configWindow.SetVisible(true);
 		}
@@ -597,6 +662,39 @@ class com.boobuilds.Controller extends MovieClip
 		}
 
 		m_loadBuildDV.SetValue("");
+	}
+	
+	private function LoadQuickBuildCmd():Void
+	{
+		var buildName:String = m_loadQuickBuildDV.GetValue();
+		if (buildName != null)
+		{
+			buildName = StringUtils.Strip(buildName);
+		}
+		
+		if (buildName == null || buildName == "")
+		{
+			return;
+		}
+
+		var buildFound:Boolean = false;
+		for (var id:String in m_quickBuilds)
+		{
+			var thisBuild:Build = m_builds[id];
+			if (thisBuild != null && thisBuild.GetName() == buildName)
+			{
+				buildFound = true;
+				setTimeout(Delegate.create(this, function() { thisBuild.Apply(this.m_outfits); }), 20);
+				break;
+			}
+		}
+		
+		if (buildFound == false)
+		{
+			InfoWindow.LogError("Cannot find build " + buildName);
+		}
+
+		m_loadQuickBuildDV.SetValue("");
 	}
 	
 	private function LoadOutfitCmd():Void

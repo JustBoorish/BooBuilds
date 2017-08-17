@@ -87,6 +87,9 @@
     <compile path="com\boobuilds\MountHelper.as" />
     <compile path="com\boobuilds\ManageDuplicatesDialog.as" />
     <compile path="com\boobuilds\BuildDisplay.as" />
+    <compile path="com\boobuilds\QuickList.as" />
+    <compile path="com\boobuilds\EditQuickBuildDialog.as" />
+    <compile path="com\boobuilds\QuickBuildList.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

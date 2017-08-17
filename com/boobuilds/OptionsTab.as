@@ -6,6 +6,7 @@ import com.boobuilds.Controller;
 import com.boobuilds.ExportDialog;
 import com.boobuilds.Outfit;
 import com.boobuilds.OutfitList;
+import com.boobuilds.QuickBuildList;
 import com.boobuilds.RestoreDialog;
 import com.boocommon.Checkbox;
 import com.boocommon.Graphics;
@@ -54,15 +55,18 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_throttleY:Number;
 	private var m_builds:Object;
 	private var m_buildGroups:Array;
+	private var m_quickBuilds:Object;
+	private var m_quickBuildGroups:Array;
 	private var m_outfits:Object;
 	private var m_outfitGroups:Array;
 	private var m_exportDialog:ExportDialog;
 	private var m_restoreDialog:RestoreDialog;
 	private var m_buildList:BuildList;
 	private var m_outfitList:OutfitList;
+	private var m_quickBuildList:QuickBuildList;
 	private var m_dismountCheckbox:Checkbox;
 	
-	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, buildList:BuildList, outfitList:OutfitList)
+	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList)
 	{
 		m_name = title;
 		m_settings = settings;
@@ -70,8 +74,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_builds = builds;
 		m_outfitGroups = outfitGroups;
 		m_outfits = outfits;
+		m_quickBuilds = quickBuilds;
+		m_quickBuildGroups = quickBuildGroups;
 		m_buildList = buildList;
 		m_outfitList = outfitList;
+		m_quickBuildList = quickBuildList;
 		m_parent = null;
 	}
 	
@@ -317,7 +324,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private function RestoreBackupString(backupString:String, overwrite:Boolean):Void
 	{
 		var archives:Array = SubArchive.FromStringArray(backupString);
-		if (archives == null || archives.length != 5)
+		if (archives == null || archives.length < 5 || archives.length > 6)
 		{
 			InfoWindow.LogError("Invalid backup string");
 		}
@@ -343,7 +350,6 @@ class com.boobuilds.OptionsTab implements ITabPane
 			
 			RestoreBuilds(archives[2], overwrite);
 			RestoreOutfits(archives[4], overwrite);
-			
 			for (var indx:Number = 0; indx < m_buildGroups.length; ++indx)
 			{
 				Build.ReorderBuilds(m_buildGroups[indx].GetID(), m_builds);
@@ -352,6 +358,18 @@ class com.boobuilds.OptionsTab implements ITabPane
 			for (var indx:Number = 0; indx < m_outfitGroups.length; ++indx)
 			{
 				Outfit.ReorderOutfits(m_outfitGroups[indx].GetID(), m_outfits);
+			}
+			
+			if (archives[5] != null)
+			{
+				RestoreQuickBuilds(archives[5], overwrite);
+				
+				for (var indx:Number = 0; indx < m_quickBuildGroups.length; ++indx)
+				{
+					Build.ReorderBuilds(m_quickBuildGroups[indx].GetID(), m_quickBuilds);
+				}
+				
+				m_quickBuildList.ForceRedraw();
 			}
 			
 			m_buildList.ForceRedraw();
@@ -387,7 +405,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		for (var indx:Number = 0; indx < Controller.MAX_BUILDS; ++indx)
 		{
-			var thisBuild:Build = Build.FromArchive(indx + 1, thisArchive);
+			var thisBuild:Build = Build.FromArchive(Build.BUILD_PREFIX, indx + 1, thisArchive);
 			if (thisBuild != null)
 			{
 				var writeIt:Boolean = false;
@@ -411,6 +429,39 @@ class com.boobuilds.OptionsTab implements ITabPane
 					if (groupIndex == null)
 					{
 						CreateTempGroup(thisBuild.GetGroup(), m_buildGroups);
+					}
+				}
+			}
+		}
+	}
+	
+	private function RestoreQuickBuilds(thisArchive:SubArchive, overwrite:Boolean):Void
+	{
+		for (var indx:Number = 0; indx < Controller.MAX_BUILDS; ++indx)
+		{
+			var thisBuild:Build = Build.FromArchive(Build.QUICK_BUILD_PREFIX, indx + 1, thisArchive);
+			if (thisBuild != null)
+			{
+				var writeIt:Boolean = false;
+				var existingBuild:Build = m_quickBuilds[thisBuild.GetID()];
+				if (existingBuild != null)
+				{
+					if (overwrite == true)
+					{
+						writeIt = true;
+					}
+				}
+				else
+				{
+					writeIt = true;
+				}
+				
+				if (writeIt == true)
+				{
+					var groupIndex:Number = FindGroupIndex(m_quickBuildGroups, thisBuild.GetGroup());
+					if (groupIndex != null)
+					{
+						m_quickBuilds[thisBuild.GetID()] = thisBuild;
 					}
 				}
 			}
@@ -479,7 +530,8 @@ class com.boobuilds.OptionsTab implements ITabPane
 			CreateGroupString(m_buildGroups, Build.GROUP_PREFIX) + 
 			CreateBuildString() +
 			CreateGroupString(m_outfitGroups, Outfit.GROUP_PREFIX) +
-			CreateOutfitString();
+			CreateOutfitString() +
+			CreateQuickBuildString();
 	}
 	
 	private function CreateGroupString(groups:Array, prefix:String):String
@@ -508,7 +560,24 @@ class com.boobuilds.OptionsTab implements ITabPane
 			var thisBuild:Build = m_builds[indx];
 			if (thisBuild != null)
 			{
-				thisBuild.Save(archive, buildNumber);
+				thisBuild.Save(Build.BUILD_PREFIX, archive, buildNumber);
+				++buildNumber;
+			}
+		}
+		
+		return archive.ToString();
+	}
+	
+	private function CreateQuickBuildString():String
+	{
+		var archive:SubArchive = new SubArchive(Build.QUICK_BUILD_PREFIX);
+		var buildNumber:Number = 1;
+		for (var indx:String in m_quickBuilds)
+		{
+			var thisBuild:Build = m_quickBuilds[indx];
+			if (thisBuild != null)
+			{
+				thisBuild.Save(Build.QUICK_BUILD_PREFIX, archive, buildNumber);
 				++buildNumber;
 			}
 		}

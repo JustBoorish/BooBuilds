@@ -3,11 +3,8 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildWindow;
 import com.boobuilds.ChangeGroupDialog;
-import com.boobuilds.EditBuildDialog;
 import com.boobuilds.EditDialog;
-import com.boobuilds.EditGroupDialog;
-import com.boobuilds.ExportDialog;
-import com.boobuilds.ImportBuildDialog;
+import com.boobuilds.EditQuickBuildDialog;
 import com.boocommon.ITabPane;
 import com.boocommon.InfoWindow;
 import com.boocommon.OKDialog;
@@ -32,7 +29,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boobuilds.BuildList implements ITabPane
+class com.boobuilds.QuickBuildList implements ITabPane
 {
 	private var m_addonMC:MovieClip;
 	private var m_parent:MovieClip;
@@ -42,30 +39,23 @@ class com.boobuilds.BuildList implements ITabPane
 	private var m_itemPopup:PopupMenu;
 	private var m_groupPopup:PopupMenu;
 	private var m_groups:Array;
-	private var m_builds:Object;
-	private var m_outfits:Object;
-	private var m_outfitGroups:Array;
+	private var m_quickBuilds:Object;
 	private var m_currentGroup:BuildGroup;
 	private var m_currentBuild:Build;
 	private var m_buildWindow:BuildWindow;
 	private var m_editDialog:EditDialog;
 	private var m_yesNoDialog:YesNoDialog;
 	private var m_okDialog:OKDialog;
-	private var m_editGroupDialog:EditGroupDialog;
-	private var m_editBuildDialog:EditBuildDialog;
-	private var m_importBuildDialog:ImportBuildDialog;
-	private var m_exportBuildDialog:ExportDialog;
+	private var m_editQuickBuildDialog:EditQuickBuildDialog;
 	private var m_changeGroupDialog:ChangeGroupDialog
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
 	
-	public function BuildList(name:String, groups:Array, builds:Object, settings:Object, outfits:Object, outfitGroups:Array)
+	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object)
 	{
 		m_name = name;
 		m_groups = groups;
-		m_builds = builds;
-		m_outfits = outfits;
-		m_outfitGroups = outfitGroups;
+		m_quickBuilds = quickBuilds;
 		m_settings = settings;
 		m_forceRedraw = false;
 	}
@@ -81,7 +71,6 @@ class com.boobuilds.BuildList implements ITabPane
 		m_itemPopup.AddItem("Use", Delegate.create(this, ApplyBuild));
 		m_itemPopup.AddItem("Inspect", Delegate.create(this, InspectBuild));
 		m_itemPopup.AddSeparator();
-		m_itemPopup.AddItem("Export", Delegate.create(this, ExportBuild));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameBuild));
 		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateBuild));
 		m_itemPopup.AddItem("Change group", Delegate.create(this, ChangeGroup));
@@ -94,14 +83,6 @@ class com.boobuilds.BuildList implements ITabPane
 		
 		m_groupPopup = new PopupMenu(m_addonMC, "Popup", 6);
 		m_groupPopup.AddItem("Create build", Delegate.create(this, CreateCurrentBuild));
-		m_groupPopup.AddSeparator();
-		m_groupPopup.AddItem("Import build", Delegate.create(this, ImportBuild));
-		m_groupPopup.AddItem("Edit", Delegate.create(this, EditGroup));
-		m_groupPopup.AddSeparator();
-		m_groupPopup.AddItem("Add new group above", Delegate.create(this, AddGroupAbove));
-		m_groupPopup.AddItem("Add new group below", Delegate.create(this, AddGroupBelow));
-		m_groupPopup.AddSeparator();
-		m_groupPopup.AddItem("Delete", Delegate.create(this, DeleteGroup));
 		m_groupPopup.Rebuild();
 		m_groupPopup.SetCoords(Stage.width / 2, Stage.height / 2);
 		
@@ -195,7 +176,7 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	public function BuildSubMenu(subTree:TreePanel, groupID:String):Void
 	{
-		var sortedBuilds:Array = Build.GetOrderedBuilds(groupID, m_builds);
+		var sortedBuilds:Array = Build.GetOrderedBuilds(groupID, m_quickBuilds);
 		for (var indx:Number = 0; indx < sortedBuilds.length; ++indx)
 		{
 			var thisBuild:Build = sortedBuilds[indx];
@@ -261,55 +242,31 @@ class com.boobuilds.BuildList implements ITabPane
 			m_okDialog = null;
 		}
 		
-		if (m_editGroupDialog != null)
-		{
-			m_editGroupDialog.Unload();
-			m_editGroupDialog = null;
-		}
-		
-		if (m_editBuildDialog != null)
-		{
-			m_editBuildDialog.Unload();
-			m_editBuildDialog = null;
-		}
-		
-		if (m_importBuildDialog != null)
-		{
-			m_importBuildDialog.Unload();
-			m_importBuildDialog = null;
-		}
-		
-		if (m_exportBuildDialog != null)
-		{
-			m_exportBuildDialog.Unload();
-			m_exportBuildDialog = null;
-		}
-		
 		if (m_changeGroupDialog != null)
 		{
 			m_changeGroupDialog.Unload();
 			m_changeGroupDialog = null;
 		}
-
-		if (m_buildWindow != null)
+		
+		if (m_editQuickBuildDialog != null)
 		{
-			m_buildWindow.Unload();
-			m_buildWindow = null;
-		}	
+			m_editQuickBuildDialog.Unload();
+			m_editQuickBuildDialog = null;
+		}
 	}
 	
 	private function ApplyBuild(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
+		var thisBuild:Build = m_quickBuilds[buildID];
 		if (thisBuild != null)
 		{
-			thisBuild.Apply(m_outfits);
+			thisBuild.Apply(null);
 		}
 	}
 	
 	private function InspectBuild(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
+		var thisBuild:Build = m_quickBuilds[buildID];
 		if (thisBuild != null)
 		{
 			UnloadDialogs();
@@ -321,10 +278,10 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function MoveBuildUp(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
+		var thisBuild:Build = m_quickBuilds[buildID];
 		if (thisBuild != null)
 		{
-			var swapBuild:Build = Build.FindOrderBelow(thisBuild.GetOrder(), thisBuild.GetGroup(), m_builds);
+			var swapBuild:Build = Build.FindOrderBelow(thisBuild.GetOrder(), thisBuild.GetGroup(), m_quickBuilds);
 			if (swapBuild != null)
 			{
 				Build.SwapOrders(thisBuild, swapBuild);
@@ -339,10 +296,10 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function MoveBuildDown(buildID:String):Void
 	{
-		var thisBuild:Build = m_builds[buildID];
+		var thisBuild:Build = m_quickBuilds[buildID];
 		if (thisBuild != null)
 		{
-			var swapBuild:Build = Build.FindOrderAbove(thisBuild.GetOrder(), thisBuild.GetGroup(), m_builds);
+			var swapBuild:Build = Build.FindOrderAbove(thisBuild.GetOrder(), thisBuild.GetGroup(), m_quickBuilds);
 			if (swapBuild != null)
 			{
 				Build.SwapOrders(thisBuild, swapBuild);
@@ -355,73 +312,9 @@ class com.boobuilds.BuildList implements ITabPane
 		}
 	}
 	
-	private function ExportBuild(buildID:String):Void
-	{
-		m_currentBuild = m_builds[buildID];
-		if (m_currentBuild != null)
-		{
-			UnloadDialogs();
-			m_exportBuildDialog = new ExportDialog("ExportBuild", m_parent, "Export " + m_currentBuild.GetName(), m_currentBuild.toExportString());
-			m_exportBuildDialog.Show();
-		}
-	}
-	
-	private function ImportBuild(groupID:String):Void
-	{
-		m_currentGroup = FindGroupByID(groupID);
-		if (m_currentGroup != null)
-		{
-			UnloadDialogs();
-			m_importBuildDialog = new ImportBuildDialog("ImportBuild", m_parent);
-			m_importBuildDialog.Show(Delegate.create(this, ImportBuildCB));
-		}
-	}
-	
-	private function ImportBuildCB(newName:String, buildString:String):Void
-	{
-		if (newName != null)
-		{
-			var nameValid:Boolean = IsValidName(newName, "build");
-			if (nameValid == true && buildString != null && buildString != "" && m_currentGroup != null)
-			{
-				var duplicateFound:Boolean = false;
-				for (var indx:String in m_builds)
-				{
-					var thisBuild:Build = m_builds[indx];
-					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
-					{
-						duplicateFound = true;
-					}
-				}
-				
-				if (duplicateFound == false)
-				{
-					var newID:String = Build.GetNextID(m_builds);
-					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-					var newBuild:Build = Build.FromString(newID, newName, newOrder, m_currentGroup.GetID(), buildString);
-					if (newBuild != null)
-					{
-						m_builds[newID] = newBuild;
-						DrawList();
-					}
-					else
-					{
-						InfoWindow.LogError("Import failed.  Build string corrupt!");				
-					}
-				}
-				else
-				{
-					InfoWindow.LogError("Import failed.  A build with this name already exists in this build group");				
-				}
-			}
-		}
-		
-		m_currentGroup = null;
-	}
-	
 	private function RenameBuild(buildID:String):Void
 	{
-		m_currentBuild = m_builds[buildID];
+		m_currentBuild = m_quickBuilds[buildID];
 		if (m_currentBuild != null)
 		{
 			UnloadDialogs();
@@ -438,9 +331,9 @@ class com.boobuilds.BuildList implements ITabPane
 			if (nameValid == true && m_currentBuild != null && newName != m_currentBuild.GetName())
 			{
 				var duplicateFound:Boolean = false;
-				for (var indx:String in m_builds)
+				for (var indx:String in m_quickBuilds)
 				{
-					var tempBuild:Build = m_builds[indx];
+					var tempBuild:Build = m_quickBuilds[indx];
 					if (tempBuild != null && tempBuild.GetName() == newName && tempBuild.GetGroup() == m_currentBuild.GetGroup())
 					{
 						duplicateFound = true;
@@ -465,47 +358,18 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function UpdateBuild(buildID:String):Void
 	{
-		m_currentBuild = m_builds[buildID];
+		m_currentBuild = m_quickBuilds[buildID];
 		if (m_currentBuild != null)
 		{
 			UnloadDialogs();
-			
-			var includeSkills:Boolean = true;
-			if (m_currentBuild.AreSkillsEmpty())
-			{
-				includeSkills = false;
-			}
-			
-			var includePassives:Boolean = true;
-			if (m_currentBuild.ArePassivesEmpty())
-			{
-				includePassives = false;
-			}
-			
-			var includeWeapons:Boolean = true;
-			if (m_currentBuild.AreWeaponsEmpty())
-			{
-				includeWeapons = false;
-			}
-			
-			var includeTalismans:Boolean = true;
-			if (m_currentBuild.AreGearEmpty())
-			{
-				includeTalismans = false;
-			}
-			
-			var includeGadget:Boolean = true;
-			if (m_currentBuild.IsGadgetEmpty())
-			{
-				includeGadget = false;
-			}
-			
-			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild.GetName(), includeSkills, includePassives, includeWeapons, includeTalismans, includeGadget, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups);
-			m_editBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
+
+			m_currentBuild = Build.FromCurrent(m_currentBuild.GetID(), m_currentBuild.GetName(), m_currentBuild.GetOrder(), m_currentBuild.GetGroup());
+			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_currentBuild);
+			m_editQuickBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
 	
-	private function UpdateBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String):Void
+	private function UpdateBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array):Void
 	{
 		if (inName != null)
 		{
@@ -516,9 +380,9 @@ class com.boobuilds.BuildList implements ITabPane
 				var duplicateFound:Boolean = false;
 				if (newName != m_currentBuild.GetName())
 				{
-					for (var indx:String in m_builds)
+					for (var indx:String in m_quickBuilds)
 					{
-						var thisBuild:Build = m_builds[indx];
+						var thisBuild:Build = m_quickBuilds[indx];
 						if (thisBuild != null && thisBuild.GetName() == newName && m_currentBuild.GetGroup() == thisBuild.GetGroup())
 						{
 							duplicateFound = true;
@@ -529,38 +393,40 @@ class com.boobuilds.BuildList implements ITabPane
 				if (duplicateFound == false)
 				{
 					m_currentBuild.SetName(newName);
-					m_currentBuild.UpdateFromCurrent();
 					
-					if (includeSkills != true)
+					for (var indx:Number = 0; indx < skillChecks.length; ++indx)
 					{
-						m_currentBuild.ClearSkills();
-					}
-					if (includePassives != true)
-					{
-						m_currentBuild.ClearPassives();
-					}
-					if (includeWeapons != true)
-					{
-						m_currentBuild.ClearWeapons();
-					}
-					if (includeTalismans != true)
-					{
-						m_currentBuild.ClearGear();
-					}
-					if (includeGadget != true)
-					{
-						m_currentBuild.ClearGadget();
+						if (skillChecks[indx] != true)
+						{
+							m_currentBuild.SetSkill(indx, null);
+						}
 					}
 					
-					if (outfitID != null && m_outfits[outfitID] != null)
+					for (var indx:Number = 0; indx < passiveChecks.length; ++indx)
 					{
-						m_currentBuild.SetOutfitID(outfitID);
-					}
-					else
-					{
-						m_currentBuild.SetOutfitID(null);
+						if (passiveChecks[indx] != true)
+						{
+							m_currentBuild.SetPassive(indx, null);
+						}
 					}
 					
+					for (var indx:Number = 0; indx < weaponsChecks.length; ++indx)
+					{
+						if (weaponsChecks[indx] != true)
+						{
+							m_currentBuild.SetWeapon(indx, null);
+						}
+					}
+					
+					for (var indx:Number = 0; indx < gearChecks.length; ++indx)
+					{
+						if (gearChecks[indx] != true)
+						{
+							m_currentBuild.SetGear(indx, null);
+						}
+					}
+					
+					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}
 				else
@@ -575,7 +441,7 @@ class com.boobuilds.BuildList implements ITabPane
 	
 	private function DeleteBuild(buildID:String):Void
 	{
-		m_currentBuild = m_builds[buildID];
+		m_currentBuild = m_quickBuilds[buildID];
 		if (m_currentBuild != null)
 		{
 			RemoveBuild(m_currentBuild);
@@ -587,13 +453,13 @@ class com.boobuilds.BuildList implements ITabPane
 	{
 		if (build != null)
 		{
-			m_builds[build.GetID()] = null;
+			m_quickBuilds[build.GetID()] = null;
 		}
 	}
 	
 	private function ChangeGroup(outfitID:String):Void
 	{
-		m_currentBuild = m_builds[outfitID];
+		m_currentBuild = m_quickBuilds[outfitID];
 		if (m_currentBuild != null)
 		{
 			m_currentGroup = FindGroupByID(m_currentBuild.GetGroup());
@@ -631,9 +497,9 @@ class com.boobuilds.BuildList implements ITabPane
 				else
 				{
 					var duplicateFound:Boolean = false;
-					for (var indx:String in m_builds)
+					for (var indx:String in m_quickBuilds)
 					{
-						var thisBuild:Build = m_builds[indx];
+						var thisBuild:Build = m_quickBuilds[indx];
 						if (thisBuild != null && thisBuild.GetName() == m_currentBuild.GetName() && newGroup.GetID() == thisBuild.GetGroup())
 						{
 							duplicateFound = true;
@@ -657,60 +523,6 @@ class com.boobuilds.BuildList implements ITabPane
 		m_currentBuild = null;
 	}
 	
-	private function DeleteGroup(groupID:String):Void
-	{
-		m_currentGroup = FindGroupByID(groupID);
-		if (m_currentGroup != null)
-		{
-			UnloadDialogs();
-			if (m_groups.length > 1)
-			{
-				m_yesNoDialog = new YesNoDialog("DeleteGroup", m_parent, "Deleting this group will", "remove all its builds", "Are you sure?");
-				m_yesNoDialog.Show(Delegate.create(this, DeleteGroupCB));
-			}
-			else
-			{
-				m_okDialog = new OKDialog("DeleteGroup", m_parent, "You cannot delete the", "final group", "");
-				m_okDialog.Show();
-			}
-		}
-	}
-	
-	private function DeleteGroupCB(yes:Boolean):Void
-	{
-		if (yes == true && m_currentGroup != null)
-		{
-			var thisGroup:BuildGroup = null;
-			var toDelete:Number = -1;
-			for (var indx:Number = 0; indx < m_groups.length; ++indx)
-			{
-				thisGroup = m_groups[indx];
-				if (thisGroup != null && thisGroup.GetID() == m_currentGroup.GetID())
-				{
-					toDelete = indx;
-					break;
-				}
-			}
-			
-			if (toDelete != -1)
-			{
-				m_groups.splice(toDelete, 1);
-				for (var thisID:String in m_builds)
-				{
-					var thisBuild:Build = m_builds[thisID];
-					if (thisBuild != null && thisBuild.GetGroup() == thisGroup.GetID())
-					{
-						RemoveBuild(thisBuild);
-					}
-				}
-				
-				DrawList();
-			}
-		}
-			
-		m_currentGroup = null;
-	}
-	
 	private function CreateCurrentBuild(groupID:String):Void
 	{
 		m_currentGroup = FindGroupByID(groupID);
@@ -718,23 +530,26 @@ class com.boobuilds.BuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, "", true, true, true, true, true, null, m_outfits, m_outfitGroups);
-			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
+			var newID:String = Build.GetNextID(m_quickBuilds);
+			var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_quickBuilds);
+			m_currentBuild = Build.FromCurrent(newID, "", newOrder, m_currentGroup.GetID());
+			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_currentBuild);
+			m_editQuickBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String):Void
+	private function CreateCurrentBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array):Void
 	{
 		if (inName != null)
 		{
 			var newName:String = StringUtils.Strip(inName);
 			var nameValid:Boolean = IsValidName(newName, "build");
-			if (nameValid == true && newName != "" && m_currentGroup != null)
+			if (nameValid == true && newName != "" && m_currentGroup != null && m_currentBuild != null)
 			{
 				var duplicateFound:Boolean = false;
-				for (var indx:String in m_builds)
+				for (var indx:String in m_quickBuilds)
 				{
-					var thisBuild:Build = m_builds[indx];
+					var thisBuild:Build = m_quickBuilds[indx];
 					if (thisBuild != null && thisBuild.GetName() == newName && m_currentGroup.GetID() == thisBuild.GetGroup())
 					{
 						duplicateFound = true;
@@ -743,36 +558,41 @@ class com.boobuilds.BuildList implements ITabPane
 				
 				if (duplicateFound == false)
 				{
-					var newID:String = Build.GetNextID(m_builds);
-					var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_builds);
-					var newBuild:Build = Build.FromCurrent(newID, newName, newOrder, m_currentGroup.GetID());
-					if (includeSkills != true)
+					m_currentBuild.SetName(newName);
+					
+					for (var indx:Number = 0; indx < skillChecks.length; ++indx)
 					{
-						newBuild.ClearSkills();
-					}
-					if (includePassives != true)
-					{
-						newBuild.ClearPassives();
-					}
-					if (includeWeapons != true)
-					{
-						newBuild.ClearWeapons();
-					}
-					if (includeTalismans != true)
-					{
-						newBuild.ClearGear();
-					}
-					if (includeGadget != true)
-					{
-						newBuild.ClearGadget();
+						if (skillChecks[indx] != true)
+						{
+							m_currentBuild.SetSkill(indx, null);
+						}
 					}
 					
-					if (outfitID != null && m_outfits[outfitID] != null)
+					for (var indx:Number = 0; indx < passiveChecks.length; ++indx)
 					{
-						newBuild.SetOutfitID(outfitID);
+						if (passiveChecks[indx] != true)
+						{
+							m_currentBuild.SetPassive(indx, null);
+						}
 					}
 					
-					m_builds[newID] = newBuild;
+					for (var indx:Number = 0; indx < weaponsChecks.length; ++indx)
+					{
+						if (weaponsChecks[indx] != true)
+						{
+							m_currentBuild.SetWeapon(indx, null);
+						}
+					}
+					
+					for (var indx:Number = 0; indx < gearChecks.length; ++indx)
+					{
+						if (gearChecks[indx] != true)
+						{
+							m_currentBuild.SetGear(indx, null);
+						}
+					}
+					
+					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}
 				else
@@ -783,145 +603,7 @@ class com.boobuilds.BuildList implements ITabPane
 		}
 		
 		m_currentGroup = null;
-	}
-	
-	private function EditGroup(groupID:String):Void
-	{
-		m_currentGroup = FindGroupByID(groupID);
-		if (m_currentGroup != null)
-		{
-			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("EditGroup", m_parent, m_currentGroup.GetName(), m_currentGroup.GetColourName());
-			m_editGroupDialog.Show(Delegate.create(this, EditGroupCB));
-		}
-	}
-	
-	private function EditGroupCB(newName:String, newColour:String):Void
-	{
-		if (newName != null)
-		{
-			var nameValid:Boolean = IsValidName(newName, "group");
-			if (nameValid == true && m_currentGroup != null && newColour != null)
-			{
-				var duplicateFound:Boolean = false;
-				for (var indx:Number = 0; indx < m_groups.length; ++indx)
-				{
-					var tempGroup:BuildGroup = m_groups[indx];
-					if (tempGroup != null && tempGroup.GetID() != m_currentGroup.GetID() && tempGroup.GetName() == newName)
-					{
-						duplicateFound = true;
-						break;
-					}
-				}
-
-				if (duplicateFound == false)
-				{
-					m_currentGroup.SetName(newName);
-					m_currentGroup.SetColourName(newColour);
-					DrawList();
-				}
-				else
-				{
-					InfoWindow.LogError("Edit group failed.  Name already exists");				
-				}
-			}
-		}
-		
-		m_currentGroup = null;
-	}
-	
-	private function AddGroupAbove(groupID:String):Void
-	{
-		m_currentGroup = FindGroupByID(groupID);
-		if (m_currentGroup != null)
-		{
-			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
-			m_editGroupDialog.Show(Delegate.create(this, AddGroupAboveCB));
-		}
-	}
-	
-	private function AddGroupAboveCB(newName:String, newColour:String):Void
-	{
-		if (newName != null)
-		{
-			var nameValid:Boolean = IsValidName(newName, "group");
-			if (nameValid == true && m_currentGroup != null)
-			{
-				var duplicateFound:Boolean = false;
-				for (var indx:Number = 0; indx < m_groups.length; ++indx)
-				{
-					var tempGroup:BuildGroup = m_groups[indx];
-					if (tempGroup != null && tempGroup.GetName() == newName)
-					{
-						duplicateFound = true;
-						break;
-					}
-				}
-
-				if (duplicateFound == false)
-				{
-					var newID:String = BuildGroup.GetNextID(m_groups);
-					var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
-					var indx:Number = FindGroupIndex(m_currentGroup.GetID());
-					m_groups.splice(indx, 0, newGroup);
-					DrawList();
-				}
-				else
-				{
-					InfoWindow.LogError("Add group failed.  Name already exists");				
-				}
-			}
-		}
-		
-		m_currentGroup = null;
-	}
-	
-	private function AddGroupBelow(groupID:String):Void
-	{
-		m_currentGroup = FindGroupByID(groupID);
-		if (m_currentGroup != null)
-		{
-			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
-			m_editGroupDialog.Show(Delegate.create(this, AddGroupBelowCB));
-		}
-	}
-	
-	private function AddGroupBelowCB(newName:String, newColour:String):Void
-	{
-		if (newName != null)
-		{
-			var nameValid:Boolean = IsValidName(newName, "group");
-			if (nameValid == true && m_currentGroup != null)
-			{
-				var duplicateFound:Boolean = false;
-				for (var indx:Number = 0; indx < m_groups.length; ++indx)
-				{
-					var tempGroup:BuildGroup = m_groups[indx];
-					if (tempGroup != null && tempGroup.GetName() == newName)
-					{
-						duplicateFound = true;
-						break;
-					}
-				}
-
-				if (duplicateFound == false)
-				{
-					var newID:String = BuildGroup.GetNextID(m_groups);
-					var newGroup:BuildGroup = new BuildGroup(newID, newName, newColour);
-					var indx:Number = FindGroupIndex(m_currentGroup.GetID());
-					m_groups.splice(indx + 1, 0, newGroup);
-					DrawList();
-				}
-				else
-				{
-					InfoWindow.LogError("Add group failed.  Name already exists");				
-				}
-			}
-		}
-		
-		m_currentGroup = null;
+		m_currentBuild = null;
 	}
 	
 	private function FindGroupByID(groupID:String):BuildGroup
