@@ -27,7 +27,6 @@ class com.boocommon.MenuPanel
 {
 	private var m_parent:MovieClip;
 	private var m_menu:MovieClip;
-	private var m_mask:MovieClip;
 	private var m_name:String;
 	private var m_margin:Number;
 	private var m_leftMargin:Number;
@@ -168,7 +167,6 @@ class com.boocommon.MenuPanel
 				++row;
 			}
 			
-			CreateMask();
 			m_isBuilt = true;
 		}
 	}
@@ -213,8 +211,6 @@ class com.boocommon.MenuPanel
 	
 	public function SetVisible(visible:Boolean):Void
 	{
-		ClearMask();
-		
 		if (visible == true)
 		{
 			RebuildSubmenus();
@@ -299,8 +295,6 @@ class com.boocommon.MenuPanel
 		
 		m_menu._x = m_x;
 		m_menu._y = m_y;
-		
-		//DebugWindow.Log("m_name=" + m_name + " m_x=" + m_x + " m_y=" + m_y);
 	}
 	
 	public function GetDimensions(x:Number, y:Number, topMenu:Boolean, minX:Number, minY:Number, maxX:Number, maxY:Number):Object
@@ -357,17 +351,10 @@ class com.boocommon.MenuPanel
 	
 	private function ShowSubMenu(indx:Number):Void
 	{
-		// hide all cells apart from the parent
-		var subMenuBottom:Object = m_subMenus[indx].GetGlobalTopBottom();
-		var subMenuHeight:Number = subMenuBottom.maxY - subMenuBottom.y;
-		m_menu.globalToLocal(subMenuBottom);
-		subMenuBottom.maxY = subMenuBottom.y + subMenuHeight;
 		for (var i:Number = 0; i < m_cells.length; ++i)
 		{
 			m_cells[i]._alpha = 60;
 		}
-		
-		CreateMask();
 		
 		// show the sub menu
 		m_subMenuShown = indx;
@@ -477,28 +464,5 @@ class com.boocommon.MenuPanel
 		menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; this.CellPressed(i); }, indx);
 
 		m_cells.push(menuCell);
-	}
-	
-	private function ClearMask():Void
-	{
-		if (m_mask != null)
-		{
-			m_mask._visible = false;
-			m_menu.setMask(null);
-			m_mask.removeMovieClip();
-		}
-		
-		m_mask = null;
-	}
-	
-	private function CreateMask():Void
-	{
-		ClearMask();
-		var menuMask:MovieClip = m_parent.createEmptyMovieClip("menuMask_" + m_name, m_parent.getNextHighestDepth());
-		Graphics.DrawFilledRoundedRectangle(menuMask, 0x000000, 0, 0x000000, 100, 0, 0, 30, m_menu._height + 3);
-		menuMask._x = m_menu._x;
-		menuMask._y = m_menu._y;
-		m_menu.setMask(menuMask);
-		m_mask = menuMask;
 	}
 }

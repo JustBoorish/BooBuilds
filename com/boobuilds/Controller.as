@@ -17,6 +17,7 @@ import com.boobuilds.Outfit;
 import com.boobuilds.OutfitList;
 import com.boobuilds.OutfitSelector;
 import com.boobuilds.QuickBuildList;
+import com.boobuilds.QuickSwitchIcons;
 import com.boobuilds.Settings;
 import com.boocommon.DebugWindow;
 import com.boocommon.IconButton;
@@ -89,6 +90,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_loadBuildDV:DistributedValue;
 	private var m_loadQuickBuildDV:DistributedValue;
 	private var m_loadOutfitDV:DistributedValue;
+	private var m_quickSwitchIcons:QuickSwitchIcons;
 	
 	//On Load
 	function onLoad():Void
@@ -160,6 +162,8 @@ class com.boobuilds.Controller extends MovieClip
 			LoadQuickBuilds();
 			LoadOutfitGroups();
 			LoadOutfits();
+			Build.SetCurrentBuildID(m_settings[Settings.CURRENT_BUILD]);
+			Outfit.SetCurrentOutfitID(m_settings[Settings.CURRENT_OUTFIT]);
 			
 			if (m_buildGroups.length == 0)
 			{
@@ -176,6 +180,8 @@ class com.boobuilds.Controller extends MovieClip
 			DebugWindow.Log(DebugWindow.Info, "BooBuilds OnModuleActivated: connect " + m_characterName);
 
 			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
+			
+			SetQuickSwitchIcons();
 			
 			FeatInterface.BuildFeatList();
 		}
@@ -205,6 +211,8 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[BIcon.ICON_Y] = -1;
 		m_defaults[OptionsTab.INVENTORY_THROTTLE] = 0;
 		m_defaults[OptionsTab.DISMOUNT_PRELOAD] = 0;
+		m_defaults[Settings.CURRENT_BUILD] = "";
+		m_defaults[Settings.CURRENT_OUTFIT] = "";
 	}
 	
 	private function SetDefaultBuildGroups():Void
@@ -339,6 +347,7 @@ class com.boobuilds.Controller extends MovieClip
 				
 				if (FindGroupWithID(m_quickBuildGroups, thisBuild.GetGroup()) != null)
 				{
+					thisBuild.SetQuickBuild(true);
 					m_quickBuilds[thisBuild.GetID()] = thisBuild;
 				}
 				else
@@ -458,6 +467,8 @@ class com.boobuilds.Controller extends MovieClip
 		var pt:Object = m_icon.GetCoords();
 		m_settings[BIcon.ICON_X] = pt.x;
 		m_settings[BIcon.ICON_Y] = pt.y;
+		m_settings[Settings.CURRENT_BUILD] = Build.GetCurrentBuildID();
+		m_settings[Settings.CURRENT_OUTFIT] = Outfit.GetCurrentOutfitID();
 		Settings.Save(m_settingsPrefix, m_settings, m_defaults);
 		SaveBuildGroups();
 		SaveBuilds();
@@ -469,6 +480,18 @@ class com.boobuilds.Controller extends MovieClip
 	private function ConfigClosed():Void
 	{
 		SaveSettings();
+		SetQuickSwitchIcons();
+	}
+	
+	private function SetQuickSwitchIcons():Void
+	{
+		if (m_quickSwitchIcons != null)
+		{
+			m_quickSwitchIcons.Unload();
+		}
+		
+		m_quickSwitchIcons = new QuickSwitchIcons("QuickSwitchIcons", m_mc, m_quickBuilds, Delegate.create(this, BuildSelected));
+		m_quickSwitchIcons.Show();
 	}
 	
 	private function ToggleBuildSelectorVisible():Void
@@ -584,7 +607,7 @@ class com.boobuilds.Controller extends MovieClip
 			FeatInterface.BuildFeatList();
 		
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
-			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings);
+			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList);
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");

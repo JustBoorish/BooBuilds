@@ -8,6 +8,9 @@
 			<clip id="BooBuildsIcon" import="BuildsIconTransparent.png"/>
 			<clip id="BooBuildsNoSign" import="NoSign.png"/>
 			<clip id="BooBuildsWarning" import="warning_sign_bold.png"/>
+			<clip id="BooBuildsTank" import="Tank.png"/>
+			<clip id="BooBuildsDPS" import="DPS.png"/>
+			<clip id="BooBuildsHeals" import="Heals.png"/>
 			<clip id="BooBuildsHelp" import="questionButton.png"/>
 			<font id="tahoma" import="fonts/tahoma.ttf" name="Tahoma "/>
 		</library>

@@ -66,6 +66,7 @@ class com.boobuilds.Build
 	private static var m_buildStillLoading:Boolean = false;
 	private static var m_buildLoadingID:Number = -1;
 	private static var m_dismountBeforeBuild:Boolean = false;
+	private static var m_currentBuildID:String = "";
 
 	private var m_id:String;
 	private var m_name:String;
@@ -78,6 +79,8 @@ class com.boobuilds.Build
 	private var m_weapons:Array;
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
+	private var m_requiredBuildID:String;
+	private var m_isQuickBuild:Boolean;
 	private var m_unequipPassives:Array;
 	private var m_unequipSkillsInterval:IntervalCounter;
 	private var m_unequipPassivesInterval:IntervalCounter;
@@ -106,6 +109,8 @@ class com.boobuilds.Build
 		m_outfit = null;
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
+		m_requiredBuildID = null;
+		m_isQuickBuild = false;
 		InitialiseArray(m_skills, MAX_SKILLS);
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
@@ -296,6 +301,26 @@ class com.boobuilds.Build
 		}		
 	}
 	
+	public function GetRequiredBuildID():String
+	{
+		return m_requiredBuildID;
+	}
+	
+	public function SetRequiredBuildID(newID:String):Void
+	{
+		m_requiredBuildID = newID;
+	}
+	
+	public function IsQuickBuild():Boolean
+	{
+		return m_isQuickBuild;
+	}
+	
+	public function SetQuickBuild(newValue:Boolean):Void
+	{
+		m_isQuickBuild = newValue;
+	}
+	
 	public static function IsBuildStillLoading():Boolean
 	{
 		return m_buildStillLoading;
@@ -304,6 +329,16 @@ class com.boobuilds.Build
 	public static function SetDismountBeforeBuild(newValue:Boolean):Void
 	{
 		m_dismountBeforeBuild = newValue;
+	}
+	
+	public static function GetCurrentBuildID():String
+	{
+		return m_currentBuildID;
+	}
+
+	public static function SetCurrentBuildID(newID:String):Void
+	{
+		m_currentBuildID = newID;
 	}
 
 	public function ClearSkills():Void
@@ -617,6 +652,10 @@ class com.boobuilds.Build
 		ret = ret + GetArrayGearItemString("WP", m_weapons);
 		var tempArray:Array = [ String(m_primaryWeaponHidden), String(m_secondaryWeaponHidden) ];
 		ret = ret + GetArrayString("WV", tempArray);
+		if (m_requiredBuildID != null)
+		{
+			ret = ret + GetArrayString("RB", [ m_requiredBuildID ]);
+		}
 		return ret;
 	}
 	
@@ -772,6 +811,15 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function SetRequiredBuildFromArray(offset:Number, buildItems:Array):Void
+	{
+		var indx:Number = 0 + offset;
+		if (indx < buildItems.length && buildItems[indx] != "undefined")
+		{
+			m_requiredBuildID = buildItems[indx];
+		}
+	}
+	
 	private static function FromBDArray(id:String, name:String, order:Number, groupID:String, buildItems:Array):Build
 	{
 		var ret:Build = new Build(id, name, order, groupID);
@@ -804,6 +852,10 @@ class com.boobuilds.Build
 				case "WV":
 					ret.SetWeaponHiddenFromArray(i + 1, buildItems);
 					i += MAX_WEAPONS + 1;
+					break;
+				case "RB":
+					ret.SetRequiredBuildFromArray(i + 1, buildItems);
+					i += 1;
 					break;
 				default:
 					i += 1;
@@ -1151,6 +1203,11 @@ class com.boobuilds.Build
 		}
 		else
 		{
+			if (IsQuickBuild() != true)
+			{
+				SetCurrentBuildID(GetID());
+			}
+			
 			InfoWindow.LogInfo("Build loaded");
 		}
 	}

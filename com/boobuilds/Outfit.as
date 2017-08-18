@@ -41,6 +41,7 @@ class com.boobuilds.Outfit
 
 	private static var m_outfitStillLoading:Boolean = false;
 	private static var m_outfitLoadingID:Number = -1;
+	private static var m_currentOutfitID:String = "";
 	
 	private var m_id:String;
 	private var m_name:String;
@@ -95,6 +96,16 @@ class com.boobuilds.Outfit
 		m_petTag = newTag;
 	}
 	
+	public static function GetCurrentOutfitID():String
+	{
+		return m_currentOutfitID;
+	}
+
+	public static function SetCurrentOutfitID(newID:String):Void
+	{
+		m_currentOutfitID = newID;
+	}
+
 	public function AreWeaponsSet():Boolean
 	{
 		return m_primaryWeaponHidden != null;
@@ -1116,6 +1127,11 @@ class com.boobuilds.Outfit
 		}
 		
 		Outfit.m_outfitStillLoading = false;
+		
+		if (m_outfitErrorCount < 1)
+		{
+			SetCurrentOutfitID(GetID());
+		}
 		
 		if (m_applyEndCallback != null)
 		{

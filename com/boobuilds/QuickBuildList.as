@@ -34,6 +34,8 @@ class com.boobuilds.QuickBuildList implements ITabPane
 	private var m_addonMC:MovieClip;
 	private var m_parent:MovieClip;
 	private var m_name:String;
+	private var m_builds:Object;
+	private var m_buildGroups:Array;
 	private var m_scrollPane:ScrollPane;
 	private var m_buildTree:TreePanel;
 	private var m_itemPopup:PopupMenu;
@@ -51,11 +53,13 @@ class com.boobuilds.QuickBuildList implements ITabPane
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
 	
-	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object)
+	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object, builds:Object, buildGroups:Array)
 	{
 		m_name = name;
 		m_groups = groups;
 		m_quickBuilds = quickBuilds;
+		m_builds = builds;
+		m_buildGroups = buildGroups;
 		m_settings = settings;
 		m_forceRedraw = false;
 	}
@@ -364,12 +368,12 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			UnloadDialogs();
 
 			m_currentBuild = Build.FromCurrent(m_currentBuild.GetID(), m_currentBuild.GetName(), m_currentBuild.GetOrder(), m_currentBuild.GetGroup());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_currentBuild);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild, m_builds, m_buildGroups);
 			m_editQuickBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
 	
-	private function UpdateBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array):Void
+	private function UpdateBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array, requiredBuild:String):Void
 	{
 		if (inName != null)
 		{
@@ -426,6 +430,8 @@ class com.boobuilds.QuickBuildList implements ITabPane
 						}
 					}
 					
+					m_currentBuild.SetRequiredBuildID(requiredBuild);					
+					m_currentBuild.SetQuickBuild(true);
 					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}
@@ -533,12 +539,12 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			var newID:String = Build.GetNextID(m_quickBuilds);
 			var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_quickBuilds);
 			m_currentBuild = Build.FromCurrent(newID, "", newOrder, m_currentGroup.GetID());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_currentBuild);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_currentBuild, m_builds, m_buildGroups);
 			m_editQuickBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array):Void
+	private function CreateCurrentBuildCB(inName:String, skillChecks:Array, passiveChecks:Array, weaponsChecks:Array, gearChecks:Array, requiredBuild:String):Void
 	{
 		if (inName != null)
 		{
@@ -592,6 +598,8 @@ class com.boobuilds.QuickBuildList implements ITabPane
 						}
 					}
 					
+					m_currentBuild.SetRequiredBuildID(requiredBuild);
+					m_currentBuild.SetQuickBuild(true);
 					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}

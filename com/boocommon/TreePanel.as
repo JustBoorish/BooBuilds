@@ -378,12 +378,12 @@ class com.boocommon.TreePanel
 	
 	private function DrawEntry(indx:Number):Void
 	{
-		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
+		var menuCell:MovieClip = m_menu.createEmptyMovieClip("Cell" + indx, m_menu.getNextHighestDepth());
 		Graphics.DrawGradientFilledRoundedRectangle(menuCell, 0x000000, 0, m_cellColors[indx], 0, 0, m_maxWidth, m_elementHeight);
 		menuCell._x = 0;
 		menuCell._y = (indx * m_elementHeight);
 		
-		var menuHover:MovieClip = menuCell.createEmptyMovieClip(m_names[indx] + "Hover", menuCell.getNextHighestDepth());
+		var menuHover:MovieClip = menuCell.createEmptyMovieClip("Hover" + indx, menuCell.getNextHighestDepth());
 		Graphics.DrawFilledRoundedRectangle(menuHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, m_maxWidth, m_elementHeight);
 		menuHover._x = 0;
 		menuHover._y = 0;
@@ -392,19 +392,19 @@ class com.boocommon.TreePanel
 		if (m_italics[indx] == true)
 		{
 			var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_italicFormat, menuCell);
-			Graphics.DrawText(m_names[indx] + "MenuText", menuCell, m_names[indx], m_italicFormat, m_leftMargin + m_margin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
+			Graphics.DrawText("MenuText" + indx, menuCell, m_names[indx], m_italicFormat, m_leftMargin + m_margin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		}
 		else
 		{
 			var labelExtents:Object = Text.GetTextExtent(m_names[indx], m_textFormat, menuCell);
-			Graphics.DrawText(m_names[indx] + "MenuText", menuCell, m_names[indx], m_textFormat, m_leftMargin + m_margin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
+			Graphics.DrawText("MenuText" + indx, menuCell, m_names[indx], m_textFormat, m_leftMargin + m_margin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		}
 
 		var treeCheck:TreeCheck = null;
 		if (m_subMenus[indx] != null)
 		{
 			var checkSize:Number = 6;
-			treeCheck = new TreeCheck(m_names[indx] + "MenuText", menuCell, m_margin, m_elementHeight / 2 - checkSize / 2, checkSize, null, false);
+			treeCheck = new TreeCheck("TreeCheck" + indx, menuCell, m_margin, m_elementHeight / 2 - checkSize / 2, checkSize, null, false);
 		}
 		
 		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); if (treeCheck != null) { treeCheck.StartHover(); } this.ShowTooltip(indx); } );

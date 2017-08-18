@@ -20,6 +20,8 @@ import com.GameInterface.FeatData;
  */
 class com.boobuilds.Settings
 {
+	public static var CURRENT_BUILD:String = "CurrentBuild";
+	public static var CURRENT_OUTFIT:String = "CurrentOutfit";
 	public static var Separator:String = "|";
 	public static var Enabled:String = "enabled";
 	public static var X:String = "x";
