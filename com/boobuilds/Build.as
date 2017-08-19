@@ -16,6 +16,7 @@ import com.Utils.ID32;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.GearItem;
+import com.boobuilds.Outfit;
 import com.boocommon.DebugWindow;
 import com.boocommon.InfoWindow;
 import com.boocommon.IntervalCounter;
@@ -80,7 +81,6 @@ class com.boobuilds.Build
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_requiredBuildID:String;
-	private var m_isQuickBuild:Boolean;
 	private var m_unequipPassives:Array;
 	private var m_unequipSkillsInterval:IntervalCounter;
 	private var m_unequipPassivesInterval:IntervalCounter;
@@ -94,6 +94,7 @@ class com.boobuilds.Build
 	private var m_weaponOldNames:Array;
 	private var m_weaponNewSlots:Array;
 	private var m_savedSkills:Array;
+	private var m_newSkills:Array;
 	private var m_unequipErrorSeen:Boolean;
 
 	public function Build(id:String, name:String, order:Number, group:String)
@@ -110,7 +111,6 @@ class com.boobuilds.Build
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
 		m_requiredBuildID = null;
-		m_isQuickBuild = false;
 		InitialiseArray(m_skills, MAX_SKILLS);
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
@@ -126,7 +126,15 @@ class com.boobuilds.Build
 			if (thisBuild != null)
 			{
 				var thisID:String = thisBuild.GetID();
-				var thisCount:Number = Number(thisID.substring(1, thisID.length));
+				var thisCount:Number;
+				if (thisID.indexOf("#") == 0)
+				{
+					thisCount = Number(thisID.substring(1, thisID.length));
+				}
+				else
+				{
+					thisCount = Number(thisID.substring(2, thisID.length));
+				}
 				if (thisCount > lastCount)
 				{
 					lastCount = thisCount;
@@ -136,6 +144,11 @@ class com.boobuilds.Build
 		
 		lastCount = lastCount + 1;
 		return "#" + lastCount;
+	}
+	
+	public static function GetNextQuickID(builds:Object):String
+	{
+		return "Q" + GetNextID(builds);
 	}
 	
 	public static function GetNextOrder(groupID:String, builds:Object):Number
@@ -313,12 +326,7 @@ class com.boobuilds.Build
 	
 	public function IsQuickBuild():Boolean
 	{
-		return m_isQuickBuild;
-	}
-	
-	public function SetQuickBuild(newValue:Boolean):Void
-	{
-		m_isQuickBuild = newValue;
+		return m_id.indexOf("#") == 1;
 	}
 	
 	public static function IsBuildStillLoading():Boolean
@@ -1124,6 +1132,10 @@ class com.boobuilds.Build
 				var endCallback:Function = Delegate.create(this, function (i:Number) { this.m_buildErrorCount += i; this.ApplyBuildQueue(); } );
 				m_buildApplyQueue.push(Delegate.create(this, function() { outfits[this.m_outfit].ApplyAfterBuild(endCallback); }));
 			}
+			else
+			{
+				Outfit.ApplyCurrentOutfitWeaponSkins(outfits);
+			}
 			
 			if (doWeapons == true)
 			{
@@ -1226,10 +1238,31 @@ class com.boobuilds.Build
 	private function CheckSkillsAndContinue():Void
 	{
 		m_savedSkills = new Array();
+		m_newSkills = new Array();
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
+			m_newSkills.push(null);
+			if (IsSkillSet(indx) == true)
+			{
+				var featID:Number = GetSkill(indx);
+				var featData:FeatData = FeatInterface.m_FeatList[featID];
+				if (featData != null)
+				{
+					m_newSkills[indx] = featData.m_Spell;
+				}
+			}
+			
 			var slotID:Number = GetSkillSlotID(indx);
-			m_savedSkills.push(Shortcut.m_ShortcutList[slotID]);
+			var shortcut:ShortcutData = Shortcut.m_ShortcutList[slotID];
+			m_savedSkills.push(shortcut);
+			
+			if (shortcut != null)
+			{
+				if (shortcut.m_SpellId == m_newSkills[indx])
+				{
+					m_newSkills[indx] = null;
+				}
+			}
 		}
 		
 		m_unequipErrorSeen = false;
@@ -1265,7 +1298,7 @@ class com.boobuilds.Build
 		// Remove all shortcuts
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
-			if (IsSkillSet(indx) == true)
+			if (m_newSkills[indx] != null)
 			{
 				var slotID:Number = GetSkillSlotID(indx);
 				Shortcut.RemoveFromShortcutBar(slotID);
@@ -1332,7 +1365,7 @@ class com.boobuilds.Build
 	{
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
-			if (IsSkillSet(indx) == true)
+			if (m_newSkills[indx] != null)
 			{
 				var slotID:Number = GetSkillSlotID(indx);
 				if (Shortcut.m_ShortcutList[slotID] != null)
@@ -1349,18 +1382,10 @@ class com.boobuilds.Build
 	{
 		for (var indx:Number = 0; indx < MAX_SKILLS; ++indx)
 		{
-			if (IsSkillSet(indx) == true)
+			if (m_newSkills[indx] != null)
 			{
-				var featID:Number = GetSkill(indx);
-				var featData:FeatData = FeatInterface.m_FeatList[featID];
-				if (featData != null)
-				{
-					var spellId:Number = featData.m_Spell;
-					var skillName:String = featData.m_Name;
-					
-					var slotID:Number = GetSkillSlotID(indx);
-					Shortcut.AddSpell(slotID, spellId);
-				}
+				var slotID:Number = GetSkillSlotID(indx);
+				Shortcut.AddSpell(slotID, m_newSkills[indx]);
 			}
 		}
 		

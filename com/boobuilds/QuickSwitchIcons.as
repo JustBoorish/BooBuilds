@@ -25,6 +25,9 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.QuickSwitchIcons
 {
+	public static var X:String = "QUICK_X";
+	public static var Y:String = "QUICK_Y";
+	
 	private static var DPS_ID:String = "#1";
 	private static var HEALS_ID:String = "#2";
 	private static var TANK_ID:String = "#3";
@@ -42,15 +45,24 @@ class com.boobuilds.QuickSwitchIcons
 	private var m_healBuilds:Array;
 	private var m_interval:IntervalCounter;
 	private var m_menu:MenuPanel;
+	private var m_x:Number;
+	private var m_y:Number;
+	private var m_dragging:Boolean;
+	private var m_isDragging:Boolean;
+	private var m_dragFrame:MovieClip;
 	
-	public function QuickSwitchIcons(name:String, parent:MovieClip, quickBuilds:Object, callback:Function) 
+	public function QuickSwitchIcons(name:String, parent:MovieClip, x:Number, y:Number, dragging:Boolean, quickBuilds:Object, callback:Function) 
 	{
 		m_name = name;
 		m_parent = parent;
 		m_quickBuilds = quickBuilds;
 		m_callback = callback;
+		m_x = x;
+		m_y = y;
+		m_dragging = dragging;
 		m_frame = m_parent.createEmptyMovieClip(m_name, m_parent.getNextHighestDepth());
 		m_frame._visible = false;
+		m_isDragging = false;
 		
 		SetGroupArrays();
 		DrawControls();
@@ -58,18 +70,33 @@ class com.boobuilds.QuickSwitchIcons
 	
 	public function Show():Void
 	{
-		if (m_interval != null)
+		if (m_x >= 0)
 		{
-			m_interval.Stop();
+			CompleteShow();
 		}
-		
-		m_interval = new IntervalCounter("QuickSwitchPosition", IntervalCounter.WAIT_MILLIS, 250, Delegate.create(this, IsAbilityBarVisible), Delegate.create(this, CompleteShow), null, true); 
+		else
+		{
+			if (m_interval != null)
+			{
+				m_interval.Stop();
+			}
+			
+			m_interval = new IntervalCounter("QuickSwitchPosition", IntervalCounter.WAIT_MILLIS, 250, Delegate.create(this, IsAbilityBarVisible), Delegate.create(this, CompleteShow), null, true); 
+		}
 	}
 	
 	public function Unload():Void
 	{
 		ClearMenu();
 		m_frame.removeMovieClip();
+	}
+	
+	public function GetPostion():Object
+	{
+		var pt:Object = new Object();
+		pt.x = m_frame._x;
+		pt.y = m_frame._y;
+		return pt;
 	}
 	
 	private function IsAbilityBarVisible():Boolean
@@ -85,7 +112,12 @@ class com.boobuilds.QuickSwitchIcons
 	
 	private function CompleteShow():Void
 	{
-		if (_root["abilitybar"] != null && _root["abilitybar"]["m_MainBar"] != null)
+		if (m_x >= 0)
+		{
+			m_frame._x = m_x;
+			m_frame._y = m_y;
+		}
+		else if (_root["abilitybar"] != null && _root["abilitybar"]["m_MainBar"] != null)
 		{
 			var abilityBar:MovieClip = _root["abilitybar"]["m_MainBar"];
 			var pt:Object = new Object();
@@ -146,15 +178,18 @@ class com.boobuilds.QuickSwitchIcons
 		icon._width = width;
 		icon._height = width;
 
-		var iconHover:MovieClip = icon.createEmptyMovieClip(name + "Hover", icon.getNextHighestDepth());
-		Graphics.DrawFilledRoundedRectangle(iconHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, oldWidth, oldWidth);
-		iconHover._x = 0;
-		iconHover._y = 0;
-		iconHover._alpha = 0;
+		if (m_dragging != true)
+		{
+			var iconHover:MovieClip = icon.createEmptyMovieClip(name + "Hover", icon.getNextHighestDepth());
+			Graphics.DrawFilledRoundedRectangle(iconHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, oldWidth, oldWidth);
+			iconHover._x = 0;
+			iconHover._y = 0;
+			iconHover._alpha = 0;
 
-		icon.onRollOver = function() { iconHover._alpha = 0; Tweener.addTween(iconHover, { _alpha:40, time:0.5, transition:"linear" } ); };
-		icon.onRollOut = function() { Tweener.removeTweens(iconHover); iconHover._alpha = 0; };
-		icon.onPress = function() { Tweener.removeTweens(iconHover); iconHover._alpha = 0; callback(); };
+			icon.onRollOver = function() { iconHover._alpha = 0; Tweener.addTween(iconHover, { _alpha:40, time:0.5, transition:"linear" } ); };
+			icon.onRollOut = function() { Tweener.removeTweens(iconHover); iconHover._alpha = 0; };
+			icon.onPress = function() { Tweener.removeTweens(iconHover); iconHover._alpha = 0; callback(); };
+		}
 		
 		icon._x = x;
 		icon._y = y;
@@ -168,22 +203,48 @@ class com.boobuilds.QuickSwitchIcons
 		var margin:Number = 4;
 		var x:Number = 0;
 		
-		if (m_tankBuilds != null && m_tankBuilds.length > 0)
+		if ((m_dragging == true) || (m_tankBuilds != null && m_tankBuilds.length > 0))
 		{
 			m_tankIcon = DrawButton("TankIcon", m_frame, "BooBuildsTank", x, 0, width, Delegate.create(this, TankPressed));
 			x += width + margin;
 		}
 		
-		if (m_healBuilds != null && m_healBuilds.length > 0)
+		if ((m_dragging == true) || (m_healBuilds != null && m_healBuilds.length > 0))
 		{
 			m_healsIcon = DrawButton("HealsIcon", m_frame, "BooBuildsHeals", x, 0, width, Delegate.create(this, HealPressed));
 			x += width + margin;
 		}
 		
-		if (m_dpsBuilds != null && m_dpsBuilds.length > 0)
+		if ((m_dragging == true) || (m_dpsBuilds != null && m_dpsBuilds.length > 0))
 		{
 			m_dpsIcon = DrawButton("DPSIcon", m_frame, "BooBuildsDPS", x, 0, width, Delegate.create(this, DPSPressed));
 			x += width + margin;
+		}
+		
+		if (m_dragging == true)
+		{
+			m_dragFrame = m_frame.createEmptyMovieClip("DragFrame", m_frame.getNextHighestDepth());
+			Graphics.DrawFilledRoundedRectangle(m_dragFrame, 0xFFFFFF, 0, 0xFFFFFF, 30, 0, 0, m_dpsIcon._x + m_dpsIcon._width, m_dpsIcon._height);
+			
+			m_dragFrame.onMouseDown = Delegate.create(this, DragStarted);
+			m_dragFrame.onRelease = Delegate.create(this, DragStopped);
+		}
+	}
+	
+	private function DragStarted():Void
+	{
+		m_frame.startDrag();
+		m_dragging = true;
+	}
+	
+	private function DragStopped():Void
+	{
+		m_frame.stopDrag();
+		m_dragging = false;
+		
+		if (m_callback != null)
+		{
+			m_callback(m_frame._x, m_frame._y);
 		}
 	}
 	

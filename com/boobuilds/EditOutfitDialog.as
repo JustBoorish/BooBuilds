@@ -31,6 +31,7 @@ class com.boobuilds.EditOutfitDialog
 	private var m_textFormat:TextFormat;
 	private var m_outfitName:String;
 	private var m_includeWeapons:Boolean;
+	private var m_includeWeaponSkins:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
 	private var m_sprintCombo:ComboBox;
@@ -42,11 +43,13 @@ class com.boobuilds.EditOutfitDialog
 	private var m_petY:Number;
 	private var m_petTag:Number;
 	private var m_includeWeaponsCheck:Checkbox;
+	private var m_includeWeaponSkinsCheck:Checkbox;
 	
-	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, sprintTag:Number, petTag:Number) 
+	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, includeWeaponSkins:Boolean, sprintTag:Number, petTag:Number) 
 	{
 		m_outfitName = outfitName;
 		m_includeWeapons = includeWeapons;
+		m_includeWeaponSkins = includeWeaponSkins;
 		m_sprintTag = sprintTag;
 		m_petTag = petTag;
 		
@@ -117,9 +120,16 @@ class com.boobuilds.EditOutfitDialog
 		var extents:Object = Text.GetTextExtent(text, textFormat, modalMC);
 		Graphics.DrawText("IncludeWeaponsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		
-		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, false);
+		m_includeWeaponsCheck = new Checkbox("IncludeWeaponsCheck", modalMC, 30, checkY, checkSize, null, m_includeWeapons);
 	
-		checkY = 40 + line1._y + line1._height * 3;
+		checkY += extents.height + 10;
+		text = "Include weapon skins";
+		extents = Text.GetTextExtent(text, textFormat, modalMC);
+		Graphics.DrawText("IncludeWeaponSkinsText", modalMC, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		
+		m_includeWeaponSkinsCheck = new Checkbox("IncludeWeaponSkinsCheck", modalMC, 30, checkY, checkSize, null, m_includeWeaponSkins);
+	
+		checkY += extents.height + 15;
 		text = "Sprint";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
 		Graphics.DrawText("IncludeSprintText", modalMC, text, m_textFormat, 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
@@ -128,15 +138,13 @@ class com.boobuilds.EditOutfitDialog
 		m_sprintY = checkY - 5;
 		BuildSprintCombo(modalMC, m_sprintX, m_sprintY);
 		
-		checkY = 60 + line1._y + line1._height * 4;
+		checkY += extents.height + 15;
 		text = "Pet";
 		Graphics.DrawText("IncludePetText", modalMC, text, m_textFormat, 30, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		
 		m_petX = 35 + extents.width;
 		m_petY = checkY - 5;
 		BuildPetCombo(modalMC, m_petX, m_petY);
-		
-		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 	}
 	
 	private function BuildSprintCombo(modalMC:MovieClip, x:Number, y:Number):Void
@@ -183,11 +191,11 @@ class com.boobuilds.EditOutfitDialog
 		{
 			if (success)
 			{
-				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), GetTagFromSprintName(m_sprintCombo.GetSelectedEntry()), GetTagFromPetName(m_petCombo.GetSelectedEntry()));
+				m_callback(m_input.text, m_includeWeaponsCheck.IsChecked(), m_includeWeaponSkinsCheck.IsChecked(), GetTagFromSprintName(m_sprintCombo.GetSelectedEntry()), GetTagFromPetName(m_petCombo.GetSelectedEntry()));
 			}
 			else
 			{
-				m_callback(null, false, null, null);
+				m_callback(null, false, false, null, null);
 			}
 		}
 	}

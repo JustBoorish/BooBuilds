@@ -24,6 +24,8 @@ Change Log
 
 Version 1.8
 Added new quick build functionality
+Added weapon skins to outfits
+Ignore skills on cooldown if they are in the same place in the new build
 Fix crash when a build or outfit group had more than 25 entries
 
 Version 1.7

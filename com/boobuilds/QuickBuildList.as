@@ -41,6 +41,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 	private var m_itemPopup:PopupMenu;
 	private var m_groupPopup:PopupMenu;
 	private var m_groups:Array;
+	private var m_outfits:Object;
 	private var m_quickBuilds:Object;
 	private var m_currentGroup:BuildGroup;
 	private var m_currentBuild:Build;
@@ -53,7 +54,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
 	
-	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object, builds:Object, buildGroups:Array)
+	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object, builds:Object, buildGroups:Array, outfits:Object)
 	{
 		m_name = name;
 		m_groups = groups;
@@ -61,6 +62,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		m_builds = builds;
 		m_buildGroups = buildGroups;
 		m_settings = settings;
+		m_outfits = outfits;
 		m_forceRedraw = false;
 	}
 
@@ -264,7 +266,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		var thisBuild:Build = m_quickBuilds[buildID];
 		if (thisBuild != null)
 		{
-			thisBuild.Apply(null);
+			thisBuild.Apply(m_outfits);
 		}
 	}
 	
@@ -431,7 +433,6 @@ class com.boobuilds.QuickBuildList implements ITabPane
 					}
 					
 					m_currentBuild.SetRequiredBuildID(requiredBuild);					
-					m_currentBuild.SetQuickBuild(true);
 					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}
@@ -536,7 +537,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			var newID:String = Build.GetNextID(m_quickBuilds);
+			var newID:String = Build.GetNextQuickID(m_quickBuilds);
 			var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_quickBuilds);
 			m_currentBuild = Build.FromCurrent(newID, "", newOrder, m_currentGroup.GetID());
 			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_currentBuild, m_builds, m_buildGroups);
@@ -599,7 +600,6 @@ class com.boobuilds.QuickBuildList implements ITabPane
 					}
 					
 					m_currentBuild.SetRequiredBuildID(requiredBuild);
-					m_currentBuild.SetQuickBuild(true);
 					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
 				}

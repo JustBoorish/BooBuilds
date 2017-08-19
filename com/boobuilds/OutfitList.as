@@ -81,6 +81,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameOutfit));
 		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateOutfit));
 		m_itemPopup.AddItem("Manage duplicates", Delegate.create(this, ManageDuplicates));
+		m_itemPopup.AddItem("Add weapon skins", Delegate.create(this, AddCurrentWeaponSkins));
 		m_itemPopup.AddItem("Change group", Delegate.create(this, ChangeGroup));
 		m_itemPopup.AddItem("Move Up", Delegate.create(this, MoveOutfitUp));
 		m_itemPopup.AddItem("Move Down", Delegate.create(this, MoveOutfitDown));
@@ -465,12 +466,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.GetSprintTag(), m_currentOutfit.GetPetTag());
+			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.AreWeaponSkinsSet(), m_currentOutfit.GetSprintTag(), m_currentOutfit.GetPetTag());
 			m_editOutfitDialog.Show(Delegate.create(this, UpdateOutfitCB));
 		}
 	}
 	
-	private function UpdateOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number, newPetTag:Number):Void
+	private function UpdateOutfitCB(inName:String, includeWeapons:Boolean, includeWeaponSkins:Boolean, newSprintTag:Number, newPetTag:Number):Void
 	{
 		if (inName != null)
 		{
@@ -499,6 +500,11 @@ class com.boobuilds.OutfitList implements ITabPane
 					if (includeWeapons != true)
 					{
 						m_currentOutfit.ClearWeaponVisibility();
+					}
+					
+					if (includeWeaponSkins != true)
+					{
+						m_currentOutfit.ClearWeaponSkins();
 					}
 					
 					if (newSprintTag != null)
@@ -587,6 +593,17 @@ class com.boobuilds.OutfitList implements ITabPane
 		}
 		
 		return ret;
+	}
+	
+	private function AddCurrentWeaponSkins(outfitID:String):Void
+	{
+		m_currentOutfit = m_outfits[outfitID];
+		if (m_currentOutfit != null)
+		{
+			UnloadDialogs();
+			
+			m_currentOutfit.AddCurrentWeaponSkins();
+		}
 	}
 	
 	private function ChangeGroup(outfitID:String):Void
@@ -734,12 +751,12 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, m_addonMC, "", true, null);
+			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, m_addonMC, "", true, true, null, null);
 			m_editOutfitDialog.Show(Delegate.create(this, CreateCurrentOutfitCB));
 		}
 	}
 	
-	private function CreateCurrentOutfitCB(inName:String, includeWeapons:Boolean, newSprintTag:Number, newPetTag:Number):Void
+	private function CreateCurrentOutfitCB(inName:String, includeWeapons:Boolean, includeWeaponSkins:Boolean, newSprintTag:Number, newPetTag:Number):Void
 	{
 		if (inName != null)
 		{
@@ -765,6 +782,11 @@ class com.boobuilds.OutfitList implements ITabPane
 					if (includeWeapons != true)
 					{
 						newOutfit.ClearWeaponVisibility();
+					}
+					
+					if (includeWeaponSkins != true)
+					{
+						newOutfit.ClearWeaponSkins();
 					}
 					
 					if (newSprintTag != null)

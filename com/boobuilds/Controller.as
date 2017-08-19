@@ -181,7 +181,7 @@ class com.boobuilds.Controller extends MovieClip
 
 			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
 			
-			SetQuickSwitchIcons();
+			SetQuickSwitchIcons(false);
 			
 			FeatInterface.BuildFeatList();
 		}
@@ -213,6 +213,8 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[OptionsTab.DISMOUNT_PRELOAD] = 0;
 		m_defaults[Settings.CURRENT_BUILD] = "";
 		m_defaults[Settings.CURRENT_OUTFIT] = "";
+		m_defaults[QuickSwitchIcons.X] = -1;
+		m_defaults[QuickSwitchIcons.Y] = -1;
 	}
 	
 	private function SetDefaultBuildGroups():Void
@@ -347,7 +349,6 @@ class com.boobuilds.Controller extends MovieClip
 				
 				if (FindGroupWithID(m_quickBuildGroups, thisBuild.GetGroup()) != null)
 				{
-					thisBuild.SetQuickBuild(true);
 					m_quickBuilds[thisBuild.GetID()] = thisBuild;
 				}
 				else
@@ -480,18 +481,43 @@ class com.boobuilds.Controller extends MovieClip
 	private function ConfigClosed():Void
 	{
 		SaveSettings();
-		SetQuickSwitchIcons();
+		SetQuickSwitchIcons(false);
 	}
 	
-	private function SetQuickSwitchIcons():Void
+	private function SetQuickSwitchIcons(dragging:Boolean):Void
 	{
+		var x:Number = m_settings[QuickSwitchIcons.X];
+		var y:Number = m_settings[QuickSwitchIcons.Y];
+		
 		if (m_quickSwitchIcons != null)
 		{
+			if (dragging == true)
+			{
+				var pt:Object = m_quickSwitchIcons.GetPostion();
+				x = pt.x;
+				y = pt.y;
+			}
+			
 			m_quickSwitchIcons.Unload();
 		}
 		
-		m_quickSwitchIcons = new QuickSwitchIcons("QuickSwitchIcons", m_mc, m_quickBuilds, Delegate.create(this, BuildSelected));
+		if (dragging == true)
+		{
+			m_quickSwitchIcons = new QuickSwitchIcons("QuickSwitchIcons", m_mc, x, y, dragging, m_quickBuilds, Delegate.create(this, QuickSwitchDragStopped));
+		}
+		else
+		{
+			m_quickSwitchIcons = new QuickSwitchIcons("QuickSwitchIcons", m_mc, x, y, dragging, m_quickBuilds, Delegate.create(this, BuildSelected));
+		}
+
 		m_quickSwitchIcons.Show();
+	}
+	
+	private function QuickSwitchDragStopped(x:Number, y:Number):Void
+	{
+		m_settings[QuickSwitchIcons.X] = x;
+		m_settings[QuickSwitchIcons.Y] = y;
+		SetQuickSwitchIcons(false);
 	}
 	
 	private function ToggleBuildSelectorVisible():Void
@@ -607,9 +633,9 @@ class com.boobuilds.Controller extends MovieClip
 			FeatInterface.BuildFeatList();
 		
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
-			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups);
+			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups, m_outfits);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
-			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList);
+			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList, Delegate.create(this, DragQuickButtons));
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
@@ -652,6 +678,20 @@ class com.boobuilds.Controller extends MovieClip
 		}
 		
 		return pt;
+	}
+	
+	private function DragQuickButtons(reset:Boolean):Void
+	{
+		if (reset == false)
+		{
+			SetQuickSwitchIcons(true);
+		}
+		else
+		{
+			m_settings[QuickSwitchIcons.X] = m_defaults[QuickSwitchIcons.X];
+			m_settings[QuickSwitchIcons.Y] = m_defaults[QuickSwitchIcons.Y];
+			SetQuickSwitchIcons(false);
+		}
 	}
 	
 	private function LoadBuildCmd():Void

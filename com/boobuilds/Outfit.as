@@ -1,5 +1,7 @@
 import com.GameInterface.DistributedValue;
 import com.GameInterface.Game.Character;
+import com.GameInterface.DressingRoom;
+import com.GameInterface.DressingRoomNode;
 import com.GameInterface.GearManager;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
@@ -10,6 +12,7 @@ import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.Outfit;
+import com.boocommon.DebugWindow;
 import com.boocommon.InfoWindow;
 import com.boocommon.IntervalCounter;
 import com.boocommon.InventoryThrottle;
@@ -38,6 +41,7 @@ class com.boobuilds.Outfit
 	
 	private static var FULL_OUTFIT_SIZE:Number = 12;
 	private static var NORMAL_OUTFIT_SIZE:Number = 11;
+	private static var WEAPON_SKINS_NODE_ID:Number = 102;
 
 	private static var m_outfitStillLoading:Boolean = false;
 	private static var m_outfitLoadingID:Number = -1;
@@ -48,6 +52,7 @@ class com.boobuilds.Outfit
 	private var m_group:String;
 	private var m_order:Number;
 	private var m_outfit:Array;
+	private var m_weaponSkins:Object;
 	private var m_reverseLookup:Array;
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
@@ -111,6 +116,11 @@ class com.boobuilds.Outfit
 		return m_primaryWeaponHidden != null;
 	}
 	
+	public function AreWeaponSkinsSet():Boolean
+	{
+		return m_weaponSkins != null;
+	}
+	
 	public function GetSize():Number
 	{
 		return m_outfit.length;
@@ -127,6 +137,7 @@ class com.boobuilds.Outfit
 		
 		m_primaryWeaponHidden = GearManager.IsPrimaryWeaponHidden();
 		m_secondaryWeaponHidden = GearManager.IsSecondaryWeaponHidden();
+		AddCurrentWeaponSkins();
 	}
 	
 	public static function FromCurrent(id:String, name:String, order:Number, groupID:String):Outfit
@@ -149,6 +160,11 @@ class com.boobuilds.Outfit
 	{
 		m_primaryWeaponHidden = null;
 		m_secondaryWeaponHidden = null;
+	}
+	
+	public function ClearWeaponSkins():Void
+	{
+		m_weaponSkins = null;
 	}
 	
 	public function ClearSprint():Void
@@ -468,45 +484,6 @@ class com.boobuilds.Outfit
 		return positions[indx];
 	}
 	
-	public function GetSlotName(indx:Number):String
-	{
-		var slot:Number = indx;
-		if (IsFullOutfit() != true)
-		{
-			slot = indx + 1;
-		}
-		
-		switch(slot)
-		{
-			case 0:
-				return "Full outfit";
-			case 1:
-				return "Hat";
-			case 2:
-				return "Face accessory";
-			case 3:
-				return "Necklace";
-			case 4:
-				return "Coat";
-			case 5:
-				return "Chest";
-			case 6:
-				return "Hands";
-			case 7:
-				return "Legs";
-			case 8:
-				return "Feet";
-			case 9:
-				return "Ring 1";
-			case 10:
-				return "Ring 2";
-			case 11:
-				return "Head accessory";
-			default:
-				return "Unknown";
-		}
-	}
-	
 	private function GetOutfitSize():Number
 	{
 		if (IsFullOutfit() == true)
@@ -565,6 +542,17 @@ class com.boobuilds.Outfit
 		ret = ret + Build.GetArrayString("WV", [ m_primaryWeaponHidden, m_secondaryWeaponHidden ]);
 		ret = ret + Build.GetArrayStringInternal("SP", [ m_sprintTag ], false);
 		ret = ret + Build.GetArrayStringInternal("PT", [ m_petTag ], false);
+		if (m_weaponSkins != null)
+		{
+			var tempArray:Array = new Array();
+			for (var indx in m_weaponSkins)
+			{
+				tempArray.push(indx);
+				tempArray.push(m_weaponSkins[indx]);
+			}
+			
+			ret = ret + Build.GetArrayStringInternal("WS", tempArray, false);
+		}
 		
 		return ret;
 	}
@@ -628,6 +616,9 @@ class com.boobuilds.Outfit
 				case "DU":
 					ret.SetDuplicatesFromArray(i + 1, items, NORMAL_OUTFIT_SIZE);
 					i += NORMAL_OUTFIT_SIZE + 1;
+					break;
+				case "WS":
+					i += ret.SetWeaponSkinsFromArray(i + 1, items) + 1;
 					break;
 				default:
 					i += 1;
@@ -725,6 +716,34 @@ class com.boobuilds.Outfit
 				m_secondaryWeaponHidden = false;
 			}			
 		}
+	}
+	
+	private function SetWeaponSkinsFromArray(offset:Number, items:Array):Number
+	{
+		var size:Number = 0;
+		m_weaponSkins = null;
+		var indx:Number = 0 + offset;
+		while (indx + 1 < items.length && items[indx] != "undefined")
+		{
+			var notNumber:Boolean = isNaN(Number(items[indx]));
+			if (notNumber != true)
+			{
+				if (m_weaponSkins == null)
+				{
+					m_weaponSkins = new Object();
+				}
+				
+				size += 2;
+				m_weaponSkins[Number(items[indx])] = Number(items[indx + 1]);
+				indx += 2;
+			}
+			else
+			{
+				break;
+			}
+		}
+		
+		return size;
 	}
 	
 	private function SetSprintFromArray(offset:Number, items:Array):Void
@@ -1120,6 +1139,8 @@ class com.boobuilds.Outfit
 			}
 		}
 		
+		ApplyWeaponSkins();
+		
 		if (Outfit.m_outfitLoadingID != -1)
 		{
 			clearTimeout(Outfit.m_outfitLoadingID);
@@ -1190,5 +1211,68 @@ class com.boobuilds.Outfit
 		endIndx = FindInventoryItem(wearInv, m_outfit[slot], false);
 		
 		return (startIndx != null) && (endIndx != null);
+	}
+
+	private function ApplyWeaponSkins():Void
+	{
+		if (m_weaponSkins != null)
+		{
+			for (var indx in m_weaponSkins)
+			{
+				var id:Number = m_weaponSkins[indx];
+				if (id != null)
+				{
+					if (DressingRoom.NodeEquipped(id) != true)
+					{
+						DressingRoom.EquipNode(id);
+					}
+				}
+			}
+		}
+	}
+	
+	public static function ApplyCurrentOutfitWeaponSkins(outfits:Object):Void
+	{
+		if (outfits != null && m_currentOutfitID != null && outfits[m_currentOutfitID] != null)
+		{
+			var thisOutfit:Outfit = outfits[m_currentOutfitID];
+			thisOutfit.ApplyWeaponSkins();
+		}
+	}
+	
+	public function AddCurrentWeaponSkins():Void
+	{
+		var parentNodes:Array = DressingRoom.GetChildren(WEAPON_SKINS_NODE_ID);
+		if (parentNodes != null)
+		{
+			for (var indx:Number = 0; indx < parentNodes.length; ++indx)
+			{
+				var parentNode:DressingRoomNode = parentNodes[indx];
+				if (parentNode != null)
+				{
+					var children:Array = DressingRoom.GetChildren(parentNode.m_NodeId);
+					if (children != null)
+					{
+						for (var indx2:Number = 0; indx2 < children.length; ++indx2)
+						{
+							var childNode:DressingRoomNode = children[indx2];
+							if (childNode != null)
+							{
+								if (DressingRoom.NodeOwned(childNode.m_NodeId) == true && DressingRoom.NodeEquipped(childNode.m_NodeId) == true)
+								{
+									if (m_weaponSkins == null)
+									{
+										m_weaponSkins = new Object();
+									}
+									
+									m_weaponSkins[parentNode.m_NodeId] = childNode.m_NodeId;
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
 	}
 }

@@ -65,8 +65,9 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_outfitList:OutfitList;
 	private var m_quickBuildList:QuickBuildList;
 	private var m_dismountCheckbox:Checkbox;
+	private var m_dragQuickButtons:Function;
 	
-	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList)
+	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList, dragQuickButtons:Function)
 	{
 		m_name = title;
 		m_settings = settings;
@@ -79,6 +80,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_buildList = buildList;
 		m_outfitList = outfitList;
 		m_quickBuildList = quickBuildList;
+		m_dragQuickButtons = dragQuickButtons;
 		m_parent = null;
 	}
 	
@@ -235,6 +237,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 
 		text = "Restore builds and outfits";
 		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		
+		text = "Move quick buttons";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		Graphics.DrawButton("QuickButton", m_frame, text, textFormat, 25, 50 + 8 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, DragQuickButtons));
+		
+		text = "Reset quick buttons";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		Graphics.DrawButton("QuickButton1", m_frame, text, textFormat, 25, 55 + 10 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ResetQuickButtons));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
@@ -286,6 +296,22 @@ class com.boobuilds.OptionsTab implements ITabPane
 		{
 			m_restoreDialog.Unload();
 			m_restoreDialog = null;
+		}
+	}
+	
+	private function DragQuickButtons():Void
+	{
+		if (m_dragQuickButtons != null)
+		{
+			m_dragQuickButtons(false);
+		}
+	}
+	
+	private function ResetQuickButtons():Void
+	{
+		if (m_dragQuickButtons != null)
+		{
+			m_dragQuickButtons(true);
 		}
 	}
 	

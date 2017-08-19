@@ -187,7 +187,7 @@ class com.boocommon.PopupMenu
 	{
 		var y:Number = (indx * m_elementHeight) + m_margin;
 		var menuCell:MovieClip = m_menu.createEmptyMovieClip(m_names[indx], m_menu.getNextHighestDepth());
-		Graphics.DrawFilledRectangle(menuCell, 0x000000, 0, 0x000000, 100, 2, 0, m_maxWidth - 2, m_elementHeight);
+		Graphics.DrawFilledRectangle(menuCell, 0x000000, 0, 0x000000, 100, 2, 0, m_maxWidth - 4, m_elementHeight);
 		menuCell._x = 0;
 		menuCell._y = y;
 		menuCell._alpha = 0;
