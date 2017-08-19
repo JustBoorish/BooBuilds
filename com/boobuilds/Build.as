@@ -68,6 +68,8 @@ class com.boobuilds.Build
 	private static var m_buildLoadingID:Number = -1;
 	private static var m_dismountBeforeBuild:Boolean = false;
 	private static var m_currentBuildID:String = "";
+	private static var m_currentToggleID:String = "";
+	private static var m_prevToggleID:String = "";
 
 	private var m_id:String;
 	private var m_name:String;
@@ -324,9 +326,19 @@ class com.boobuilds.Build
 		m_requiredBuildID = newID;
 	}
 	
+	public static function IsQuickBuildID(id:String):Boolean
+	{
+		if (id == null)
+		{
+			return false;
+		}
+		
+		return id.indexOf("#") == 1;
+	}
+	
 	public function IsQuickBuild():Boolean
 	{
-		return m_id.indexOf("#") == 1;
+		return IsQuickBuildID(m_id);
 	}
 	
 	public static function IsBuildStillLoading():Boolean
@@ -347,6 +359,26 @@ class com.boobuilds.Build
 	public static function SetCurrentBuildID(newID:String):Void
 	{
 		m_currentBuildID = newID;
+	}
+
+	public static function GetCurrentToggleID():String
+	{
+		return m_currentToggleID;
+	}
+
+	public static function SetCurrentToggleID(newID:String):Void
+	{
+		m_currentToggleID = newID;
+	}
+
+	public static function GetPrevToggleID():String
+	{
+		return m_prevToggleID;
+	}
+
+	public static function SetPrevToggleID(newID:String):Void
+	{
+		m_prevToggleID = newID;
 	}
 
 	public function ClearSkills():Void
@@ -1218,6 +1250,12 @@ class com.boobuilds.Build
 			if (IsQuickBuild() != true)
 			{
 				SetCurrentBuildID(GetID());
+			}
+			
+			if (GetCurrentToggleID() != m_id)
+			{
+				SetPrevToggleID(GetCurrentToggleID());
+				SetCurrentToggleID(m_id);
 			}
 			
 			InfoWindow.LogInfo("Build loaded");

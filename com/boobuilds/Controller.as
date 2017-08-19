@@ -3,6 +3,7 @@ import com.GameInterface.DistributedValue;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.Game.Character;
 import com.GameInterface.Log;
+import com.GameInterface.Input;
 import com.Utils.Archive;
 import com.Utils.StringUtils;
 import com.boobuilds.BIcon;
@@ -61,6 +62,8 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_BUILDS:Number = 200;
 	public static var MAX_OUTFITS:Number = 200;
 	
+	private static var m_instance:Controller = null;
+	
 	private var m_debug:DebugWindow = null;
 	private var m_info:InfoWindow = null;
 	private var m_icon:BIcon;
@@ -95,6 +98,7 @@ class com.boobuilds.Controller extends MovieClip
 	//On Load
 	function onLoad():Void
 	{
+		m_instance = this;
 		Settings.SetVersion(VERSION);
 		
 		m_mc = this;
@@ -163,6 +167,8 @@ class com.boobuilds.Controller extends MovieClip
 			LoadOutfitGroups();
 			LoadOutfits();
 			Build.SetCurrentBuildID(m_settings[Settings.CURRENT_BUILD]);
+			Build.SetCurrentToggleID(Settings.GetCurrentToggleID(m_settings));
+			Build.SetPrevToggleID(Settings.GetPrevToggleID(m_settings));
 			Outfit.SetCurrentOutfitID(m_settings[Settings.CURRENT_OUTFIT]);
 			
 			if (m_buildGroups.length == 0)
@@ -185,6 +191,8 @@ class com.boobuilds.Controller extends MovieClip
 			
 			FeatInterface.BuildFeatList();
 		}
+		
+		OverwriteSwapKey(Settings.GetOverrideKey(m_settings));
 	}
 		
 	function OnModuleDeactivated():Archive
@@ -193,6 +201,7 @@ class com.boobuilds.Controller extends MovieClip
 		m_loadBuildDV.SignalChanged.Disconnect(LoadBuildCmd, this);
 		m_loadQuickBuildDV.SignalChanged.Disconnect(LoadQuickBuildCmd, this);
 		m_loadOutfitDV.SignalChanged.Disconnect(LoadOutfitCmd, this);
+		OverwriteSwapKey(false);
 		var ret:Archive = Settings.GetArchive();
 		
 		// remove obsolete settings
@@ -215,6 +224,9 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[Settings.CURRENT_OUTFIT] = "";
 		m_defaults[QuickSwitchIcons.X] = -1;
 		m_defaults[QuickSwitchIcons.Y] = -1;
+		Settings.SetOverrideKey(m_defaults, true);
+		Settings.SetPrevToggleID(m_defaults, "");
+		Settings.SetCurrentToggleID(m_defaults, "");
 	}
 	
 	private function SetDefaultBuildGroups():Void
@@ -470,6 +482,8 @@ class com.boobuilds.Controller extends MovieClip
 		m_settings[BIcon.ICON_Y] = pt.y;
 		m_settings[Settings.CURRENT_BUILD] = Build.GetCurrentBuildID();
 		m_settings[Settings.CURRENT_OUTFIT] = Outfit.GetCurrentOutfitID();
+		Settings.SetCurrentToggleID(m_settings, Build.GetCurrentToggleID());
+		Settings.SetPrevToggleID(m_settings, Build.GetPrevToggleID());
 		Settings.Save(m_settingsPrefix, m_settings, m_defaults);
 		SaveBuildGroups();
 		SaveBuilds();
@@ -482,6 +496,7 @@ class com.boobuilds.Controller extends MovieClip
 	{
 		SaveSettings();
 		SetQuickSwitchIcons(false);
+		OverwriteSwapKey(Settings.GetOverrideKey(m_settings));
 	}
 	
 	private function SetQuickSwitchIcons(dragging:Boolean):Void
@@ -813,4 +828,50 @@ class com.boobuilds.Controller extends MovieClip
 		ret.height = mc._height; // pt.y - leftY;
 		return ret;
 	}
+	
+	private function OverwriteSwapKey(enabled:Boolean):Void
+	{
+		var func:String;
+		if (enabled == true)
+		{
+			func = "com.boobuilds.Controller.SwapKeyHandler";
+		}
+		else
+		{
+			func = "";
+		}
+		
+		Input.RegisterHotkey(_global.Enums.InputCommand.e_InputCommand_Combat_SwapAlternateWeapons, func, _global.Enums.Hotkey.eHotkeyDown, 0);
+	}
+
+	private function ToggleBuilds()
+	{
+		var prevID:String = Build.GetPrevToggleID();
+		if (prevID != null && prevID.length > 1)
+		{
+			var builds:Object;
+			if (Build.IsQuickBuildID(prevID) == true)
+			{
+				builds = m_quickBuilds;
+			}
+			else
+			{
+				builds = m_builds;
+			}
+			
+			var thisBuild:Build = builds[prevID];
+			if (thisBuild != null)
+			{
+				thisBuild.Apply(m_outfits);
+			}
+		}
+	}
+	
+	private static function SwapKeyHandler(keyCode:Number):Void
+	{
+		if (m_instance != null)
+		{
+			m_instance.ToggleBuilds();
+		}
+	}	
 }

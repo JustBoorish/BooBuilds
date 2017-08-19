@@ -8,6 +8,7 @@ import com.boobuilds.Outfit;
 import com.boobuilds.OutfitList;
 import com.boobuilds.QuickBuildList;
 import com.boobuilds.RestoreDialog;
+import com.boobuilds.Settings;
 import com.boocommon.Checkbox;
 import com.boocommon.Graphics;
 import com.boocommon.ITabPane;
@@ -65,6 +66,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_outfitList:OutfitList;
 	private var m_quickBuildList:QuickBuildList;
 	private var m_dismountCheckbox:Checkbox;
+	private var m_overrideCheckbox:Checkbox;
 	private var m_dragQuickButtons:Function;
 	
 	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList, dragQuickButtons:Function)
@@ -108,6 +110,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		if (visible == true && m_settings != null)
 		{
 			m_dismountCheckbox.SetChecked(m_settings[DISMOUNT_PRELOAD] == 1);
+			m_overrideCheckbox.SetChecked(Settings.GetOverrideKey(m_settings));
 			
 			RebuildMenu();
 		}
@@ -215,6 +218,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 		}
 	}
 	
+	private function OverrideChanged(newValue:Boolean):Void
+	{
+		if (m_settings != null)
+		{
+			Settings.SetOverrideKey(m_settings, newValue);
+		}
+	}
+	
 	private function DrawFrame():Void
 	{
 		var textFormat:TextFormat = Graphics.GetTextFormat();
@@ -228,23 +239,40 @@ class com.boobuilds.OptionsTab implements ITabPane
 		var checkSize:Number = 10;
 		text = "Dismount before build load";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		m_dismountCheckbox = new Checkbox("DismountCheck", m_frame, 25, 40 + 2 * extents.height + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DismountPreloadChanged), false);		
-		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, 40 + 2 * extents.height, extents.width, extents.height);
+		var row:Number = 1;
+		var y:Number = (40 + 2 * extents.height) * row;
+		m_dismountCheckbox = new Checkbox("DismountCheck", m_frame, 25, y + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, DismountPreloadChanged), false);		
+		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, y, extents.width, extents.height);
 
-		text = "Backup builds and outfits";
+		text = "Override swap weapons key";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, 40 + 4 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+		row = 2;
+		y = 35 + (5 + 2 * extents.height) * row;
+		m_overrideCheckbox = new Checkbox("WeaponsCheck", m_frame, 25, y + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, OverrideChanged), false);		
+		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, y, extents.width, extents.height);
 
 		text = "Restore builds and outfits";
-		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, 45 + 6 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		row = 4;
+		y = 35 + (5 + 2 * extents.height) * row;
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		
+		text = "Backup builds and outfits";
+		row = 3;
+		y = 35 + (5 + 2 * extents.height) * row;
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+
+		text = "Reset quick buttons";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		row = 6;
+		y = 35 + (5 + 2 * extents.height) * row;
+		Graphics.DrawButton("QuickButton1", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ResetQuickButtons));
 		
 		text = "Move quick buttons";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("QuickButton", m_frame, text, textFormat, 25, 50 + 8 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, DragQuickButtons));
-		
-		text = "Reset quick buttons";
-		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		Graphics.DrawButton("QuickButton1", m_frame, text, textFormat, 25, 55 + 10 * extents.height, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ResetQuickButtons));
+		row = 5;
+		y = 35 + (5 + 2 * extents.height) * row;
+		Graphics.DrawButton("QuickButton", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, DragQuickButtons));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void

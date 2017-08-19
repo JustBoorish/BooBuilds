@@ -44,6 +44,9 @@ class com.boobuilds.Settings
 	public static var General:String = "General";
 	
 	private static var Version:String = "VERSION";
+	private static var OVERRIDE_KEY:String = "OVERRIDE_KEY";
+	private static var PREV_TOGGLE_ID:String = "PREV_TOGGLE_ID";
+	private static var CURRENT_TOGGLE_ID:String = "CURRENT_TOGGLE_ID";
 
 	private static var m_version:String = null;
 	private static var m_archive:Archive = null;
@@ -265,4 +268,72 @@ class com.boobuilds.Settings
 	{
 		return prefix + Separator + name;
 	}
+	
+	public static function GetOverrideKey(settings:Object):Boolean
+	{
+		if (settings != null)
+		{
+			if (settings[OVERRIDE_KEY] == 1)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static function SetOverrideKey(settings:Object, newValue:Boolean):Void
+	{
+		if (settings != null)
+		{
+			if (newValue == true)
+			{
+				settings[OVERRIDE_KEY] = 1;
+			}
+			else
+			{
+				settings[OVERRIDE_KEY] = 0;
+			}
+		}
+	}	
+	
+	public static function GetPrevToggleID(settings:Object):String
+	{
+		if (settings != null)
+		{
+			return settings[PREV_TOGGLE_ID];
+		}
+		
+		return "";
+	}
+	
+	public static function SetPrevToggleID(settings:Object, newValue:String):Void
+	{
+		if (settings != null)
+		{
+			settings[PREV_TOGGLE_ID] = newValue;
+		}
+	}	
+	
+	public static function GetCurrentToggleID(settings:Object):String
+	{
+		if (settings != null)
+		{
+			return settings[CURRENT_TOGGLE_ID];
+		}
+		
+		return "";
+	}
+	
+	public static function SetCurrentToggleID(settings:Object, newValue:String):Void
+	{
+		if (settings != null)
+		{
+			settings[CURRENT_TOGGLE_ID] = newValue;
+		}
+	}	
 }
