@@ -159,7 +159,7 @@ class com.boobuilds.Controller extends MovieClip
 			}
 			
 			m_settings = Settings.Load(m_settingsPrefix, m_defaults);
-			OptionsTab.ApplyOptions(m_settings);
+			OptionsTab.ApplyOptions(m_settings, null);
 			LoadBuildGroups();
 			LoadBuilds();
 			SetQuickBuildGroups();
@@ -650,7 +650,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
 			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups, m_outfits);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
-			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList, Delegate.create(this, DragQuickButtons));
+			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList, Delegate.create(this, DragQuickButtons), Delegate.create(this, ApplyOverrideKey));
 			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
@@ -829,6 +829,11 @@ class com.boobuilds.Controller extends MovieClip
 		return ret;
 	}
 	
+	private function ApplyOverrideKey():Void
+	{
+		OverwriteSwapKey(Settings.GetOverrideKey(m_settings));
+	}
+	
 	private function OverwriteSwapKey(enabled:Boolean):Void
 	{
 		var func:String;
@@ -843,6 +848,14 @@ class com.boobuilds.Controller extends MovieClip
 		
 		Input.RegisterHotkey(_global.Enums.InputCommand.e_InputCommand_Combat_SwapAlternateWeapons, func, _global.Enums.Hotkey.eHotkeyDown, 0);
 	}
+	
+	private static function SwapKeyHandler(keyCode:Number):Void
+	{
+		if (m_instance != null)
+		{
+			m_instance.ToggleBuilds();
+		}
+	}	
 
 	private function ToggleBuilds()
 	{
@@ -866,12 +879,4 @@ class com.boobuilds.Controller extends MovieClip
 			}
 		}
 	}
-	
-	private static function SwapKeyHandler(keyCode:Number):Void
-	{
-		if (m_instance != null)
-		{
-			m_instance.ToggleBuilds();
-		}
-	}	
 }

@@ -1243,7 +1243,7 @@ class com.boobuilds.Build
 		
 		if (m_buildErrorCount > 0)
 		{
-			InfoWindow.LogError("Build load failed");
+			InfoWindow.LogError("Build load failed: " + m_name);
 		}
 		else
 		{
@@ -1258,7 +1258,7 @@ class com.boobuilds.Build
 				SetCurrentToggleID(m_id);
 			}
 			
-			InfoWindow.LogInfo("Build loaded");
+			InfoWindow.LogInfo("Build loaded: " + m_name);
 		}
 	}
 	

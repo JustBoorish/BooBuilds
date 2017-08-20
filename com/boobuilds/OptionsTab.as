@@ -68,8 +68,9 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_dismountCheckbox:Checkbox;
 	private var m_overrideCheckbox:Checkbox;
 	private var m_dragQuickButtons:Function;
+	private var m_applyOverride:Function;
 	
-	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList, dragQuickButtons:Function)
+	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList, dragQuickButtons:Function, applyOverride:Function)
 	{
 		m_name = title;
 		m_settings = settings;
@@ -83,6 +84,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		m_outfitList = outfitList;
 		m_quickBuildList = quickBuildList;
 		m_dragQuickButtons = dragQuickButtons;
+		m_applyOverride = applyOverride;
 		m_parent = null;
 	}
 	
@@ -130,11 +132,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		if (m_settings != null)
 		{
-			ApplyOptions(m_settings);
+			ApplyOptions(m_settings, m_applyOverride);
 		}
 	}
 	
-	public static function ApplyOptions(settings:Object):Void
+	public static function ApplyOptions(settings:Object, applyOverride:Function):Void
 	{
 		if (settings != null)
 		{
@@ -146,6 +148,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 			if (settings[DISMOUNT_PRELOAD] != null)
 			{
 				Build.SetDismountBeforeBuild(settings[DISMOUNT_PRELOAD] == 1);
+			}
+			
+			if (applyOverride != null)
+			{
+				applyOverride(Settings.GetOverrideKey(settings));
 			}
 		}
 	}
