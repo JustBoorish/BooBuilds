@@ -44,7 +44,7 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "1.8";
+	public static var VERSION = "1.9";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -566,11 +566,11 @@ class com.boobuilds.Controller extends MovieClip
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
 			{
-				m_buildSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height);
+				m_buildSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height, icon._y);
 			}
 			else
 			{
-				m_buildSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
+				m_buildSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5, _root._ymouse - 5);
 			}
 		}
 	}
@@ -614,11 +614,11 @@ class com.boobuilds.Controller extends MovieClip
 			if (_root._xmouse >= icon._x && _root._xmouse <= icon._x + icon._width &&
 				_root._ymouse >= icon._y && _root._ymouse <= icon._y + icon._height)
 			{
-				m_outfitSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height);
+				m_outfitSelectorWindow.Show(icon._x + icon._width / 2, icon._y + icon._height, icon._y);
 			}
 			else
 			{
-				m_outfitSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5);
+				m_outfitSelectorWindow.Show(_root._xmouse + 5, _root._ymouse + 5, _root._ymouse - 5);
 			}
 		}
 	}
@@ -651,7 +651,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups, m_outfits);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList, Delegate.create(this, DragQuickButtons), Delegate.create(this, ApplyOverrideKey));
-			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp");
+			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp", "https://tswact.wordpress.com/boobuilds/");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
 			m_configWindow.AddTab("Quick", m_quickBuildList);
@@ -758,7 +758,7 @@ class com.boobuilds.Controller extends MovieClip
 		var buildFound:Boolean = false;
 		for (var id:String in m_quickBuilds)
 		{
-			var thisBuild:Build = m_builds[id];
+			var thisBuild:Build = m_quickBuilds[id];
 			if (thisBuild != null && thisBuild.GetName() == buildName)
 			{
 				buildFound = true;
@@ -769,7 +769,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (buildFound == false)
 		{
-			InfoWindow.LogError("Cannot find build " + buildName);
+			InfoWindow.LogError("Cannot find quick build " + buildName);
 		}
 
 		m_loadQuickBuildDV.SetValue("");
@@ -789,7 +789,7 @@ class com.boobuilds.Controller extends MovieClip
 		}
 
 		var outfitFound:Boolean = false;
-		for (var id:String in m_builds)
+		for (var id:String in m_outfits)
 		{
 			var thisOutfit:Outfit = m_outfits[id];
 			if (thisOutfit != null && thisOutfit.GetName() == outfitName)

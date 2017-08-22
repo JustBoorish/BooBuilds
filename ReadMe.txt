@@ -22,6 +22,11 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 1.9
+Make build and outfit selector display upwards if icon on lower part of screen
+Fix help button to display on the correct page
+Fix outfit chat command loading
+
 Version 1.8
 Added new quick build functionality
 Added weapon skins to outfits

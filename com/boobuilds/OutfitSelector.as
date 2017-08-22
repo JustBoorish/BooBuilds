@@ -41,9 +41,13 @@ class com.boobuilds.OutfitSelector
 		OutfitMenu();
 	}
 	
-	public function Show(x:Number, y:Number):Void
+	public function Show(x:Number, bottomY:Number, topY:Number):Void
 	{
-		var pt:Object = m_menu.GetDimensions(x, y, true, 0, 0, Stage.width, Stage.height);
+		var pt:Object = m_menu.GetDimensions(x, bottomY, true, 0, 0, Stage.width, Stage.height);
+		if (pt.maxY > Stage.height)
+		{
+			m_menu.GetDimensions(x, topY - (pt.maxY - pt.y) - 1, true, 0, 0, Stage.width, Stage.height);
+		}
 		m_menu.Rebuild();
 		m_menu.RebuildSubmenus();
 		m_menu.SetVisible(true);

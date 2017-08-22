@@ -39,12 +39,14 @@ class com.boocommon.TabWindow
 	private var m_tabs:Array;
 	private var m_firstTime:Boolean;
 	private var m_helpIcon:MovieClip;
+	private var m_helpURL:String;
 	
-	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, height:Number, closedCallback:Function, helpIcon:String) 
+	public function TabWindow(parent:MovieClip, title:String, x:Number, y:Number, width:Number, height:Number, closedCallback:Function, helpIcon:String, helpURL:String) 
 	{
 		m_name = title;
 		m_parent = parent;
 		m_closedCallback = closedCallback;
+		m_helpURL = helpURL;
 		m_frame = m_parent.createEmptyMovieClip(title + "TabWindow", m_parent.getNextHighestDepth());
 		m_frame._visible = false;
 		m_frame._x = x;
@@ -280,6 +282,11 @@ class com.boocommon.TabWindow
 	private function onHelpPress():Void
 	{
 		var newURL:String = "https://tswact.wordpress.com/boocommon/";
+		if (m_helpURL != null)
+		{
+			newURL = m_helpURL;
+		}
+		
 		DistributedValue.SetDValue("WebBrowserStartURL", newURL);
 		DistributedValue.SetDValue("web_browser", true);
 	}

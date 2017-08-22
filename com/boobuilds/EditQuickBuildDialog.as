@@ -61,12 +61,24 @@ class com.boobuilds.EditQuickBuildDialog
 
 	public function Show(callback:Function):Void
 	{
+		if (m_buildSelector != null)
+		{
+			m_buildSelector.Unload();
+			m_buildSelector = null;
+		}
+		
 		m_callback = callback;
 		m_modalBase.Show();
 	}
 	
 	public function Hide():Void
 	{
+		if (m_buildSelector != null)
+		{
+			m_buildSelector.Unload();
+			m_buildSelector = null;
+		}
+		
 		m_modalBase.Hide();
 	}
 	
@@ -191,13 +203,16 @@ class com.boobuilds.EditQuickBuildDialog
 		if (m_buildSelector != null)
 		{
 			m_buildSelector.Unload();
+			m_buildSelector = null;
 		}
-		
-		m_buildSelector = new BuildSelector(m_addonMC, "Build Selector", m_buildGroups, m_builds, Delegate.create(this, BuildSelected));
-		var pt:Object = { x:m_buildButton._width / 2, y:m_buildButton._height / 2 };
-		m_buildButton.localToGlobal(pt);
-		m_addonMC.globalToLocal(pt);
-		m_buildSelector.Show(pt.x, pt.y);
+		else
+		{
+			m_buildSelector = new BuildSelector(m_addonMC, "Build Selector", m_buildGroups, m_builds, Delegate.create(this, BuildSelected));
+			var pt:Object = { x:m_buildButton._width / 2, y:m_buildButton._height / 2 };
+			m_buildButton.localToGlobal(pt);
+			m_addonMC.globalToLocal(pt);
+			m_buildSelector.Show(pt.x, pt.y, pt.y);
+		}
 	}
 	
 	private function OutfitClearPressed():Void

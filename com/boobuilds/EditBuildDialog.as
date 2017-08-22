@@ -231,13 +231,16 @@ class com.boobuilds.EditBuildDialog
 		if (m_outfitSelector != null)
 		{
 			m_outfitSelector.Unload();
+			m_outfitSelector = null;
 		}
-		
-		m_outfitSelector = new OutfitSelector(m_addonMC, "Outfit Selector", m_outfitGroups, m_outfits, Delegate.create(this, OutfitSelected));
-		var pt:Object = { x:m_outfitButton._width / 2, y:m_outfitButton._height / 2 };
-		m_outfitButton.localToGlobal(pt);
-		m_addonMC.globalToLocal(pt);
-		m_outfitSelector.Show(pt.x, pt.y);
+		else
+		{		
+			m_outfitSelector = new OutfitSelector(m_addonMC, "Outfit Selector", m_outfitGroups, m_outfits, Delegate.create(this, OutfitSelected));
+			var pt:Object = { x:m_outfitButton._width / 2, y:m_outfitButton._height / 2 };
+			m_outfitButton.localToGlobal(pt);
+			m_addonMC.globalToLocal(pt);
+			m_outfitSelector.Show(pt.x, pt.y, pt.y);
+		}
 	}
 	
 	private function OutfitClearPressed():Void
