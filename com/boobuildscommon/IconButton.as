@@ -1,7 +1,7 @@
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
-import com.boocommon.Graphics;
+import com.boobuildscommon.Graphics;
 import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
 /**
@@ -20,7 +20,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boocommon.IconButton
+class com.boobuildscommon.IconButton
 {
 	public static var PLUS:Number = 1;
 	public static var MINUS:Number = 2;

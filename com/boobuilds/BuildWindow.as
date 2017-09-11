@@ -1,7 +1,7 @@
 import com.boobuilds.Build;
 import com.boobuilds.BuildDisplay;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import com.Utils.Text;
 import mx.utils.Delegate;
 /**
@@ -28,12 +28,12 @@ class com.boobuilds.BuildWindow
 	private var m_display:BuildDisplay;
 	private var m_build:Build;
 	
-	public function BuildWindow(name:String, parent:MovieClip, build:Build) 
+	public function BuildWindow(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, build:Build) 
 	{
 		m_name = name;
 		m_parent = parent;
 		m_build = build;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.45, 0.97);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.97, frameHeight * 0.45);
 		
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 2;

@@ -14,7 +14,7 @@
  * 
  * Author: Boorish
  */
-interface com.boocommon.ITabPane 
+interface com.boobuildscommon.ITabPane 
 {
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void;
 	public function SetVisible(visible:Boolean):Void;

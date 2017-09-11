@@ -1,8 +1,9 @@
 import com.Utils.Text;
 import com.boobuilds.BuildGroup;
-import com.boocommon.ComboBox;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.ComboBox;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -30,12 +31,12 @@ class com.boobuilds.ChangeGroupDialog
 	private var m_callback:Function;
 	private var m_combo:ComboBox;
 	
-	public function ChangeGroupDialog(name:String, parent:MovieClip, addonMC:MovieClip, groupName:String, groups:Array) 
+	public function ChangeGroupDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, groupName:String, groups:Array) 
 	{
 		m_groupName = groupName;
 		m_groups = groups;
 		m_addonMC = addonMC;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.5, 0.75);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.75, frameHeight * 0.5);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -81,7 +82,7 @@ class com.boobuilds.ChangeGroupDialog
 			names.push(m_groups[indx].GetName());
 		}
 		
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		var colours:Array = Colours.GetDefaultColourArray();
 		m_combo = new ComboBox(modalMC, "GroupCombo", m_addonMC, x, y, colours[0], colours[1], 6, m_groupName, names);
 	}
 	

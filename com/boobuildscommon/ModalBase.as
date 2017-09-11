@@ -1,5 +1,5 @@
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
 import caurina.transitions.Tweener;
 import com.Utils.Colors;
 import com.Utils.ID32;
@@ -23,7 +23,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boocommon.ModalBase
+class com.boobuildscommon.ModalBase
 {
 	private var m_blocker:MovieClip;
 	private var m_modal:MovieClip;
@@ -35,14 +35,12 @@ class com.boocommon.ModalBase
 	private var m_input:TextField;
 	private var m_drawFrameCallback:Function;
 	
-	public function ModalBase(name:String, parent:MovieClip, drawFrameCallback:Function, frameHeight:Number, frameWidth:Number) 
+	public function ModalBase(name:String, parent:MovieClip, drawFrameCallback:Function, parentWidth:Number, parentHeight:Number, frameWidth:Number, frameHeight:Number) 
 	{
 		m_drawFrameCallback = drawFrameCallback;
 		
-		var width:Number = parent._width;
-		var height:Number = parent._height;
-		m_blocker = parent.createEmptyMovieClip("modalBlocker", parent.getNextHighestDepth());
-		Graphics.DrawFilledRoundedRectangle(m_blocker, 0x000000, 0, 0x000000, 60, 0, 0, width, height);
+		m_blocker = parent.createEmptyMovieClip("modalBlocker" + name, parent.getNextHighestDepth());
+		Graphics.DrawFilledRoundedRectangle(m_blocker, 0x000000, 0, 0x000000, 60, 0, 0, parentWidth, parentHeight);
 
 		// Trap Mouse Events
 		m_blocker.onPress = Delegate.create(this, NullEvent);
@@ -59,7 +57,7 @@ class com.boocommon.ModalBase
 		}
 		else
 		{
-			m_maxWidth = parent._width * frameWidth;
+			m_maxWidth = frameWidth;
 		}
 		
 		if (frameHeight == null)
@@ -68,8 +66,19 @@ class com.boocommon.ModalBase
 		}
 		else
 		{
-			m_maxHeight = parent._height * frameHeight;
+			m_maxHeight = frameHeight;
 		}
+		
+		if (m_maxWidth > parent._width)
+		{
+			m_maxWidth = parent._width;
+		}
+		
+		if (m_maxHeight > parent._height)
+		{
+			m_maxHeight = parent._height;
+		}
+		
 		m_modal = parent.createEmptyMovieClip(name, parent.getNextHighestDepth());
 		m_textFormat = new TextFormat();
 		m_textFormat.align = "left";
@@ -80,8 +89,8 @@ class com.boocommon.ModalBase
 
 		DrawFrame();
 		
-		m_modal._x = width / 2 - m_modal._width / 2;
-		m_modal._y = height / 2 - m_modal._height / 2;
+		m_modal._x = parentWidth / 2 - m_modal._width / 2;
+		m_modal._y = parentHeight / 2 - m_modal._height / 2;
 		m_modal._visible = false;
 	}
 	

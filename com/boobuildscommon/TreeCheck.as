@@ -16,7 +16,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boocommon.TreeCheck
+class com.boobuildscommon.TreeCheck
 {
 	private var m_name:String;
 	private var m_parent:MovieClip;

@@ -10,9 +10,9 @@ import com.Utils.Colors;
 import com.Utils.ID32;
 import com.boobuilds.Build;
 import com.boobuilds.GearItem;
-import com.boocommon.Checkbox;
-import com.boocommon.DebugWindow;
-import com.boocommon.IconButton;
+import com.boobuildscommon.Checkbox;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.IconButton;
 import mx.utils.Delegate;
 import org.sitedaniel.utils.Proxy;
 /**

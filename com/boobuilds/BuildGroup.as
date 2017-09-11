@@ -3,6 +3,7 @@ import com.Utils.Colors;
 import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
+import com.boobuildscommon.Colours;
 /**
  * There is no copyright on this code
  *
@@ -22,13 +23,6 @@ import com.boobuilds.BuildGroup;
 class com.boobuilds.BuildGroup
 {
 	public static var COLOUR_PREFIX:String = "Colour";
-	public static var RED:String = "Red";
-	public static var BLUE:String = "Blue";
-	public static var GREEN:String = "Green";
-	public static var YELLOW:String = "Yellow";
-	public static var ORANGE:String = "Orange";
-	public static var PURPLE:String = "Purple";
-	public static var GRAY:String = "Gray";
 	
 	private var m_id:String;
 	private var m_name:String;
@@ -94,32 +88,6 @@ class com.boobuilds.BuildGroup
 		m_colourName = newName;
 	}
 	
-	public static function GetColourArray(colourName:String):Array
-	{
-		if (colourName == null)
-		{
-			return [0x2E2E2E, 0x585858];
-		}
-		
-		switch(colourName)
-		{
-			case RED:
-				return [Colors.e_ColorUnusableMissionItemsHighlight, Colors.e_ColorUnusableMissionItemsBackground];
-			case BLUE:
-				return [Colors.e_ColorMagicSpellHighlight, Colors.e_ColorMagicSpellBackground];
-			case GREEN:
-				return [Colors.e_ColorHealSpellHighlight, Colors.e_ColorHealSpellBackground];
-			case YELLOW:
-				return [0xefe80b, 0xc6c107];
-			case ORANGE:
-				return [Colors.e_ColorMeleeSpellHighlight, Colors.e_ColorMeleeSpellBackground];
-			case PURPLE:
-				return [Colors.e_ColorPassiveSpellHighlight, Colors.e_ColorPassiveSpellBackground];
-			default:
-				return [0x2E2E2E, 0x585858];
-		}
-	}
-	
 	public function Save(groupPrefix:String, archive:Archive, groupNumber:Number):Void
 	{
 		var prefix:String = groupPrefix + groupNumber;
@@ -137,6 +105,11 @@ class com.boobuilds.BuildGroup
 		{
 			var name:String = GetArchiveEntry(prefix, archive, Build.NAME_PREFIX, null);
 			var colourName:String = GetArchiveEntry(prefix, archive, BuildGroup.COLOUR_PREFIX, null);
+			if (colourName == "Gray")
+			{
+				colourName = Colours.GREY;
+			}
+			
 			ret = new BuildGroup(id, name, colourName);
 		}
 		

@@ -15,7 +15,7 @@ import com.GameInterface.SpellBase;
  * 
  * Author: Boorish
  */
-class com.boocommon.PetHelper
+class com.boobuildscommon.PetHelper
 {
 	public function PetHelper() 
 	{

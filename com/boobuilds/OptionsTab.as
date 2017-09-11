@@ -9,13 +9,14 @@ import com.boobuilds.OutfitList;
 import com.boobuilds.QuickBuildList;
 import com.boobuilds.RestoreDialog;
 import com.boobuilds.Settings;
-import com.boocommon.Checkbox;
-import com.boocommon.Graphics;
-import com.boocommon.ITabPane;
-import com.boocommon.InfoWindow;
-import com.boocommon.InventoryThrottle;
-import com.boocommon.MenuPanel;
-import com.boocommon.SubArchive;
+import com.boobuildscommon.Checkbox;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ITabPane;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.InventoryThrottle;
+import com.boobuildscommon.MenuPanel;
+import com.boobuildscommon.SubArchive;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -67,8 +68,11 @@ class com.boobuilds.OptionsTab implements ITabPane
 	private var m_quickBuildList:QuickBuildList;
 	private var m_dismountCheckbox:Checkbox;
 	private var m_overrideCheckbox:Checkbox;
+	private var m_outfitRightClickCheckbox:Checkbox;
 	private var m_dragQuickButtons:Function;
 	private var m_applyOverride:Function;
+	private var m_parentWidth:Number;
+	private var m_parentHeight:Number;
 	
 	public function OptionsTab(title:String, settings:Object, buildGroups:Array, builds:Object, outfitGroups:Array, outfits:Object, quickBuildGroups:Array, quickBuilds:Object, buildList:BuildList, outfitList:OutfitList, quickBuildList:QuickBuildList, dragQuickButtons:Function, applyOverride:Function)
 	{
@@ -91,6 +95,8 @@ class com.boobuilds.OptionsTab implements ITabPane
 	public function CreatePane(addonMC:MovieClip, parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number):Void
 	{
 		m_parent = parent;
+		m_parentWidth = parent._width;
+		m_parentHeight = parent._height;
 		m_frame = m_parent.createEmptyMovieClip(name + "GeneralConfigWindow", m_parent.getNextHighestDepth());
 		m_frame._visible = false;
 		m_frame._x = x;
@@ -113,6 +119,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		{
 			m_dismountCheckbox.SetChecked(m_settings[DISMOUNT_PRELOAD] == 1);
 			m_overrideCheckbox.SetChecked(Settings.GetOverrideKey(m_settings));
+			m_outfitRightClickCheckbox.SetChecked(Settings.GetRightClickOutfit(m_settings));
 			
 			RebuildMenu();
 		}
@@ -233,6 +240,14 @@ class com.boobuilds.OptionsTab implements ITabPane
 		}
 	}
 	
+	private function IconRightChanged(newValue:Boolean):Void
+	{
+		if (m_settings != null)
+		{
+			Settings.SetRightClickOutfit(m_settings, newValue);
+		}
+	}
+	
 	private function DrawFrame():Void
 	{
 		var textFormat:TextFormat = Graphics.GetTextFormat();
@@ -256,37 +271,44 @@ class com.boobuilds.OptionsTab implements ITabPane
 		row = 2;
 		y = 35 + (5 + 2 * extents.height) * row;
 		m_overrideCheckbox = new Checkbox("WeaponsCheck", m_frame, 25, y + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, OverrideChanged), false);		
-		Graphics.DrawText("DismountLabel", m_frame, text, textFormat, 25 + checkSize + 5, y, extents.width, extents.height);
+		Graphics.DrawText("WeaponsLabel", m_frame, text, textFormat, 25 + checkSize + 5, y, extents.width, extents.height);
+
+		text = "Right click icon for outfits";
+		extents = Text.GetTextExtent(text, textFormat, m_frame);
+		row = 3;
+		y = 35 + (5 + 2 * extents.height) * row;
+		m_outfitRightClickCheckbox = new Checkbox("IconRightCheck", m_frame, 25, y + extents.height / 2 - checkSize / 2, checkSize, Delegate.create(this, IconRightChanged), false);		
+		Graphics.DrawText("IconRightLabel", m_frame, text, textFormat, 25 + checkSize + 5, y, extents.width, extents.height);
 
 		text = "Restore builds and outfits";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		row = 4;
+		row = 5;
 		y = 35 + (5 + 2 * extents.height) * row;
-		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowRestoreDialog));
+		Graphics.DrawButton("Restore", m_frame, text, textFormat, 25, y, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, ShowRestoreDialog));
 		
 		text = "Backup builds and outfits";
-		row = 3;
+		row = 4;
 		y = 35 + (5 + 2 * extents.height) * row;
-		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ShowBackupDialog));
+		Graphics.DrawButton("Backup", m_frame, text, textFormat, 25, y, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, ShowBackupDialog));
 
 		text = "Reset quick buttons";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		row = 6;
+		row = 7;
 		y = 35 + (5 + 2 * extents.height) * row;
-		Graphics.DrawButton("QuickButton1", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, ResetQuickButtons));
+		Graphics.DrawButton("QuickButton1", m_frame, text, textFormat, 25, y, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, ResetQuickButtons));
 		
 		text = "Move quick buttons";
 		extents = Text.GetTextExtent(text, textFormat, m_frame);
-		row = 5;
+		row = 6;
 		y = 35 + (5 + 2 * extents.height) * row;
-		Graphics.DrawButton("QuickButton", m_frame, text, textFormat, 25, y, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, DragQuickButtons));
+		Graphics.DrawButton("QuickButton", m_frame, text, textFormat, 25, y, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, DragQuickButtons));
 	}
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
 	{
 		m_throttleX = x;
 		m_throttleY = y;
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		var colours:Array = Colours.GetDefaultColourArray();
 		m_menu = new MenuPanel(modalMC, "ThrottleMenu", 4, colours[0], colours[1]);
 		var subMenu:MenuPanel = new MenuPanel(modalMC, "ThrottlePanel", 4, colours[0], colours[1]);
 		AddItem(subMenu, THROTTLE_MODE0, colours);
@@ -355,7 +377,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		UnloadDialogs();
 		
 		var backupString:String = CreateBackupString();
-		m_exportDialog = new ExportDialog("Backup", m_parent, "Backup builds and outfits", backupString);
+		m_exportDialog = new ExportDialog("Backup", m_parent, m_parentWidth, m_parentHeight, "Backup builds and outfits", backupString);
 		m_exportDialog.Show();
 	}
 	
@@ -363,7 +385,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	{
 		UnloadDialogs();
 		
-		m_restoreDialog = new RestoreDialog("Restore", m_parent, Delegate.create(this, RestoreCallback));
+		m_restoreDialog = new RestoreDialog("Restore", m_parent, m_parentWidth, m_parentHeight, Delegate.create(this, RestoreCallback));
 		m_restoreDialog.Show();
 	}
 
@@ -579,7 +601,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 	
 	private function CreateTempGroup(groupID:String, groups:Array):Void
 	{
-		var thisGroup:BuildGroup = new BuildGroup(groupID, "GROUP" + groupID, BuildGroup.GRAY);
+		var thisGroup:BuildGroup = new BuildGroup(groupID, "GROUP" + groupID, Colours.GetDefaultColourName());
 		groups.push(thisGroup);
 	}
 	
@@ -791,7 +813,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 			}
 		}
 		
-		var thisGroup:BuildGroup = new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Fashionista", BuildGroup.GRAY);
+		var thisGroup:BuildGroup = new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Fashionista", Colours.GetDefaultColourName());
 		m_outfitGroups.push(thisGroup);
 		return thisGroup;
 	}

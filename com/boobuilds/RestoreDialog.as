@@ -1,7 +1,7 @@
 import com.Utils.Text;
-import com.boocommon.Checkbox;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Checkbox;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -27,10 +27,10 @@ class com.boobuilds.RestoreDialog
 	private var m_input:TextField;
 	private var m_overwrite:Checkbox;
 	
-	public function RestoreDialog(name:String, parent:MovieClip, callback:Function) 
+	public function RestoreDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, callback:Function) 
 	{
 		m_callback = callback;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.6, 0.8);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.8, frameHeight * 0.6);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;

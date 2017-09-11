@@ -1,9 +1,10 @@
 import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
-import com.boocommon.IntervalCounter;
-import com.boocommon.MenuPanel;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.IntervalCounter;
+import com.boobuildscommon.MenuPanel;
 import caurina.transitions.Tweener;
 import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
@@ -256,7 +257,7 @@ class com.boobuilds.QuickSwitchIcons
 		}
 		else
 		{
-			ShowMenu(TANK_ID, BuildGroup.GetColourArray(BuildGroup.BLUE), m_tankIcon);
+			ShowMenu(TANK_ID, Colours.GetColourArray(Colours.BLUE), m_tankIcon);
 		}
 	}
 	
@@ -268,7 +269,7 @@ class com.boobuilds.QuickSwitchIcons
 		}
 		else
 		{
-			ShowMenu(HEALS_ID, BuildGroup.GetColourArray(BuildGroup.GREEN), m_healsIcon);
+			ShowMenu(HEALS_ID, Colours.GetColourArray(Colours.GREEN), m_healsIcon);
 		}
 	}
 	
@@ -280,7 +281,7 @@ class com.boobuilds.QuickSwitchIcons
 		}
 		else
 		{
-			ShowMenu(DPS_ID, BuildGroup.GetColourArray(BuildGroup.RED), m_dpsIcon);
+			ShowMenu(DPS_ID, Colours.GetColourArray(Colours.RED), m_dpsIcon);
 		}
 	}
 	

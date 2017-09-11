@@ -17,11 +17,11 @@ import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.GearItem;
 import com.boobuilds.Outfit;
-import com.boocommon.DebugWindow;
-import com.boocommon.InfoWindow;
-import com.boocommon.IntervalCounter;
-import com.boocommon.InventoryThrottle;
-import com.boocommon.MountHelper;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.IntervalCounter;
+import com.boobuildscommon.InventoryThrottle;
+import com.boobuildscommon.MountHelper;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code

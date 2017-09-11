@@ -5,13 +5,14 @@ import com.boobuilds.BuildWindow;
 import com.boobuilds.ChangeGroupDialog;
 import com.boobuilds.EditDialog;
 import com.boobuilds.EditQuickBuildDialog;
-import com.boocommon.ITabPane;
-import com.boocommon.InfoWindow;
-import com.boocommon.OKDialog;
-import com.boocommon.PopupMenu;
-import com.boocommon.ScrollPane;
-import com.boocommon.TreePanel;
-import com.boocommon.YesNoDialog;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.ITabPane;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.OKDialog;
+import com.boobuildscommon.PopupMenu;
+import com.boobuildscommon.ScrollPane;
+import com.boobuildscommon.TreePanel;
+import com.boobuildscommon.YesNoDialog;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -53,6 +54,8 @@ class com.boobuilds.QuickBuildList implements ITabPane
 	private var m_changeGroupDialog:ChangeGroupDialog
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
+	private var m_parentWidth:Number;
+	private var m_parentHeight:Number;
 	
 	public function QuickBuildList(name:String, groups:Array, quickBuilds:Object, settings:Object, builds:Object, buildGroups:Array, outfits:Object)
 	{
@@ -71,9 +74,11 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		m_parent = parent;
 		m_name = name;
 		m_addonMC = addonMC;
-		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null);
+		m_parentWidth = parent._width;
+		m_parentHeight = parent._height;
+		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null, m_parentHeight * 0.1);
 		
-		m_itemPopup = new PopupMenu(m_addonMC, "Popup", 6);
+		m_itemPopup = new PopupMenu(m_addonMC, "QuickItemPopup", 6);
 		m_itemPopup.AddItem("Use", Delegate.create(this, ApplyBuild));
 		m_itemPopup.AddItem("Inspect", Delegate.create(this, InspectBuild));
 		m_itemPopup.AddSeparator();
@@ -87,7 +92,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		m_itemPopup.Rebuild();
 		m_itemPopup.SetCoords(Stage.width / 2, Stage.height / 2);
 		
-		m_groupPopup = new PopupMenu(m_addonMC, "Popup", 6);
+		m_groupPopup = new PopupMenu(m_addonMC, "QuickGroupPopup", 6);
 		m_groupPopup.AddItem("Create build", Delegate.create(this, CreateCurrentBuild));
 		m_groupPopup.Rebuild();
 		m_groupPopup.SetCoords(Stage.width / 2, Stage.height / 2);
@@ -155,7 +160,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			if (thisGroup != null)
 			{
 				//DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
-				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
+				var colours:Array = Colours.GetColourArray(thisGroup.GetColourName());
 				var subTree:TreePanel = new TreePanel(m_buildTree.GetMovieClip(), "subTree" + thisGroup.GetName(), margin, colours[0], colours[1], callback, Delegate.create(this, ContextMenu));
 				BuildSubMenu(subTree, thisGroup.GetID());
 				m_buildTree.AddSubMenu(thisGroup.GetName(), thisGroup.GetID(), subTree, colours[0], colours[1]);
@@ -277,7 +282,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_buildWindow = new BuildWindow("Build: " + thisBuild.GetName(), m_parent, thisBuild);
+			m_buildWindow = new BuildWindow("Build: " + thisBuild.GetName(), m_parent, m_parentWidth, m_parentHeight, thisBuild);
 			m_buildWindow.SetVisible(true);
 		}
 	}
@@ -324,7 +329,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		if (m_currentBuild != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("RenameBuild", m_parent, null, null, "Build name", m_currentBuild.GetName());
+			m_editDialog = new EditDialog("RenameBuild", m_parent, m_parentWidth, m_parentHeight, null, null, "Build name", m_currentBuild.GetName());
 			m_editDialog.Show(Delegate.create(this, RenameBuildCB));
 		}
 	}
@@ -370,7 +375,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			UnloadDialogs();
 
 			m_currentBuild = Build.FromCurrent(m_currentBuild.GetID(), m_currentBuild.GetName(), m_currentBuild.GetOrder(), m_currentBuild.GetGroup());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_addonMC, m_currentBuild, m_builds, m_buildGroups);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups);
 			m_editQuickBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
@@ -474,7 +479,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			{
 				UnloadDialogs();
 				
-				m_changeGroupDialog = new ChangeGroupDialog("ChangeBuildGroup", m_parent, m_addonMC, m_currentGroup.GetName(), m_groups);
+				m_changeGroupDialog = new ChangeGroupDialog("ChangeBuildGroup", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentGroup.GetName(), m_groups);
 				m_changeGroupDialog.Show(Delegate.create(this, ChangeGroupCB));
 			}
 		}
@@ -540,7 +545,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			var newID:String = Build.GetNextQuickID(m_quickBuilds);
 			var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_quickBuilds);
 			m_currentBuild = Build.FromCurrent(newID, "", newOrder, m_currentGroup.GetID());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_currentBuild, m_builds, m_buildGroups);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups);
 			m_editQuickBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}

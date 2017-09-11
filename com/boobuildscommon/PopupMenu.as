@@ -1,8 +1,8 @@
 import caurina.transitions.Tweener;
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
-import com.boocommon.TreeCheck;
-import com.boocommon.PopupMenu;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.TreeCheck;
+import com.boobuildscommon.PopupMenu;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
@@ -24,7 +24,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boocommon.PopupMenu
+class com.boobuildscommon.PopupMenu
 {
 	private var SEPARATOR:String = "__Separator__";
 	private var m_parent:MovieClip;

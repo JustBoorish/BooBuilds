@@ -1,5 +1,5 @@
 import com.Utils.Text;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -25,9 +25,9 @@ class com.boobuilds.ImportBuildDialog
 	private var m_nameInput:TextField;
 	private var m_buildInput:TextField;
 	
-	public function ImportBuildDialog(name:String, parent:MovieClip) 
+	public function ImportBuildDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number) 
 	{
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.4);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.65, frameHeight * 0.75);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -100,7 +100,7 @@ class com.boobuilds.ImportBuildDialog
 		line2.setNewTextFormat(m_textFormat);
 		line2.text = text2;
 		
-		var input2:TextField = modalMC.createTextField("Input", modalMC.getNextHighestDepth(), 30, line2._y + line2._height + 10, modalMC._width - 60, labelExtents.height + 6);
+		var input2:TextField = modalMC.createTextField("Input", modalMC.getNextHighestDepth(), 30, line2._y + line2._height + 10, modalMC._width - 60, (labelExtents.height * 10) + 6);
 		input2.type = "input";
 		input2.embedFonts = true;
 		input2.selectable = true;
@@ -113,8 +113,9 @@ class com.boobuilds.ImportBuildDialog
 		input2.borderColor = 0x585858;
 		input2.background = true;
 		input2.backgroundColor = 0x2E2E2E;
-		input2.wordWrap = false;
-		input2.maxChars = 4096;
+		input2.wordWrap = true;
+		input2.maxChars = 8192;
+		input2.multiline = true;
 		m_buildInput = input2;
 	}
 	

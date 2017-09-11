@@ -20,10 +20,11 @@ import com.boobuilds.OutfitSelector;
 import com.boobuilds.QuickBuildList;
 import com.boobuilds.QuickSwitchIcons;
 import com.boobuilds.Settings;
-import com.boocommon.DebugWindow;
-import com.boocommon.IconButton;
-import com.boocommon.InfoWindow;
-import com.boocommon.TabWindow;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.IconButton;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.TabWindow;
 import mx.utils.Delegate;
 
 /**
@@ -151,7 +152,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (Character.GetClientCharacter().GetName() != m_characterName)
 		{
-			DebugWindow.Log(DebugWindow.Debug, "BooBuilds OnModuleActivated: " + config.toString());
+			DebugWindow.Log(DebugWindow.Debug, "BooBuilds OnModuleActivated"); // + config.toString());
 			if (m_configWindow != null)
 			{
 				m_configWindow.SetVisible(false);
@@ -185,7 +186,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_characterName = m_clientCharacter.GetName();
 			DebugWindow.Log(DebugWindow.Info, "BooBuilds OnModuleActivated: connect " + m_characterName);
 
-			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, ToggleConfigVisible), Delegate.create(this, ToggleOutfitSelectorVisible), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
+			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, m_settings, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, IconRightClick), Delegate.create(this, IconShiftLeftClick), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
 			
 			SetQuickSwitchIcons(false);
 			
@@ -226,20 +227,20 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[QuickSwitchIcons.Y] = -1;
 		Settings.SetOverrideKey(m_defaults, true);
 		Settings.SetPrevToggleID(m_defaults, "");
-		Settings.SetCurrentToggleID(m_defaults, "");
+		Settings.SetRightClickOutfit(m_defaults, false);
 	}
 	
 	private function SetDefaultBuildGroups():Void
 	{
-		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Solo", BuildGroup.PURPLE));
-		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "DPS", BuildGroup.RED));
-		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Heals", BuildGroup.GREEN));
-		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Tank", BuildGroup.BLUE));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Solo", Colours.PURPLE));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "DPS", Colours.RED));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Heals", Colours.GREEN));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Tank", Colours.BLUE));
 	}
 	
 	private function SetDefaultOutfitGroups():Void
 	{
-		m_outfitGroups.push(new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Solo", BuildGroup.PURPLE));
+		m_outfitGroups.push(new BuildGroup(BuildGroup.GetNextID(m_outfitGroups), "Solo", Colours.PURPLE));
 	}
 	
 	private function SaveBuildGroups():Void
@@ -280,9 +281,9 @@ class com.boobuilds.Controller extends MovieClip
 	private function SetQuickBuildGroups():Void
 	{
 		m_quickBuildGroups = new Array();
-		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "DPS", BuildGroup.RED));
-		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Heals", BuildGroup.GREEN));
-		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Tank", BuildGroup.BLUE));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "DPS", Colours.RED));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Heals", Colours.GREEN));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Tank", Colours.BLUE));
 	}
 	
 	private function SaveBuilds():Void
@@ -628,6 +629,30 @@ class com.boobuilds.Controller extends MovieClip
 		if (thisOutfit != null)
 		{
 			thisOutfit.Apply();
+		}
+	}
+	
+	private function IconRightClick():Void
+	{
+		if (Settings.GetRightClickOutfit(m_settings) == true)
+		{
+			ToggleOutfitSelectorVisible();
+		}
+		else
+		{
+			ToggleConfigVisible();
+		}
+	}
+	
+	private function IconShiftLeftClick():Void
+	{
+		if (Settings.GetRightClickOutfit(m_settings) != true)
+		{
+			ToggleOutfitSelectorVisible();
+		}
+		else
+		{
+			ToggleConfigVisible();
 		}
 	}
 	

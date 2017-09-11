@@ -1,5 +1,5 @@
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -17,7 +17,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.ScrollPane
+class com.boobuildscommon.ScrollPane
 {
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;
@@ -31,8 +31,9 @@ class com.boocommon.ScrollPane
 	private var m_scrollButton:MovieClip;
 	private var m_ratio:Number;
 	private var m_backgroundColour:Number;
+	private var m_wheelDelta:Number;
 	
-	public function ScrollPane(parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number, backgroundColour:Number) 
+	public function ScrollPane(parent:MovieClip, name:String, x:Number, y:Number, width:Number, height:Number, backgroundColour:Number, wheelDelta:Number) 
 	{
 		m_name = name;
 		m_parent = parent;
@@ -43,6 +44,7 @@ class com.boocommon.ScrollPane
 		m_backgroundColour = backgroundColour;
 		m_maxWidth = width;
 		m_maxHeight = height;
+		m_wheelDelta = wheelDelta;
 		m_content = null;
 		m_mask = null;
 		m_ratio = 1;
@@ -126,7 +128,7 @@ class com.boocommon.ScrollPane
 	{
 		if (m_frame._visible == true)
 		{
-			var change:Number = m_maxWidth * (delta / 10);
+			var change:Number = m_wheelDelta * delta;
 			m_scrollButton._y -= change;
 			if (m_scrollButton._y < 0)
 			{
@@ -146,14 +148,14 @@ class com.boocommon.ScrollPane
 	
 	private function DrawFrame():Void
 	{
-		var areaFrame:MovieClip = m_frame.createEmptyMovieClip("Frame", m_frame.getNextHighestDepth());
+		//var areaFrame:MovieClip = m_frame.createEmptyMovieClip("Frame", m_frame.getNextHighestDepth());
 		if (m_backgroundColour != null)
 		{
-			Graphics.DrawFilledRoundedRectangle(areaFrame, 0x000000, 1, m_backgroundColour, 100, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
+			Graphics.DrawFilledRoundedRectangle(m_frame, 0x000000, 1, m_backgroundColour, 100, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
 		}
 		else
 		{
-			Graphics.DrawRoundedRectangle(areaFrame, 0x000000, 1, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
+			Graphics.DrawRoundedRectangle(m_frame, 0x000000, 1, 0, 0, m_maxWidth + 2, m_maxHeight + 2);
 		}
 		
 		var radius:Number = 5;

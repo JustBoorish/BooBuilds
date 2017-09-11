@@ -1,7 +1,8 @@
 import com.Utils.Text;
 import com.boobuilds.BuildGroup;
-import com.boocommon.MenuPanel;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.MenuPanel;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -31,12 +32,12 @@ class com.boobuilds.EditGroupDialog
 	private var m_colourX:Number;
 	private var m_colourY:Number;
 	
-	public function EditGroupDialog(name:String, parent:MovieClip, groupName:String, colourName:String) 
+	public function EditGroupDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, groupName:String, colourName:String) 
 	{
 		m_groupName = groupName;
 		m_colourName = colourName;
 		
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.5);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.65, frameHeight * 0.6);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -105,16 +106,14 @@ class com.boobuilds.EditGroupDialog
 	
 	private function BuildMenu(modalMC:MovieClip, x:Number, y:Number):Void
 	{
-		var colours:Array = BuildGroup.GetColourArray(m_colourName);
+		var colours:Array = Colours.GetColourArray(m_colourName);
 		m_menu = new MenuPanel(modalMC, "Colour", 4, colours[0], colours[1]);
 		var subMenu:MenuPanel = new MenuPanel(modalMC, "Colour", 4, colours[0], colours[1]);
-		AddItem(subMenu, BuildGroup.RED);
-		AddItem(subMenu, BuildGroup.GREEN);
-		AddItem(subMenu, BuildGroup.BLUE);
-		AddItem(subMenu, BuildGroup.ORANGE);
-		AddItem(subMenu, BuildGroup.YELLOW);
-		AddItem(subMenu, BuildGroup.PURPLE);
-		AddItem(subMenu, BuildGroup.GRAY);
+		var colourArray:Array = Colours.GetColourNames();
+		for (var indx:Number = 0; indx < colourArray.length; ++indx)
+		{
+			AddItem(subMenu, colourArray[indx]);
+		}
 		m_menu.AddSubMenu("Colour", subMenu, colours[0], colours[1]);
 		
 		var pt:Object = m_menu.GetDimensions(x, y, true, 0, 0, modalMC.width, modalMC.height);
@@ -125,7 +124,7 @@ class com.boobuilds.EditGroupDialog
 	
 	private function AddItem(subMenu:MenuPanel, colourName:String):Void
 	{
-		var colours:Array = BuildGroup.GetColourArray(colourName);
+		var colours:Array = Colours.GetColourArray(colourName);
 		subMenu.AddItem(colourName, Delegate.create(this, ColourChanged), colours[0], colours[1]);
 	}
 	

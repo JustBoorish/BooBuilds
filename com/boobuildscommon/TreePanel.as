@@ -1,8 +1,8 @@
 import caurina.transitions.Tweener;
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
-import com.boocommon.TreeCheck;
-import com.boocommon.TreePanel;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.TreeCheck;
+import com.boobuildscommon.TreePanel;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
@@ -25,7 +25,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.TreePanel
+class com.boobuildscommon.TreePanel
 {
 	private var m_parent:MovieClip;
 	private var m_menu:MovieClip;

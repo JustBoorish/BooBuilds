@@ -1,6 +1,6 @@
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
-import com.boocommon.InfoWindow;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.InfoWindow;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 /**
@@ -19,7 +19,7 @@ import caurina.transitions.Tweener;
  * 
  * Author: Boorish
  */
-class com.boocommon.InfoWindow
+class com.boobuildscommon.InfoWindow
 {
 	private static var m_instance:InfoWindow;
 	private static var MAX_MSGS:Number = 4;
@@ -81,8 +81,9 @@ class com.boocommon.InfoWindow
 		
 		++m_errorCount;
 		var msg:MovieClip = CreateMsg(text, colour);
+		msg._visible = true;
 		msg._alpha = 100;
-		Tweener.addTween(msg, { _alpha:0, time:3, transition:"easeInQuint" } );
+		Tweener.addTween(msg, { _alpha:0, time:3, transition:"easeInQuint", onComplete:function() { msg._visible = false; } } );
 		
 		ShiftMsgsUp(msg._height);
 		m_msgList.push(msg);

@@ -1,5 +1,5 @@
 import com.Utils.Text;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -28,13 +28,13 @@ class com.boobuilds.EditDialog
 	private var m_callback:Function;
 	private var m_input:TextField;
 	
-	public function EditDialog(name:String, parent:MovieClip, line1:String, line2:String, line3:String, line4:String) 
+	public function EditDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, line1:String, line2:String, line3:String, line4:String) 
 	{
 		m_line1 = line1;
 		m_line2 = line2;
 		m_line3 = line3;
 		m_line4 = line4;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.4);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.65, frameHeight * 0.4);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;

@@ -6,15 +6,15 @@ import com.boobuilds.EditGroupDialog;
 import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.ExportDialog;
 import com.boobuilds.ImportOutfitDialog;
-import com.boobuilds.ManageDuplicatesDialog;
 import com.boobuilds.Outfit;
-import com.boocommon.ITabPane;
-import com.boocommon.InfoWindow;
-import com.boocommon.OKDialog;
-import com.boocommon.PopupMenu;
-import com.boocommon.ScrollPane;
-import com.boocommon.TreePanel;
-import com.boocommon.YesNoDialog;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.ITabPane;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.OKDialog;
+import com.boobuildscommon.PopupMenu;
+import com.boobuildscommon.ScrollPane;
+import com.boobuildscommon.TreePanel;
+import com.boobuildscommon.YesNoDialog;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -53,9 +53,10 @@ class com.boobuilds.OutfitList implements ITabPane
 	private var m_importOutfitDialog:ImportOutfitDialog;
 	private var m_exportOutfitDialog:ExportDialog;
 	private var m_changeGroupDialog:ChangeGroupDialog;
-	private var m_manageDuplicatesDialog:ManageDuplicatesDialog;
 	private var m_settings:Object;
 	private var m_forceRedraw:Boolean;
+	private var m_parentWidth:Number;
+	private var m_parentHeight:Number;
 	
 	public function OutfitList(name:String, groups:Array, outfits:Object, settings:Object)
 	{
@@ -71,16 +72,17 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_parent = parent;
 		m_name = name;
 		m_addonMC = addonMC;
-		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null);
+		m_parentWidth = parent._width;
+		m_parentHeight = parent._height;
+		m_scrollPane = new ScrollPane(m_parent, m_name + "Scroll", x, y, width, height, null, m_parentHeight * 0.1);
 		
-		m_itemPopup = new PopupMenu(m_addonMC, "Popup", 6);
+		m_itemPopup = new PopupMenu(m_addonMC, "OutfitItemPopup", 6);
 		m_itemPopup.AddItem("Use", Delegate.create(this, ApplyOutfit));
 		m_itemPopup.AddItem("Preview", Delegate.create(this, PreviewOutfit));
 		m_itemPopup.AddSeparator();
 		m_itemPopup.AddItem("Export", Delegate.create(this, ExportOutfit));
 		m_itemPopup.AddItem("Rename", Delegate.create(this, RenameOutfit));
 		m_itemPopup.AddItem("Update", Delegate.create(this, UpdateOutfit));
-		m_itemPopup.AddItem("Manage duplicates", Delegate.create(this, ManageDuplicates));
 		m_itemPopup.AddItem("Add weapon skins", Delegate.create(this, AddCurrentWeaponSkins));
 		m_itemPopup.AddItem("Change group", Delegate.create(this, ChangeGroup));
 		m_itemPopup.AddItem("Move Up", Delegate.create(this, MoveOutfitUp));
@@ -90,7 +92,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_itemPopup.Rebuild();
 		m_itemPopup.SetCoords(Stage.width / 2, Stage.height / 2);
 		
-		m_groupPopup = new PopupMenu(m_addonMC, "Popup", 6);
+		m_groupPopup = new PopupMenu(m_addonMC, "OutfitGroupPopup", 6);
 		m_groupPopup.AddItem("Create outfit", Delegate.create(this, CreateCurrentOutfit));
 		m_groupPopup.AddSeparator();
 		m_groupPopup.AddItem("Import outfit", Delegate.create(this, ImportOutfit));
@@ -166,7 +168,7 @@ class com.boobuilds.OutfitList implements ITabPane
 			if (thisGroup != null)
 			{
 				//DebugWindow.Log(DebugWindow.Info, "Adding group " + thisGroup.GetName());
-				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
+				var colours:Array = Colours.GetColourArray(thisGroup.GetColourName());
 				var subTree:TreePanel = new TreePanel(m_outfitTree.GetMovieClip(), "subTree" + thisGroup.GetName(), margin, colours[0], colours[1], callback, Delegate.create(this, ContextMenu));
 				OutfitSubMenu(subTree, thisGroup.GetID());
 				m_outfitTree.AddSubMenu(thisGroup.GetName(), thisGroup.GetID(), subTree, colours[0], colours[1]);
@@ -271,12 +273,6 @@ class com.boobuilds.OutfitList implements ITabPane
 			m_editOutfitDialog = null;
 		}
 		
-		if (m_manageDuplicatesDialog != null)
-		{
-			m_manageDuplicatesDialog.Unload();
-			m_manageDuplicatesDialog = null;
-		}
-		
 		if (m_importOutfitDialog != null)
 		{
 			m_importOutfitDialog.Unload();
@@ -357,7 +353,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_exportOutfitDialog = new ExportDialog("ExportOutfit", m_parent, "Outfit " + m_currentOutfit.GetName(), m_currentOutfit.toString());
+			m_exportOutfitDialog = new ExportDialog("ExportOutfit", m_parent, m_parentWidth, m_parentHeight, "Outfit " + m_currentOutfit.GetName(), m_currentOutfit.toString());
 			m_exportOutfitDialog.Show();
 		}
 	}
@@ -368,7 +364,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_importOutfitDialog = new ImportOutfitDialog("ImportOutfit", m_parent);
+			m_importOutfitDialog = new ImportOutfitDialog("ImportOutfit", m_parent, m_parentWidth, m_parentHeight);
 			m_importOutfitDialog.Show(Delegate.create(this, ImportOutfitCB));
 		}
 	}
@@ -421,7 +417,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentOutfit != null)
 		{
 			UnloadDialogs();
-			m_editDialog = new EditDialog("RenameOutfit", m_parent, null, null, "Outfit name", m_currentOutfit.GetName());
+			m_editDialog = new EditDialog("RenameOutfit", m_parent, m_parentWidth, m_parentHeight, null, null, "Outfit name", m_currentOutfit.GetName());
 			m_editDialog.Show(Delegate.create(this, RenameOutfitCB));
 		}
 	}
@@ -466,7 +462,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.AreWeaponSkinsSet(), m_currentOutfit.GetSprintTag(), m_currentOutfit.GetPetTag());
+			m_editOutfitDialog = new EditOutfitDialog("UpdateOutfit", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentOutfit.GetName(), m_currentOutfit.AreWeaponsSet(), m_currentOutfit.AreWeaponSkinsSet(), m_currentOutfit.GetSprintTag(), m_currentOutfit.GetPetTag());
 			m_editOutfitDialog.Show(Delegate.create(this, UpdateOutfitCB));
 		}
 	}
@@ -537,46 +533,6 @@ class com.boobuilds.OutfitList implements ITabPane
 		m_currentOutfit = null;
 	}
 	
-	private function ManageDuplicates(outfitID:String):Void
-	{
-		m_currentOutfit = m_outfits[outfitID];
-		if (m_currentOutfit != null)
-		{
-			UnloadDialogs();
-			
-			var slotNames:Array = new Array();
-			var slotValues:Array = new Array();
-			for (var indx:Number = 0; indx < m_currentOutfit.GetSize(); ++indx)
-			{
-				if (m_currentOutfit.IsDuplicateItem(indx) == true)
-				{
-					slotNames.push(m_currentOutfit.GetItemName(indx));
-					slotValues.push(m_currentOutfit.GetReverseLookup(indx));
-				}
-			}
-			
-			m_manageDuplicatesDialog = new ManageDuplicatesDialog("ManageDuplicates", m_parent, m_addonMC, slotNames, slotValues);
-			m_manageDuplicatesDialog.Show(Delegate.create(this, ManageDuplicatesCB));
-		}
-	}
-	
-	private function ManageDuplicatesCB(slotNames:Array, slotValues:Array):Void
-	{
-		if (slotNames != null && slotValues != null)
-		{
-			for (var indx:Number = 0; indx < slotNames.length; ++indx)
-			{
-				var slot:Number = FindItemSlot(slotNames[indx]);
-				if (slot != null)
-				{
-					m_currentOutfit.SetReverseLookup(slot, slotValues[indx]);
-				}
-			}
-		}
-		
-		m_currentOutfit = null;
-	}
-	
 	private function FindItemSlot(name:String):Number
 	{
 		var ret:Number = null;
@@ -616,7 +572,7 @@ class com.boobuilds.OutfitList implements ITabPane
 			{
 				UnloadDialogs();
 				
-				m_changeGroupDialog = new ChangeGroupDialog("ChangeOutfitGroup", m_parent, m_addonMC, m_currentGroup.GetName(), m_groups);
+				m_changeGroupDialog = new ChangeGroupDialog("ChangeOutfitGroup", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentGroup.GetName(), m_groups);
 				m_changeGroupDialog.Show(Delegate.create(this, ChangeGroupCB));
 			}
 		}
@@ -698,12 +654,12 @@ class com.boobuilds.OutfitList implements ITabPane
 			UnloadDialogs();
 			if (m_groups.length > 1)
 			{
-				m_yesNoDialog = new YesNoDialog("DeleteGroup", m_parent, "Deleting this group will", "remove all its outfits", "Are you sure?");
+				m_yesNoDialog = new YesNoDialog("DeleteGroup", m_parent, m_parentWidth, m_parentHeight, "Deleting this group will", "remove all its outfits", "Are you sure?");
 				m_yesNoDialog.Show(Delegate.create(this, DeleteGroupCB));
 			}
 			else
 			{
-				m_okDialog = new OKDialog("DeleteGroup", m_parent, "You cannot delete the", "final group", "");
+				m_okDialog = new OKDialog("DeleteGroup", m_parent, m_parentWidth, m_parentHeight, "You cannot delete the", "final group", "");
 				m_okDialog.Show();
 			}
 		}
@@ -751,7 +707,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, m_addonMC, "", true, true, null, null);
+			m_editOutfitDialog = new EditOutfitDialog("CreateOutfit", m_parent, m_addonMC, m_parentWidth, m_parentHeight, "", true, true, null, null);
 			m_editOutfitDialog.Show(Delegate.create(this, CreateCurrentOutfitCB));
 		}
 	}
@@ -826,7 +782,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("EditGroup", m_parent, m_currentGroup.GetName(), m_currentGroup.GetColourName());
+			m_editGroupDialog = new EditGroupDialog("EditGroup", m_parent, m_parentWidth, m_parentHeight, m_currentGroup.GetName(), m_currentGroup.GetColourName());
 			m_editGroupDialog.Show(Delegate.create(this, EditGroupCB));
 		}
 	}
@@ -871,7 +827,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
+			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, m_parentWidth, m_parentHeight, "", Colours.GetDefaultColourName());
 			m_editGroupDialog.Show(Delegate.create(this, AddGroupAboveCB));
 		}
 	}
@@ -918,7 +874,7 @@ class com.boobuilds.OutfitList implements ITabPane
 		if (m_currentGroup != null)
 		{
 			UnloadDialogs();
-			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, "", BuildGroup.GRAY);
+			m_editGroupDialog = new EditGroupDialog("AddGroupAbove", m_parent, m_parentWidth, m_parentHeight, "", Colours.GetDefaultColourName());
 			m_editGroupDialog.Show(Delegate.create(this, AddGroupBelowCB));
 		}
 	}

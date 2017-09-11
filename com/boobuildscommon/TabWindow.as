@@ -1,6 +1,6 @@
-import com.boocommon.IconButton;
-import com.boocommon.ITabPane;
-import com.boocommon.TabStrip;
+import com.boobuildscommon.IconButton;
+import com.boobuildscommon.ITabPane;
+import com.boobuildscommon.TabStrip;
 import com.Utils.Text;
 import com.GameInterface.DistributedValue;
 import caurina.transitions.Tweener;
@@ -24,7 +24,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.TabWindow
+class com.boobuildscommon.TabWindow
 {
 	private var m_parent:MovieClip;
 	private var m_frame:MovieClip;
@@ -281,7 +281,7 @@ class com.boocommon.TabWindow
 	
 	private function onHelpPress():Void
 	{
-		var newURL:String = "https://tswact.wordpress.com/boocommon/";
+		var newURL:String = "https://tswact.wordpress.com/boobuildscommon/";
 		if (m_helpURL != null)
 		{
 			newURL = m_helpURL;

@@ -1,4 +1,4 @@
-import com.boocommon.DebugWindow;
+import com.boobuildscommon.DebugWindow;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -16,7 +16,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.IntervalCounter
+class com.boobuildscommon.IntervalCounter
 {
 	public static var WAIT_MILLIS:Number = 20;
 	public static var MAX_ITERATIONS:Number = 100;

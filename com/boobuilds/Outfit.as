@@ -12,11 +12,11 @@ import com.Utils.StringUtils;
 import com.boobuilds.Build;
 import com.boobuilds.EditOutfitDialog;
 import com.boobuilds.Outfit;
-import com.boocommon.DebugWindow;
-import com.boocommon.InfoWindow;
-import com.boocommon.IntervalCounter;
-import com.boocommon.InventoryThrottle;
-import com.boocommon.MountHelper;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.IntervalCounter;
+import com.boobuildscommon.InventoryThrottle;
+import com.boobuildscommon.MountHelper;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -53,7 +53,6 @@ class com.boobuilds.Outfit
 	private var m_order:Number;
 	private var m_outfit:Array;
 	private var m_weaponSkins:Object;
-	private var m_reverseLookup:Array;
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_sprintTag:Number;
@@ -70,7 +69,6 @@ class com.boobuilds.Outfit
 		m_group = group;
 		m_order = order;
 		m_outfit = new Array();
-		m_reverseLookup = null;
 		ClearWeaponVisibility();
 		ClearSprint();
 		ClearPet();
@@ -180,69 +178,6 @@ class com.boobuilds.Outfit
 	public function IsFullOutfit():Boolean
 	{
 		return m_outfit.length == FULL_OUTFIT_SIZE;
-	}
-	
-	public function IsReverseLookupSet():Boolean
-	{
-		var ret:Boolean = false;
-		
-		if (m_reverseLookup != null)
-		{
-			for (var indx:Number = 0; indx < m_reverseLookup.length; ++indx)
-			{
-				if (m_reverseLookup[indx] == true)
-				{
-					ret = true;
-					break;
-				}
-			}
-		}
-		
-		return ret;
-	}
-	
-	public function GetReverseLookup(slot:Number):Boolean
-	{
-		if (m_reverseLookup != null)
-		{
-			return m_reverseLookup[slot];
-		}
-		else
-		{
-			return false;
-		}
-	}
-	
-	public function SetReverseLookup(slot:Number, newValue:Boolean):Void
-	{
-		if (m_reverseLookup == null)
-		{
-			if (newValue == true)
-			{
-				m_reverseLookup = new Array();
-				for (var indx:Number = 0; indx < m_outfit.length; ++indx)
-				{
-					m_reverseLookup.push(false);
-				}
-				
-				m_reverseLookup[slot] = true;
-			}
-		}
-		else
-		{
-			if (newValue == true)
-			{
-				m_reverseLookup[slot] = true;
-			}
-			else
-			{
-				m_reverseLookup[slot] = false;
-				if (IsReverseLookupSet() != true)
-				{
-					m_reverseLookup = null;
-				}
-			}
-		}
 	}
 	
 	public function GetID():String
@@ -428,34 +363,48 @@ class com.boobuilds.Outfit
 		if (fullOutfitItem != null)
 		{
 			m_outfit = new Array();
-			m_reverseLookup = null;
 			for ( var i:Number = 0 ; i < FULL_OUTFIT_SIZE; ++i )
 			{
-				var item:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(i));
-				if (item != null)
+				var nodeID:Number = GetEquippedNodeID(GetFullOutfitNodeID(i));
+				if (nodeID != null)
 				{
-					m_outfit.push(item.m_Name);
+					m_outfit.push(String(nodeID));
 				}
 				else
 				{
-					m_outfit.push(null);
+					var item:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(i));
+					if (item != null)
+					{
+						m_outfit.push(item.m_Name);
+					}
+					else
+					{
+						m_outfit.push(null);
+					}
 				}
 			}		
 		}
 		else
 		{
 			m_outfit = new Array();
-			m_reverseLookup = null;
 			for ( var i:Number = 0 ; i < NORMAL_OUTFIT_SIZE; ++i )
 			{
-				var item:InventoryItem = inventory.GetItemAt(GetNormalSlotID(i));
-				if (item != null)
+				var nodeID:Number = GetEquippedNodeID(GetNormalNodeID(i));
+				if (nodeID != null)
 				{
-					m_outfit.push(item.m_Name);
+					m_outfit.push(String(nodeID));
 				}
 				else
 				{
-					m_outfit.push(null);
+					var item:InventoryItem = inventory.GetItemAt(GetNormalSlotID(i));
+					if (item != null)
+					{
+						m_outfit.push(item.m_Name);
+					}
+					else
+					{
+						m_outfit.push(null);
+					}
 				}
 			}		
 		}
@@ -472,6 +421,12 @@ class com.boobuilds.Outfit
 		return positions[indx];
 	}
 	
+	private function GetNormalNodeID(indx:Number):Number
+	{
+		var positions:Array = [4, 5, 26, 45, 1, 51, 52, 53, null, null, 125];
+		return positions[indx];
+	}
+	
 	private function GetFullOutfitSlotID(indx:Number):Number
 	{
 		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_FullOutfit,
@@ -484,6 +439,12 @@ class com.boobuilds.Outfit
 		return positions[indx];
 	}
 	
+	private function GetFullOutfitNodeID(indx:Number):Number
+	{
+		var positions:Array = [54, 4, 5, 26, 45, 1, 51, 52, 53, null, null, 125];
+		return positions[indx];
+	}
+
 	private function GetOutfitSize():Number
 	{
 		if (IsFullOutfit() == true)
@@ -524,18 +485,10 @@ class com.boobuilds.Outfit
 		if (IsFullOutfit() == true)
 		{
 			ret = ret + Build.GetArrayString("FL", m_outfit);
-			if (IsReverseLookupSet() == true)
-			{
-				ret = ret + Build.GetArrayString("DL", m_reverseLookup);
-			}
 		}
 		else
 		{
 			ret = ret + Build.GetArrayString("OU", m_outfit);
-			if (IsReverseLookupSet() == true)
-			{
-				ret = ret + Build.GetArrayString("DU", m_reverseLookup);
-			}
 		}
 
 		
@@ -609,14 +562,6 @@ class com.boobuilds.Outfit
 					ret.SetPetFromArray(i + 1, items);
 					i += 1 + 1;
 					break;
-				case "DL":
-					ret.SetDuplicatesFromArray(i + 1, items, FULL_OUTFIT_SIZE);
-					i += FULL_OUTFIT_SIZE + 1;
-					break;
-				case "DU":
-					ret.SetDuplicatesFromArray(i + 1, items, NORMAL_OUTFIT_SIZE);
-					i += NORMAL_OUTFIT_SIZE + 1;
-					break;
 				case "WS":
 					i += ret.SetWeaponSkinsFromArray(i + 1, items) + 1;
 					break;
@@ -660,27 +605,6 @@ class com.boobuilds.Outfit
 			if (indx < items.length && items[indx] != "undefined")
 			{
 				m_outfit[i] = items[indx];
-			}
-		}
-	}
-	
-	private function SetDuplicatesFromArray(offset:Number, items:Array, size:Number):Void
-	{
-		m_reverseLookup = new Array();
-		for (var i:Number = 0; i < size; ++i)
-		{
-			var indx:Number = i + offset;
-			if (indx < items.length && items[indx] != "undefined")
-			{
-				var item:Boolean = items[indx] == "true";
-				if (item == true)
-				{
-					m_reverseLookup[i] = true;
-				}
-				else
-				{
-					m_reverseLookup[i] = false;
-				}
 			}
 		}
 	}
@@ -859,14 +783,22 @@ class com.boobuilds.Outfit
 			}
 			else
 			{
-				var itemIndx:Number = FindInventoryItem(wardrobeInv, itemName, GetReverseLookup(slot));
-				if (itemIndx == null)
+				var nodeID:Number = GetNodeID(itemName);
+				if (nodeID != null)
 				{
-					InfoWindow.LogError("Failed to preview " + itemName);
+					DressingRoom.PreviewNodeItem(nodeID);
 				}
 				else
 				{
-					wardrobeInv.PreviewItem(itemIndx);
+					var itemIndx:Number = FindInventoryItem(wardrobeInv, itemName);
+					if (itemIndx == null)
+					{
+						InfoWindow.LogError("Failed to preview " + itemName);
+					}
+					else
+					{
+						wardrobeInv.PreviewItem(itemIndx);
+					}
 				}
 			}
 		}
@@ -923,32 +855,41 @@ class com.boobuilds.Outfit
 		
 		if (equipped == false)
 		{
-			var wardrobeInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_StaticInventory, Character.GetClientCharacter().GetID().GetInstance());
-			var wardrobeInv:Inventory = new Inventory(wardrobeInvId);
-
-			if (itemName != null)
+			var nodeID:Number = GetNodeID(itemName);
+			if (nodeID != null)
 			{
-				var inventorySlot:Number = FindInventoryItem(wardrobeInv, itemName, GetReverseLookup(m_equipOutfitSlot));
-				if (inventorySlot != null)
-				{
-					wearInv.AddItem(wardrobeInvId, inventorySlot, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
-				}
-				else
-				{
-					InfoWindow.LogError("Couldn't find outfit item " + itemName);
-					++m_outfitErrorCount;
-					moveOn = true;
-				}
+				DebugWindow.Log(DebugWindow.Debug, "Equip node " + nodeID + " " + (nodeID + 1));
+				DressingRoom.EquipNode(nodeID);
 			}
 			else
 			{
-				if (slotID == _global.Enums.ItemEquipLocation.e_Wear_Chest || slotID == _global.Enums.ItemEquipLocation.e_Wear_Legs)
+				var wardrobeInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_StaticInventory, Character.GetClientCharacter().GetID().GetInstance());
+				var wardrobeInv:Inventory = new Inventory(wardrobeInvId);
+
+				if (itemName != null)
 				{
-					moveOn = true;
+					var inventorySlot:Number = FindInventoryItem(wardrobeInv, itemName);
+					if (inventorySlot != null)
+					{
+						wearInv.AddItem(wardrobeInvId, inventorySlot, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
+					}
+					else
+					{
+						InfoWindow.LogError("Couldn't find outfit item " + itemName);
+						++m_outfitErrorCount;
+						moveOn = true;
+					}
 				}
 				else
 				{
-					wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
+					if (slotID == _global.Enums.ItemEquipLocation.e_Wear_Chest || slotID == _global.Enums.ItemEquipLocation.e_Wear_Legs)
+					{
+						moveOn = true;
+					}
+					else
+					{
+						wardrobeInv.AddItem(wearInvID, slotID, _global.Enums.ItemEquipLocation.e_Wear_DefaultLocation);
+					}
 				}
 			}
 		}
@@ -999,35 +940,30 @@ class com.boobuilds.Outfit
 		}
 		else
 		{
-			InfoWindow.LogError("Failed to equip outfit item " + itemName);
-		}
-	}
-	
-	private function FindInventoryItem(inv:Inventory, itemName:String, reverseLookup:Boolean):Number
-	{
-		var ret:Number = null;
-		if (reverseLookup == true)
-		{
-			for (var indx:Number = inv.GetMaxItems() - 1; indx >= 0; --indx)
+			var nodeID:Number = GetNodeID(itemName);
+			if (nodeID != null)
 			{
-				var tempItem:InventoryItem = inv.GetItemAt(indx);
-				if (tempItem != null && itemName == tempItem.m_Name)
-				{
-					ret = indx;
-					break;
-				}
+				InfoWindow.LogError("Failed to equip outfit item " + GetNodeName(nodeID));
+			}
+			else
+			{
+				InfoWindow.LogError("Failed to equip outfit item " + itemName);
 			}
 		}
-		else
+		
+		++m_outfitErrorCount;
+	}
+	
+	private function FindInventoryItem(inv:Inventory, itemName:String):Number
+	{
+		var ret:Number = null;
+		for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
 		{
-			for (var indx:Number = 0; indx < inv.GetMaxItems(); ++indx)
+			var tempItem:InventoryItem = inv.GetItemAt(indx);
+			if (tempItem != null && itemName == tempItem.m_Name)
 			{
-				var tempItem:InventoryItem = inv.GetItemAt(indx);
-				if (tempItem != null && itemName == tempItem.m_Name)
-				{
-					ret = indx;
-					break;
-				}
+				ret = indx;
+				break;
 			}
 		}
 		
@@ -1191,8 +1127,55 @@ class com.boobuilds.Outfit
 	
 	private function IsSlotSame(inventory:Inventory, slotID:Number, itemName:String):Boolean
 	{
-		var item:InventoryItem = inventory.GetItemAt(slotID);
-		return item.m_Name == itemName;
+		var nodeID:Number = GetNodeID(itemName);
+		if (nodeID == null)
+		{
+			var item:InventoryItem = inventory.GetItemAt(slotID);
+			return item.m_Name == itemName;
+		}
+		else
+		{
+			return DressingRoom.NodeEquipped(nodeID);
+		}
+	}
+	
+	private static function GetNodeID(itemName:String):Number
+	{
+		var ret:Number = Number(itemName);
+		if (isNaN(ret) == true)
+		{
+			return null;
+		}
+		
+		return ret;
+	}
+	
+	private static function GetNodeName(nodeID:Number):String
+	{
+		var ret:String = "Unknown";
+		
+		if (nodeID != null)
+		{
+			var parentNode:DressingRoomNode = DressingRoom.GetParent(nodeID);
+			if (parentNode != null)
+			{
+				var childNodes:Array = DressingRoom.GetChildren(parentNode.m_NodeId);
+				if (childNodes != null)
+				{
+					for (var indx:Number = 0; indx < childNodes.length; ++indx)
+					{
+						var childNode:DressingRoomNode = childNodes[indx];
+						if (childNode != null && childNode.m_NodeId == nodeID)
+						{
+							ret = childNode.m_Name;
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return ret;
 	}
 	
 	public function IsDuplicateItem(slot:Number):Boolean
@@ -1274,5 +1257,52 @@ class com.boobuilds.Outfit
 				}
 			}
 		}
+	}
+	
+	private function GetEquippedNodeID(parentNodeID:Number):Number
+	{
+		var ret:Number = null;
+		
+		if (parentNodeID != null)
+		{
+			var childNodes:Array = DressingRoom.GetChildren(parentNodeID);
+			if (childNodes != null)
+			{
+				for (var indx:Number = 0; indx < childNodes.length; ++indx)
+				{
+					var childNode:DressingRoomNode = childNodes[indx];
+					if (childNode != null)
+					{
+						if (DressingRoom.NodeEquipped(childNode.m_NodeId) == true)
+						{
+							var colourNodes:Array = DressingRoom.GetChildren(childNode.m_NodeId);
+							if (colourNodes == null || colourNodes.length == 0)
+							{
+								ret = childNode.m_NodeId;
+							}
+							else
+							{
+								for (var i:Number = 0; i < colourNodes.length; ++i)
+								{
+									var colourNode:DressingRoomNode = colourNodes[i];
+									if (colourNode != null)
+									{
+										if (DressingRoom.NodeEquipped(colourNode.m_NodeId) == true)
+										{
+											ret = colourNode.m_NodeId;
+											break;
+										}
+									}
+								}
+							}
+							
+							break;
+						}
+					}
+				}
+			}
+		}
+		
+		return ret;
 	}
 }

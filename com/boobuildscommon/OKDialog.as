@@ -1,5 +1,5 @@
 import com.Utils.Text;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -17,7 +17,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.OKDialog
+class com.boobuildscommon.OKDialog
 {
 	private var m_modalBase:ModalBase;
 	private var m_line1:String;
@@ -26,12 +26,12 @@ class com.boocommon.OKDialog
 	private var m_textFormat:TextFormat;
 	private var m_callback:Function;
 	
-	public function OKDialog(name:String, parent:MovieClip, line1:String, line2:String, line3:String) 
+	public function OKDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, line1:String, line2:String, line3:String) 
 	{
 		m_line1 = line1;
 		m_line2 = line2;
 		m_line3 = line3;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls));
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.65, frameHeight * 0.3);
 		
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 2;

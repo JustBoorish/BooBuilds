@@ -1,6 +1,6 @@
-import com.boocommon.DebugWindow;
-import com.boocommon.Graphics;
-import com.boocommon.ScrollPane;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ScrollPane;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 import org.sitedaniel.utils.Proxy;
@@ -21,7 +21,7 @@ import mx.utils.Delegate;
  * 
  * Author: Boorish
  */
-class com.boocommon.ComboBox
+class com.boobuildscommon.ComboBox
 {
 	private var m_parent:MovieClip;
 	private var m_combo:MovieClip;
@@ -42,6 +42,7 @@ class com.boocommon.ComboBox
 	private var m_margin:Number;
 	private var m_leftMargin:Number;
 	private var m_rightMargin:Number;
+	private var m_changedCallback:Function;
 	
 	public function ComboBox(parent:MovieClip, name:String, addonMC:MovieClip, x:Number, y:Number, color1:Number, color2:Number, entryHeight:Number, selectedName:String, names:Array) 
 	{
@@ -81,6 +82,11 @@ class com.boocommon.ComboBox
 		return m_selectedName;
 	}
 	
+	public function SetChangedCallback(changed:Function):Void
+	{
+		m_changedCallback = changed;
+	}
+	
 	public function HidePopup():Void
 	{
 		m_scroll.SetVisible(false);
@@ -115,7 +121,7 @@ class com.boocommon.ComboBox
 			DrawComboEntry(indx);
 		}
 		
-		m_scroll = new ScrollPane(m_combo, "Scroll_" + m_name, m_button._x, m_button._y + m_button._height, m_button._width, m_elementHeight * m_entryHeight, 0x262626);
+		m_scroll = new ScrollPane(m_combo, "Scroll_" + m_name, m_button._x, m_button._y + m_button._height, m_button._width, m_elementHeight * m_entryHeight, 0x262626, m_elementHeight * m_entryHeight * 0.04);
 		m_scroll.SetContent(m_list, m_list._height);
 	}
 	
@@ -181,6 +187,10 @@ class com.boocommon.ComboBox
 			m_scroll.SetVisible(false);
 			ChangeButtonText(m_names[indx]);
 			m_selectedName = m_names[indx];
+			if (m_changedCallback != null)
+			{
+				m_changedCallback(m_selectedName);
+			}
 		}
 	}
 	

@@ -3,10 +3,11 @@ import com.GameInterface.LoreBase;
 import com.GameInterface.LoreNode;
 import com.Utils.Text;
 import com.boobuilds.BuildGroup;
-import com.boocommon.Checkbox;
-import com.boocommon.ComboBox;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Checkbox;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.ComboBox;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -45,7 +46,7 @@ class com.boobuilds.EditOutfitDialog
 	private var m_includeWeaponsCheck:Checkbox;
 	private var m_includeWeaponSkinsCheck:Checkbox;
 	
-	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, outfitName:String, includeWeapons:Boolean, includeWeaponSkins:Boolean, sprintTag:Number, petTag:Number) 
+	public function EditOutfitDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, outfitName:String, includeWeapons:Boolean, includeWeaponSkins:Boolean, sprintTag:Number, petTag:Number) 
 	{
 		m_outfitName = outfitName;
 		m_includeWeapons = includeWeapons;
@@ -54,7 +55,7 @@ class com.boobuilds.EditOutfitDialog
 		m_petTag = petTag;
 		
 		m_addonMC = addonMC;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.75, 0.75);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.75, frameHeight * 0.75);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -158,7 +159,7 @@ class com.boobuilds.EditOutfitDialog
 			names.push(node.m_Name);
 		}
 		
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		var colours:Array = Colours.GetColourArray(Colours.GetDefaultColourName());
 		m_sprintCombo = new ComboBox(modalMC, "Sprint", m_addonMC, x, y, colours[0], colours[1], 6, GetSprintFromTag(m_sprintTag), names);
 	}
 	
@@ -173,8 +174,8 @@ class com.boobuilds.EditOutfitDialog
 			names.push(node.m_Name);
 		}
 		
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
-		m_petCombo = new ComboBox(modalMC, "Pet", m_addonMC, x, y, colours[0], colours[1], 6, GetPetFromTag(m_petTag), names);
+		var colours:Array = Colours.GetColourArray(Colours.GetDefaultColourName());
+		m_petCombo = new ComboBox(modalMC, "Pet", m_addonMC, x, y, colours[0], colours[1], 4, GetPetFromTag(m_petTag), names);
 	}
 	
 	private function ButtonPressed(text:String):Void

@@ -1,6 +1,6 @@
 import com.Utils.Text;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -26,11 +26,11 @@ class com.boobuilds.ExportDialog
 	private var m_title:String;
 	private var m_exportString:String;
 	
-	public function ExportDialog(name:String, parent:MovieClip, title:String, exportString:String) 
+	public function ExportDialog(name:String, parent:MovieClip, frameWidth:Number, frameHeight:Number, title:String, exportString:String) 
 	{
 		m_exportString = exportString;
 		m_title = title;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.6, 0.8);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.8, frameHeight * 0.6);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;

@@ -7,7 +7,7 @@ import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipDataProvider;
 import com.Utils.Colors;
 import com.boobuilds.Localisation;
-import com.boocommon.MenuPanel;
+import com.boobuildscommon.MenuPanel;
 import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code

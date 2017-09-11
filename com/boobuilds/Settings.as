@@ -1,4 +1,4 @@
-import com.boocommon.DebugWindow;
+import com.boobuildscommon.DebugWindow;
 import com.Utils.Archive;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.FeatData;
@@ -47,6 +47,7 @@ class com.boobuilds.Settings
 	private static var OVERRIDE_KEY:String = "OVERRIDE_KEY";
 	private static var PREV_TOGGLE_ID:String = "PREV_TOGGLE_ID";
 	private static var CURRENT_TOGGLE_ID:String = "CURRENT_TOGGLE_ID";
+	private static var RIGHT_CLICK_OUTFIT:String = "RIGHT_CLICK_OUTFIT";
 
 	private static var m_version:String = null;
 	private static var m_archive:Archive = null;
@@ -334,6 +335,34 @@ class com.boobuilds.Settings
 		if (settings != null)
 		{
 			settings[CURRENT_TOGGLE_ID] = newValue;
+		}
+	}	
+	
+	public static function GetRightClickOutfit(settings:Object):Boolean
+	{
+		if (settings != null)
+		{
+			if (settings[RIGHT_CLICK_OUTFIT] == 1)
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static function SetRightClickOutfit(settings:Object, newValue:Boolean):Void
+	{
+		if (settings != null)
+		{
+			if (newValue == true)
+			{
+				settings[RIGHT_CLICK_OUTFIT] = 1;
+			}
+			else
+			{
+				settings[RIGHT_CLICK_OUTFIT] = 0;
+			}
 		}
 	}	
 }

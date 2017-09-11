@@ -3,8 +3,9 @@ import com.GameInterface.Log;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
-import com.boocommon.DebugWindow;
-import com.boocommon.IntervalCounter;
+import com.boobuildscommon.DebugWindow;
+import com.boobuildscommon.IntervalCounter;
+import com.boobuilds.Settings;
 import mx.utils.Delegate;
 
 /**
@@ -31,6 +32,7 @@ class com.boobuilds.BIcon
 	public static var ICON_Y:String = "ICON_Y";
 	private var m_parent:MovieClip;
 	private var m_icon:MovieClip;
+	private var m_settings:Object;
 	private var m_tooltip:TooltipInterface;
 	private var m_toggleLeftVisibleFunc:Function;
 	private var m_toggleRightVisibleFunc:Function;
@@ -57,7 +59,7 @@ class com.boobuilds.BIcon
 	// Fifth is the path to your icon as seen in-game using Ctrl + Shift + F2 (the debug window). Can be undefined if you have no icon (this also means your add-on won't be slotable).
 	private var VTIOAddonInfo_s:String;
 	
-	public function BIcon(parent:MovieClip, icon:MovieClip, version:String, toggleLeftVisibleFunc:Function, toggleRightVisibleFunc:Function, toggleShiftLeftVisibleFunc:Function, ctrlToggleVisibleFunc:Function, x:Number, y:Number)
+	public function BIcon(parent:MovieClip, icon:MovieClip, version:String, settings:Object, toggleLeftVisibleFunc:Function, toggleRightVisibleFunc:Function, toggleShiftLeftVisibleFunc:Function, ctrlToggleVisibleFunc:Function, x:Number, y:Number)
 	{
 		if (icon == null)
 		{
@@ -66,6 +68,7 @@ class com.boobuilds.BIcon
 		m_parent = parent;
 		m_icon = icon;
 		m_version = version;
+		m_settings = settings;
 		m_toggleLeftVisibleFunc = toggleLeftVisibleFunc;
 		m_toggleRightVisibleFunc = toggleRightVisibleFunc;
 		m_toggleShiftLeftVisibleFunc = toggleShiftLeftVisibleFunc;
@@ -202,8 +205,17 @@ class com.boobuilds.BIcon
 			tooltipData.AddAttributeSplitter();
 			tooltipData.AddAttribute("", "");
 			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Left click to choose a build</font>");
-			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Shift+Left click to choose an outfit</font>");
-			tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Right click to edit builds and outfits</font>");
+			if (Settings.GetRightClickOutfit(m_settings) == true)
+			{
+				tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Right click click to choose an outfit</font>");
+				tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Shift+Left click to edit builds and outfits</font>");
+			}
+			else
+			{
+				tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Shift+Left click to choose an outfit</font>");
+				tooltipData.AddAttribute("", "<font face='_StandardFont' size='12' color='#FFFFFF'>Right click to edit builds and outfits</font>");
+			}
+			
 			tooltipData.m_Padding = 4;
 			tooltipData.m_MaxWidth = 210;
 			m_tooltip = TooltipManager.GetInstance().ShowTooltip(undefined, TooltipInterface.e_OrientationVertical, 0, tooltipData);

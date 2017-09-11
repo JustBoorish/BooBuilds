@@ -2,8 +2,9 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildDisplay;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildSelector;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import com.Utils.Text;
 import mx.utils.Delegate;
 /**
@@ -42,7 +43,7 @@ class com.boobuilds.EditQuickBuildDialog
 	private var m_buildX:Number;
 	private var m_buildY:Number;
 	
-	public function EditQuickBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, build:Build, builds:Object, buildGroups:Array) 
+	public function EditQuickBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, build:Build, builds:Object, buildGroups:Array) 
 	{
 		m_name = name;
 		m_parent = parent;
@@ -50,7 +51,7 @@ class com.boobuilds.EditQuickBuildDialog
 		m_build = build;
 		m_builds = builds;
 		m_buildGroups = buildGroups;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.85, 0.97);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.97, frameHeight * 0.85);
 		
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
@@ -151,7 +152,7 @@ class com.boobuilds.EditQuickBuildDialog
 	}
 	private function DrawBuildButton(modalMC:MovieClip):Void
 	{
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		var colours:Array = Colours.GetDefaultColourArray();
 		var buildSet:Boolean = false;
 		var text:String = "None";
 		if (m_buildID != null)
@@ -167,7 +168,7 @@ class com.boobuilds.EditQuickBuildDialog
 					var thisGroup:BuildGroup = m_buildGroups[indx];
 					if (thisGroup.GetID() == thisBuild.GetGroup())
 					{
-						colours = BuildGroup.GetColourArray(thisGroup.GetColourName());
+						colours = Colours.GetColourArray(thisGroup.GetColourName());
 					}
 				}
 			}
@@ -194,7 +195,7 @@ class com.boobuilds.EditQuickBuildDialog
 		{
 			text = "Clear Build";
 			extents = Text.GetTextExtent(text, m_textFormat, modalMC);
-			m_removeBuildButton = Graphics.DrawButton("ClearBuildButton", modalMC, text, m_textFormat, m_buildX, m_buildY + extents.height + 10, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, OutfitClearPressed));
+			m_removeBuildButton = Graphics.DrawButton("ClearBuildButton", modalMC, text, m_textFormat, m_buildX, m_buildY + extents.height + 10, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, OutfitClearPressed));
 		}
 	}
 	

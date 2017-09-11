@@ -2,9 +2,10 @@ import com.Utils.Text;
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Outfit;
 import com.boobuilds.OutfitSelector;
-import com.boocommon.Checkbox;
-import com.boocommon.Graphics;
-import com.boocommon.ModalBase;
+import com.boobuildscommon.Checkbox;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.ModalBase;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -49,7 +50,7 @@ class com.boobuilds.EditBuildDialog
 	private var m_removeOutfitButton:MovieClip;
 	private var m_outfitSelector:OutfitSelector;
 	
-	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, buildName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
+	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, buildName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array) 
 	{
 		m_addonMC = addonMC;
 		m_buildName = buildName;
@@ -62,7 +63,7 @@ class com.boobuilds.EditBuildDialog
 		m_outfits = outfits;
 		m_outfitGroups = outfitGroups;
 		
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), 0.6, 0.85);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.85, frameHeight * 0.6);
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 4;
 		var y:Number = modalMC._height - 10;
@@ -179,7 +180,7 @@ class com.boobuilds.EditBuildDialog
 	
 	private function DrawOutfitButton(modalMC:MovieClip):Void
 	{
-		var colours:Array = BuildGroup.GetColourArray(BuildGroup.GRAY);
+		var colours:Array = Colours.GetDefaultColourArray();
 		var outfitSet:Boolean = false;
 		var text:String = "None";
 		if (m_outfitID != null)
@@ -195,7 +196,7 @@ class com.boobuilds.EditBuildDialog
 					var thisGroup:BuildGroup = m_outfitGroups[indx];
 					if (thisGroup.GetID() == thisOutfit.GetGroup())
 					{
-						colours = BuildGroup.GetColourArray(thisGroup.GetColourName());
+						colours = Colours.GetColourArray(thisGroup.GetColourName());
 					}
 				}
 			}
@@ -222,7 +223,7 @@ class com.boobuilds.EditBuildDialog
 		{
 			text = "Clear Outfit";
 			extents = Text.GetTextExtent(text, m_textFormat, modalMC);
-			m_removeOutfitButton = Graphics.DrawButton("OutfitButton", modalMC, text, m_textFormat, m_outfitX, m_outfitY + extents.height + 10, extents.width, BuildGroup.GetColourArray(BuildGroup.GRAY), Delegate.create(this, OutfitClearPressed));
+			m_removeOutfitButton = Graphics.DrawButton("OutfitButton", modalMC, text, m_textFormat, m_outfitX, m_outfitY + extents.height + 10, extents.width, Colours.GetDefaultColourArray(), Delegate.create(this, OutfitClearPressed));
 		}
 	}
 	

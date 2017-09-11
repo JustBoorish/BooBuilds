@@ -1,6 +1,7 @@
 import com.boobuilds.BuildGroup;
 import com.boobuilds.Outfit;
-import com.boocommon.MenuPanel;
+import com.boobuildscommon.Colours;
+import com.boobuildscommon.MenuPanel;
 import org.sitedaniel.utils.Proxy;
 
 /**
@@ -74,7 +75,7 @@ class com.boobuilds.OutfitSelector
 			var thisGroup:BuildGroup = m_groups[indx];
 			if (thisGroup != null)
 			{
-				var colours:Array = BuildGroup.GetColourArray(thisGroup.GetColourName());
+				var colours:Array = Colours.GetColourArray(thisGroup.GetColourName());
 				if (singleGroup == true)
 				{
 					OutfitSingleMenu(thisGroup.GetID(), colours, m_menu);

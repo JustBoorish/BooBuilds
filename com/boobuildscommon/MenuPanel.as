@@ -1,7 +1,7 @@
 import caurina.transitions.Tweener;
-import com.boocommon.Graphics;
-import com.boocommon.MenuPanel;
-import com.boocommon.DebugWindow;
+import com.boobuildscommon.Graphics;
+import com.boobuildscommon.MenuPanel;
+import com.boobuildscommon.DebugWindow;
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
@@ -23,7 +23,7 @@ import org.sitedaniel.utils.Proxy;
  * 
  * Author: Boorish
  */
-class com.boocommon.MenuPanel
+class com.boobuildscommon.MenuPanel
 {
 	private var m_parent:MovieClip;
 	private var m_menu:MovieClip;
