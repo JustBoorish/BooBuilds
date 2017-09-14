@@ -10,6 +10,7 @@ Unpack the BooBuilds directory into \Data\Gui\Custom\Flash\ located in the root 
 
 PLEASE NOTE: Make sure you restart your client after installing this add-on. Always restart your client when adding XML files as these only get read on load.
 
+ALSO: Do not have an old version of BooBuilds anywhere in the \Data\Gui\Custom\Flash\ folder.  It confuses SWL and the addon will not load.  Either delete the old version or move it outside the \Data\Gui\Custom\Flash\ folder.
 
 *** How to uninstall ***
 
@@ -26,6 +27,8 @@ Version 1.9
 Make build and outfit selector display upwards if icon on lower part of screen
 Fix help button to display on the correct page
 Fix outfit chat command loading
+Make quick build update remember the checkboxes set for the build
+Change outfits to use the DressingRoom api to fix male on female issues
 
 Version 1.8
 Added new quick build functionality

@@ -60,8 +60,8 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_BUTTONS:Number = 7;
 	public static var MAX_TABS:Number = 8;
 	public static var MAX_GROUPS:Number = 50;
-	public static var MAX_BUILDS:Number = 200;
-	public static var MAX_OUTFITS:Number = 200;
+	public static var MAX_BUILDS:Number = 300;
+	public static var MAX_OUTFITS:Number = 300;
 	
 	private static var m_instance:Controller = null;
 	

@@ -1,9 +1,13 @@
+import com.GameInterface.CharacterData;
 import com.GameInterface.FeatData;
 import com.GameInterface.FeatInterface;
 import com.GameInterface.Game.Character;
 import com.GameInterface.Game.Shortcut;
 import com.GameInterface.Game.ShortcutData;
 import com.GameInterface.GearManager;
+import com.GameInterface.GearData;
+import com.GameInterface.GearDataAbility;
+import com.GameInterface.GearDataItem;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
 import com.GameInterface.Spell;
@@ -98,6 +102,10 @@ class com.boobuilds.Build
 	private var m_savedSkills:Array;
 	private var m_newSkills:Array;
 	private var m_unequipErrorSeen:Boolean;
+	
+	private var m_destinationBuild:GearData;
+	private var m_destinationAbilities:Object;
+	private var m_destinationItems:Object;
 
 	public function Build(id:String, name:String, order:Number, group:String)
 	{
@@ -1886,4 +1894,156 @@ class com.boobuilds.Build
 		
 		return spaces;
 	}	
+	
+	private function TestGearManager():Void
+	{
+		if (m_unequipSkillsInterval != null)
+		{
+			m_unequipSkillsInterval.Stop();
+			m_unequipPassivesInterval = null;
+		}
+		
+		m_buildErrorCount = 0;
+		m_destinationBuild = GearManager.GetBuild("Chaos Blade");
+		m_destinationAbilities = new Object();
+		if (m_destinationBuild != null && m_destinationBuild.m_AbilityArray != null)
+		{
+			for (var indx:Number = 0; indx < m_destinationBuild.m_AbilityArray.length; ++indx)
+			{
+				var thisItem:GearDataAbility = m_destinationBuild.m_AbilityArray[indx];
+				m_destinationAbilities[thisItem.m_Position] = thisItem.m_SpellData;
+			}
+		}
+		
+		m_destinationItems = new Object();
+		if (m_destinationBuild != null && m_destinationBuild.m_ItemArray != null)
+		{
+			for (var indx:Number = 0; indx < m_destinationBuild.m_ItemArray.length; ++indx)
+			{
+				var thisItem:GearDataItem = m_destinationBuild.m_ItemArray[indx];
+				m_destinationItems[thisItem.m_Position] = thisItem.m_InventoryItem;
+			}
+		}
+		
+		GearManager.UseBuild("Chaos Blade");
+		m_unequipSkillsInterval = new IntervalCounter("Unequip skills", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, CheckItems), Delegate.create(this, BuildComplete), null, IntervalCounter.NO_COMPLETE_ON_ERROR);
+	}
+	
+	private function CheckItems():Boolean
+	{
+		++m_buildErrorCount;
+		var thisBuild:GearData = GearManager.GetCurrentCharacterBuild();
+		if ((thisBuild.m_AbilityArray == null && m_destinationBuild.m_AbilityArray != null) || (thisBuild.m_AbilityArray != null && m_destinationBuild.m_AbilityArray == null))
+		{
+			return false;
+		}
+		if ((thisBuild.m_ItemArray == null && m_destinationBuild.m_ItemArray != null) || (thisBuild.m_ItemArray != null && m_destinationBuild.m_ItemArray == null))
+		{
+			return false;
+		}
+		
+		if (thisBuild.m_AbilityArray != null)
+		{
+			if (thisBuild.m_AbilityArray.length != m_destinationBuild.m_AbilityArray.length)
+			{
+				return false;
+			}
+			
+			var abilities:Object = new Object();
+			for (var indx:Number = 0; indx < thisBuild.m_AbilityArray.length; ++indx)
+			{
+				abilities[thisBuild.m_AbilityArray[indx].m_Position] = thisBuild.m_AbilityArray[indx].m_SpellData;
+			}
+
+			for (var indx in m_destinationAbilities)
+			{
+				if (CompareGearAbility(abilities[indx], m_destinationAbilities[indx]) == false)
+				{
+					return false;
+				}
+			}
+		}
+		
+		if (thisBuild.m_ItemArray != null)
+		{
+			if (thisBuild.m_ItemArray.length != m_destinationBuild.m_ItemArray.length)
+			{
+				return false;
+			}
+			
+			var items:Object = new Object();
+			for (var indx:Number = 0; indx < thisBuild.m_ItemArray.length; ++indx)
+			{
+				items[thisBuild.m_ItemArray[indx].m_Position] = thisBuild.m_ItemArray[indx].m_InventoryItem;
+			}
+			
+			for (var indx in m_destinationItems)
+			{
+				if (CompareGearItem(items[indx], m_destinationItems[indx]) == false)
+				{
+					return false;
+				}
+			}
+		}
+		
+		return true;
+		
+/*		var charInvId:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WeaponContainer, Character.GetClientCharacter().GetID().GetInstance());
+		var charInv:Inventory = new Inventory(charInvId);
+		var item:InventoryItem = charInv.GetItemAt(GetWeaponSlotID(0));
+		if (item != null && item.m_Name.indexOf("Chaos") > -1)
+		{
+			return true;
+		}
+		
+		return false; */
+	}
+	
+	private function BuildComplete():Void
+	{
+		DebugWindow.Log(DebugWindow.Debug, "Load took " + m_buildErrorCount + " x 20 millis");
+	}
+	
+	private function CompareGearAbility(ability1:SpellData, ability2:SpellData):Boolean
+	{
+		
+		if (ability1 == null && ability2 == null)
+		{
+			return true;
+		}
+		else
+		{
+			if (ability1 != null && ability2 != null)
+			{
+				if (ability1.m_Id == ability2.m_Id)
+				{
+					return true;
+				}
+			}
+		}
+		
+		//DebugWindow.Log(DebugWindow.Debug, "Spells different " + ability1.m_Name + " " + ability2.m_Name);
+		return false;
+	}
+	
+	private function CompareGearItem(item1:InventoryItem, item2:InventoryItem):Boolean
+	{
+		if (item1 == null && item2 == null)
+		{
+			return true;
+		}
+		else
+		{
+			if (item1 != null && item2 != null)
+			{
+				if (item1.m_Name == item2.m_Name && item1.m_Pips == item2.m_Pips)
+				{
+					return true;
+				}
+			}
+		}
+		
+		//DebugWindow.Log(DebugWindow.Debug, "Items different " + item1.m_Name + " " + item1.m_Pips + " " + item2.m_Name + " " + item2.m_Pips);
+		return false;
+	}
 }

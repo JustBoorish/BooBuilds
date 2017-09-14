@@ -1273,36 +1273,107 @@ class com.boobuilds.Outfit
 					var childNode:DressingRoomNode = childNodes[indx];
 					if (childNode != null)
 					{
-						if (DressingRoom.NodeEquipped(childNode.m_NodeId) == true)
+						ret = GetEquippedNodeID(childNode.m_NodeId);
+						if (ret != null)
 						{
-							var colourNodes:Array = DressingRoom.GetChildren(childNode.m_NodeId);
-							if (colourNodes == null || colourNodes.length == 0)
-							{
-								ret = childNode.m_NodeId;
-							}
-							else
-							{
-								for (var i:Number = 0; i < colourNodes.length; ++i)
-								{
-									var colourNode:DressingRoomNode = colourNodes[i];
-									if (colourNode != null)
-									{
-										if (DressingRoom.NodeEquipped(colourNode.m_NodeId) == true)
-										{
-											ret = colourNode.m_NodeId;
-											break;
-										}
-									}
-								}
-							}
-							
 							break;
 						}
 					}
+				}
+			}
+			else
+			{
+				if (DressingRoom.NodeEquipped(parentNodeID) == true)
+				{
+					ret = parentNodeID;
 				}
 			}
 		}
 		
 		return ret;
 	}
+	
+	public static function FindNode(inParentID:Number, nodeName:String):String
+	{
+		var ret:String = null;
+		
+		var parentID:Number = inParentID;
+		if (parentID == null)
+		{
+			parentID = DressingRoom.GetRootNodeId();
+		}
+		
+		var topLevel:Array = DressingRoom.GetChildren(parentID);
+		for (var indx:Number = 0; indx < topLevel.length; ++indx)
+		{
+			var childNode:DressingRoomNode = topLevel[indx];
+			if (childNode != null)
+			{
+				var children:Array = DressingRoom.GetChildren(childNode.m_NodeId);
+				if (children == null || children.length == 0)
+				{
+					if (childNode.m_Name == nodeName)
+					{
+						ret = nodeName;
+						if (DressingRoom.NodeEquipped(childNode.m_NodeId) == true)
+						{
+							ret = ret + " [equipped]";
+						}
+						else
+						{
+							ret = ret + " [not equipped]";
+						}
+					}
+				}
+				else
+				{
+					ret = FindNode(childNode.m_NodeId, nodeName);
+				}
+				
+				if (ret != null)
+				{
+					ret = "[" + childNode.m_NodeId + "] " + ret;
+					break;
+				}
+			}
+		}
+		
+		return ret;
+	}
+
+		
+	public static function DumpNode(node:DressingRoomNode, level:Number):String
+	{
+		var ret:String = "";
+		
+		for (var indx:Number = 0; indx < level; ++indx)
+		{
+			ret = ret + "  ";
+		}
+
+		var topLevel:Array;
+		if (node == null)
+		{
+			var nodeID:Number = DressingRoom.GetRootNodeId();
+			ret = ret + "[" + nodeID + "]\n";
+			topLevel = DressingRoom.GetChildren(nodeID);
+		}
+		else
+		{
+			ret = ret + "[" + node.m_NodeId + "] " + node.m_Name + "\n";
+			topLevel = DressingRoom.GetChildren(node.m_NodeId);
+		}
+		
+		for (var indx:Number = 0; indx < topLevel.length; ++indx)
+		{
+			var childNode:DressingRoomNode = topLevel[indx];
+			if (childNode != null)
+			{
+				ret = ret + DumpNode(childNode, level + 1);
+			}
+		}
+		
+		return ret;
+	}
+
 }

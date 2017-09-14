@@ -42,8 +42,9 @@ class com.boobuilds.EditQuickBuildDialog
 	private var m_textFormat:TextFormat;
 	private var m_buildX:Number;
 	private var m_buildY:Number;
+	private var m_previousBuild:Build;
 	
-	public function EditQuickBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, build:Build, builds:Object, buildGroups:Array) 
+	public function EditQuickBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, build:Build, builds:Object, buildGroups:Array, previousBuild:Build) 
 	{
 		m_name = name;
 		m_parent = parent;
@@ -51,6 +52,7 @@ class com.boobuilds.EditQuickBuildDialog
 		m_build = build;
 		m_builds = builds;
 		m_buildGroups = buildGroups;
+		m_previousBuild = previousBuild;
 		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.97, frameHeight * 0.85);
 		
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
@@ -126,6 +128,28 @@ class com.boobuilds.EditQuickBuildDialog
 		y += selectorExtents.height + 40;
 		m_display = new BuildDisplay("Inspect", modalMC, textFormat, 0, y, true);
 		m_display.SetBuild(m_build);
+		if (m_previousBuild != null)
+		{
+			for (var indx:Number = 0; indx < Build.MAX_SKILLS; ++indx)
+			{
+				m_display.SetSkillChecked(indx, m_previousBuild.IsSkillSet(indx));
+			}
+			
+			for (var indx:Number = 0; indx < Build.MAX_PASSIVES; ++indx)
+			{
+				m_display.SetPassiveChecked(indx, m_previousBuild.IsPassiveSet(indx));
+			}
+			
+			for (var indx:Number = 0; indx < Build.MAX_WEAPONS; ++indx)
+			{
+				m_display.SetWeaponChecked(indx, m_previousBuild.IsWeaponSet(indx));
+			}
+			
+			for (var indx:Number = 0; indx < Build.MAX_GEAR; ++indx)
+			{
+				m_display.SetGearChecked(indx, m_previousBuild.IsGearSet(indx));
+			}
+		}
 	}
 	
 	private function ButtonPressed(text:String):Void

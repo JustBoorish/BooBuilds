@@ -374,8 +374,9 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		{
 			UnloadDialogs();
 
+			var previousBuild:Build = m_currentBuild;
 			m_currentBuild = Build.FromCurrent(m_currentBuild.GetID(), m_currentBuild.GetName(), m_currentBuild.GetOrder(), m_currentBuild.GetGroup());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("UpdateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups, previousBuild);
 			m_editQuickBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
@@ -545,7 +546,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 			var newID:String = Build.GetNextQuickID(m_quickBuilds);
 			var newOrder:Number = Build.GetNextOrder(m_currentGroup.GetID(), m_quickBuilds);
 			m_currentBuild = Build.FromCurrent(newID, "", newOrder, m_currentGroup.GetID());
-			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups);
+			m_editQuickBuildDialog = new EditQuickBuildDialog("CreateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild, m_builds, m_buildGroups, null);
 			m_editQuickBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}

@@ -1,6 +1,7 @@
 import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
+import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
 import flash.geom.Matrix;
 import org.sitedaniel.utils.Proxy;
@@ -403,6 +404,11 @@ class com.boobuildscommon.IconButton
 		icon._yscale = m_buttonHeight-(icon._y*2);
 		
 		SetPips(icon._name, icon);		
+	}
+	
+	private function onLoadError(target_mc:MovieClip, errorCode:String):Void
+	{
+		DebugWindow.Log(DebugWindow.Debug, "Failed to load icon " + errorCode);
 	}
 	
 	private function TryButtonPress():Void

@@ -296,22 +296,22 @@ class com.boobuilds.BuildDisplay
 		}
 	}
 	
-	private function SetGearChecked(indx:Number, isChecked:Boolean):Void
+	public function SetGearChecked(indx:Number, isChecked:Boolean):Void
 	{
 		InternalSetChecked(m_gearIcons, m_gearChecks, indx, isChecked);
 	}
 	
-	private function SetWeaponChecked(indx:Number, isChecked:Boolean):Void
+	public function SetWeaponChecked(indx:Number, isChecked:Boolean):Void
 	{
 		InternalSetChecked(m_weaponIcons, m_weaponChecks, indx, isChecked);
 	}
 	
-	private function SetSkillChecked(indx:Number, isChecked:Boolean):Void
+	public function SetSkillChecked(indx:Number, isChecked:Boolean):Void
 	{
 		InternalSetChecked(m_skillIcons, m_skillChecks, indx, isChecked);
 	}
 	
-	private function SetPassiveChecked(indx:Number, isChecked:Boolean):Void
+	public function SetPassiveChecked(indx:Number, isChecked:Boolean):Void
 	{
 		InternalSetChecked(m_passiveIcons, m_passiveChecks, indx, isChecked);
 	}
