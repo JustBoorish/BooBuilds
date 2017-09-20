@@ -204,17 +204,28 @@ class com.boobuilds.GearItem
 		for (var i:Number = 0; i < maxItems; ++i)
 		{
 			var item:InventoryItem = inventory.GetItemAt(i);
-			if (item != null && (dontCheckBound == true || item.m_IsBoundToPlayer == true))
+			if (IsItemMatching(item, inItem, dontCheckBound) == true)
 			{
-				if (item.m_Name == inItem.GetName() && item.m_Pips == inItem.GetNumPips())
-				{
-					exactItems.push(item);
-					exactIndices.push(i);
-				}
+				exactItems.push(item);
+				exactIndices.push(i);
 			}
 		}
 		
 		return ChooseBestItem(exactItems, exactIndices);
+	}
+	
+	public static function IsItemMatching(item:InventoryItem, inItem:GearItem, dontCheckBound:Boolean):Boolean
+	{
+		var ret:Boolean = false;
+		if (item != null && (dontCheckBound == true || item.m_IsBoundToPlayer == true))
+		{
+			if (item.m_Name == inItem.GetName() && item.m_Pips == inItem.GetNumPips())
+			{
+				ret = true;
+			}
+		}
+		
+		return ret;
 	}
 
 	private static function ChooseBestItem(exactItems:Array, exactIndices:Array):Object

@@ -354,7 +354,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 
 				if (duplicateFound == false)
 				{
-					m_currentBuild.SetName(newName);
+					Build.RenameBuild(m_currentBuild, newName);
 					DrawList();
 				}
 				else
@@ -404,7 +404,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 				
 				if (duplicateFound == false)
 				{
-					m_currentBuild.SetName(newName);
+					Build.RenameBuild(m_currentBuild, newName);
 					
 					for (var indx:Number = 0; indx < skillChecks.length; ++indx)
 					{
@@ -457,16 +457,8 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		m_currentBuild = m_quickBuilds[buildID];
 		if (m_currentBuild != null)
 		{
-			RemoveBuild(m_currentBuild);
+			Build.DeleteBuild(m_builds, m_currentBuild);
 			DrawList();
-		}
-	}
-	
-	private function RemoveBuild(build:Build):Void
-	{
-		if (build != null)
-		{
-			m_quickBuilds[build.GetID()] = null;
 		}
 	}
 	
@@ -571,7 +563,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 				
 				if (duplicateFound == false)
 				{
-					m_currentBuild.SetName(newName);
+					Build.RenameBuild(m_currentBuild, newName);
 					
 					for (var indx:Number = 0; indx < skillChecks.length; ++indx)
 					{
@@ -606,7 +598,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 					}
 					
 					m_currentBuild.SetRequiredBuildID(requiredBuild);
-					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
+					Build.AddBuild(m_quickBuilds, m_currentBuild);
 					DrawList();
 				}
 				else

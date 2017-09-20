@@ -363,23 +363,23 @@ class com.boobuilds.Outfit
 		if (fullOutfitItem != null)
 		{
 			m_outfit = new Array();
-			for ( var i:Number = 0 ; i < FULL_OUTFIT_SIZE; ++i )
+			for (var i:Number = 0 ; i < FULL_OUTFIT_SIZE; ++i)
 			{
-				var nodeID:Number = GetEquippedNodeID(GetFullOutfitNodeID(i));
-				if (nodeID != null)
+				var item:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(i));
+				if (item == null)
 				{
-					m_outfit.push(String(nodeID));
+					m_outfit.push(null);
 				}
 				else
 				{
-					var item:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(i));
-					if (item != null)
+					var nodeID:Number = GetEquippedNodeID(item.m_Name, GetFullOutfitNodeID(i));
+					if (nodeID != null)
 					{
-						m_outfit.push(item.m_Name);
+						m_outfit.push(String(nodeID));
 					}
 					else
 					{
-						m_outfit.push(null);
+						m_outfit.push(item.m_Name);
 					}
 				}
 			}		
@@ -387,23 +387,23 @@ class com.boobuilds.Outfit
 		else
 		{
 			m_outfit = new Array();
-			for ( var i:Number = 0 ; i < NORMAL_OUTFIT_SIZE; ++i )
+			for (var i:Number = 0 ; i < NORMAL_OUTFIT_SIZE; ++i)
 			{
-				var nodeID:Number = GetEquippedNodeID(GetNormalNodeID(i));
-				if (nodeID != null)
+				var item:InventoryItem = inventory.GetItemAt(GetNormalSlotID(i));
+				if (item == null)
 				{
-					m_outfit.push(String(nodeID));
+					m_outfit.push(null);
 				}
 				else
 				{
-					var item:InventoryItem = inventory.GetItemAt(GetNormalSlotID(i));
-					if (item != null)
+					var nodeID:Number = GetEquippedNodeID(item.m_Name, GetNormalNodeID(i));
+					if (nodeID != null)
 					{
-						m_outfit.push(item.m_Name);
+						m_outfit.push(String(nodeID));
 					}
 					else
 					{
-						m_outfit.push(null);
+						m_outfit.push(item.m_Name);
 					}
 				}
 			}		
@@ -1259,21 +1259,32 @@ class com.boobuilds.Outfit
 		}
 	}
 	
-	private function GetEquippedNodeID(parentNodeID:Number):Number
+	private function GetEquippedNodeID(nodeName:String, parentNodeID:Number):Number
+	{
+		var ret:Number = GetEquippedNodeIDFromID(parentNodeID);
+		if (ret == null)
+		{
+			ret = GetEquippedNodeIDFromName(nodeName, parentNodeID, null);
+		}
+		
+		return ret;
+	}
+	
+	private function GetEquippedNodeIDFromID(parentNodeID:Number):Number
 	{
 		var ret:Number = null;
 		
 		if (parentNodeID != null)
 		{
 			var childNodes:Array = DressingRoom.GetChildren(parentNodeID);
-			if (childNodes != null)
+			if (childNodes != null && childNodes.length > 0)
 			{
 				for (var indx:Number = 0; indx < childNodes.length; ++indx)
 				{
 					var childNode:DressingRoomNode = childNodes[indx];
 					if (childNode != null)
 					{
-						ret = GetEquippedNodeID(childNode.m_NodeId);
+						ret = GetEquippedNodeIDFromID(childNode.m_NodeId);
 						if (ret != null)
 						{
 							break;
@@ -1284,6 +1295,40 @@ class com.boobuilds.Outfit
 			else
 			{
 				if (DressingRoom.NodeEquipped(parentNodeID) == true)
+				{
+					ret = parentNodeID;
+				}
+			}
+		}
+		
+		return ret;
+	}
+	
+	private function GetEquippedNodeIDFromName(nodeName:String, parentNodeID:Number, parentNode:DressingRoomNode):Number
+	{
+		var ret:Number = null;
+		
+		if (parentNodeID != null)
+		{
+			var childNodes:Array = DressingRoom.GetChildren(parentNodeID);
+			if (childNodes != null && childNodes.length > 0)
+			{
+				for (var indx:Number = 0; indx < childNodes.length; ++indx)
+				{
+					var childNode:DressingRoomNode = childNodes[indx];
+					if (childNode != null)
+					{
+						ret = GetEquippedNodeIDFromName(nodeName, childNode.m_NodeId, childNode);
+						if (ret != null)
+						{
+							break;
+						}
+					}
+				}
+			}
+			else
+			{
+				if (parentNode != null && parentNode.m_Name == nodeName)
 				{
 					ret = parentNodeID;
 				}
