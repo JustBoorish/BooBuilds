@@ -1813,11 +1813,10 @@ class com.boobuilds.Build
 		{
 			if (m_loadingWeapons[m_equipWeaponSlot].iconBox != null && m_loadingWeapons[m_equipWeaponSlot].point != null)
 			{
-				var item:InventoryItem = bagInv.GetItemAt(m_postloadWeapons[m_equipWeaponSlot].slot);
-				var srcIconBox:Object = m_postloadWeapons[m_equipWeaponSlot].iconBox;
 				var dstIconBox:Object = m_loadingWeapons[m_equipWeaponSlot].iconBox;
-				if (dstIconBox.GetItemAtGridPosition(m_loadingWeapons[m_equipWeaponSlot].point) != null)
+				if (dstIconBox.GetItemAtGridPosition(m_loadingWeapons[m_equipWeaponSlot].point) == undefined)
 				{
+					var srcIconBox:Object = m_postloadWeapons[m_equipWeaponSlot].iconBox;
 					if (srcIconBox != null)
 					{
 						srcIconBox.RemoveItem(m_postloadWeapons[m_equipWeaponSlot].slot);

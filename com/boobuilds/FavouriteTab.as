@@ -98,14 +98,7 @@ class com.boobuilds.FavouriteTab implements ITabPane
 	{
 		if (visible == true && m_settings != null)
 		{
-			m_bar1Check.SetChecked(Settings.GetFavouriteBarEnabled(m_settings, 0));
-			m_bar2Check.SetChecked(Settings.GetFavouriteBarEnabled(m_settings, 1));
-			
-			Enable1Changed(Settings.GetFavouriteBarEnabled(m_settings, 0));
-			Enable2Changed(Settings.GetFavouriteBarEnabled(m_settings, 1));
-			
-			m_iconsPerRow1Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 0)));
-			m_iconsPerRow2Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 1)));
+			InitialiseSettings();
 		}
 
 		if (visible == true)
@@ -227,6 +220,20 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		text = "Drag Bar 2";
 		extents = Text.GetTextExtent(text, textFormat, m_bar2Frame);
 		Graphics.DrawButton("Bar2Drag", m_bar2Frame, text, textFormat, 25, y, extents.width, null, Delegate.create(this, Bar2Drag));
+		
+		InitialiseSettings();
+	}
+	
+	private function InitialiseSettings():Void
+	{
+		m_bar1Check.SetChecked(Settings.GetFavouriteBarEnabled(m_settings, 0));
+		m_bar2Check.SetChecked(Settings.GetFavouriteBarEnabled(m_settings, 1));
+		
+		Enable1Changed(Settings.GetFavouriteBarEnabled(m_settings, 0));
+		Enable2Changed(Settings.GetFavouriteBarEnabled(m_settings, 1));
+		
+		m_iconsPerRow1Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 0)));
+		m_iconsPerRow2Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 1)));
 	}
 	
 	private function Enable1Changed(newValue:Boolean):Void
