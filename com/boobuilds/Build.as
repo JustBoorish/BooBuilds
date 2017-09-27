@@ -1813,14 +1813,18 @@ class com.boobuilds.Build
 		{
 			if (m_loadingWeapons[m_equipWeaponSlot].iconBox != null && m_loadingWeapons[m_equipWeaponSlot].point != null)
 			{
+				var item:InventoryItem = bagInv.GetItemAt(m_postloadWeapons[m_equipWeaponSlot].slot);
 				var srcIconBox:Object = m_postloadWeapons[m_equipWeaponSlot].iconBox;
-				if (srcIconBox != null)
-				{
-					srcIconBox.RemoveItem(m_postloadWeapons[m_equipWeaponSlot].slot);
-				}
-				
 				var dstIconBox:Object = m_loadingWeapons[m_equipWeaponSlot].iconBox;
-				dstIconBox.AddItemAtGridPosition(m_postloadWeapons[m_equipWeaponSlot].slot, bagInv.GetItemAt(m_postloadWeapons[m_equipWeaponSlot].slot), m_loadingWeapons[m_equipWeaponSlot].point);
+				if (dstIconBox.GetItemAtGridPosition(m_loadingWeapons[m_equipWeaponSlot].point) != null)
+				{
+					if (srcIconBox != null)
+					{
+						srcIconBox.RemoveItem(m_postloadWeapons[m_equipWeaponSlot].slot);
+					}
+					
+					dstIconBox.AddItemAtGridPosition(m_postloadWeapons[m_equipWeaponSlot].slot, bagInv.GetItemAt(m_postloadWeapons[m_equipWeaponSlot].slot), m_loadingWeapons[m_equipWeaponSlot].point);
+				}
 			}
 			else
 			{
@@ -1850,7 +1854,7 @@ class com.boobuilds.Build
 	private function MoveWeaponCompletionCallback():Void
 	{
 		++m_equipWeaponSlot;
-		if (m_equipWeaponSlot < m_postloadWeapons.length && m_equipWeaponSlot < m_loadingWeapons.length)
+		if (m_buildErrorCount == 0 && m_equipWeaponSlot < m_postloadWeapons.length && m_equipWeaponSlot < m_loadingWeapons.length)
 		{
 			ClearInventoryThrottle();
 			m_inventoryThrottle = new InventoryThrottle("Move weapon", Delegate.create(this, MoveWeapon), Delegate.create(this, MoveWeaponCheckCallback), Delegate.create(this, MoveWeaponCompletionCallback), Delegate.create(this, MoveWeaponErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
@@ -2286,16 +2290,18 @@ class com.boobuilds.Build
 			var bagInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_BackpackContainer, Character.GetClientCharacter().GetID().GetInstance());
 			var bagInv:Inventory = new Inventory(bagInvID);
 			found = GearItem.FindExactGearItem(bagInv, weapon, false);
-			
-			ret.slot = found.indx;
-			var iconBox:Object = GetIconBox(bagInvID, ret.slot);
-			if (iconBox != null)
+			if (found != null)
 			{
-				var pt:Point = iconBox.GetGridPositionFromSlotID(ret.slot);
-				if (pt != null)
+				ret.slot = found.indx;
+				var iconBox:Object = GetIconBox(bagInvID, ret.slot);
+				if (iconBox != null)
 				{
-					ret.iconBox = iconBox;
-					ret.point = pt;
+					var pt:Point = iconBox.GetGridPositionFromSlotID(ret.slot);
+					if (pt != null)
+					{
+						ret.iconBox = iconBox;
+						ret.point = pt;
+					}
 				}
 			}
 		}

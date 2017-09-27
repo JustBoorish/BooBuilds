@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.0.1
+Fixed bug where weapon temporarily disappeared from your bags! (reloadui to fix it)
+
 Version 2.0
 Fix bug in outfits causing certain items not to load
 Place unloaded weapons in same bag slot as new weapons when loading a build
