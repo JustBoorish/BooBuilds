@@ -4,7 +4,8 @@ import com.GameInterface.Tooltip.TooltipManager;
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
 import flash.geom.Matrix;
-import org.sitedaniel.utils.Proxy;
+import caurina.transitions.Tweener;
+import mx.utils.Delegate;
 /**
  * There is no copyright on this code
  *
@@ -51,6 +52,8 @@ class com.boobuildscommon.IconButton
 	private var m_frameColors:Array;
 	private var m_enabled:Boolean;
 	private var m_numPips:Number;
+	private var m_iconPath:String;
+	private var m_iconHover:MovieClip;
 
 	public function IconButton(name:String, parent:MovieClip, x:Number, y:Number, buttonWidth:Number, buttonHeight:Number, inBackgroundColors:Array, inFrameColors:Array, callback:Function, buttonStyle:Number, frameStyle:Number, tooltipData:TooltipData)
 	{
@@ -62,7 +65,6 @@ class com.boobuildscommon.IconButton
 		m_frameStyle = frameStyle;
 		m_data = null;
 		m_callback = callback;
-		m_tooltipData = tooltipData;
 		m_tooltip = null;
 		m_enabled = true;
 		m_numPips = 0;
@@ -91,6 +93,7 @@ class com.boobuildscommon.IconButton
 		
 		CreateEmptyFrame(m_name, m_parent, x, y, m_backgroundColors, m_frameColors);
 		DeleteIcon();
+		m_tooltipData = tooltipData;
 	}
 	
 	public function Unload():Void
@@ -140,15 +143,16 @@ class com.boobuildscommon.IconButton
 			}
 		}*/
 		
-		CreateIconFrame(m_name, m_frame, m_backgroundColors, null, false, m_frameColors, false);
+		CreateIconFrame(m_name, m_frame, m_backgroundColors, false, m_frameColors);
 	}
 	
-	public function SetIcon(inIconColors:Array, iconPath:String, numPips:Number, isElite:Boolean, inFrameColors:Array, tooltipData:TooltipData, data:Object, attachClip:Boolean):Void
+	public function SetIcon(inIconColors:Array, iconPath:String, numPips:Number, isElite:Boolean, inFrameColors:Array, tooltipData:TooltipData, data:Object):Void
 	{
 		ClearIcon();
 		m_tooltipData = tooltipData;
 		m_data = data;
 		m_numPips = numPips;
+		m_iconPath = iconPath;
 		
 		var iconColors:Array = inIconColors;
 		if (iconColors == null)
@@ -162,7 +166,7 @@ class com.boobuildscommon.IconButton
 			frameColors = m_frameColors;
 		}
 		
-		CreateIconFrame(m_name, m_frame, iconColors, iconPath, isElite, frameColors, attachClip);
+		CreateIconFrame(m_name, m_frame, iconColors, isElite, frameColors);
 	}
 	
 	public function ClearIcon():Void
@@ -171,6 +175,7 @@ class com.boobuildscommon.IconButton
 		m_tooltipData = null;
 		m_data = null;
 		m_numPips = 0;
+		m_iconPath = null;
 		
 		if (m_icon != null)
 		{
@@ -342,37 +347,37 @@ class com.boobuildscommon.IconButton
 		}
 	}
 	
-	private function CreateIconFrame(name:String, parent:MovieClip, backgroundColors:Array, iconPath:String, isElite:Boolean, frameColors:Array):Void
+	private function CreateIconFrame(name:String, parent:MovieClip, backgroundColors:Array, isElite:Boolean, frameColors:Array):Void
 	{
 		m_icon = CreateBackgroundFrame(name + "IconBack", parent, 0, 0, backgroundColors, isElite, frameColors);
 
-		if (iconPath != null)
+		if (m_iconPath != null)
 		{
-			loadIcon(name + "Icon", iconPath, m_icon);
+			loadIcon(name + "Icon", m_icon);
 		}
 		else
 		{
 			m_icon._alpha = 0;
 		}
 		
-		m_icon.onPress = Proxy.create(this, function() { this.CloseTooltip(); this.TryButtonPress(); } );
-		m_icon.onRollOver = Proxy.create(this, function() { this.ShowTooltip(); } );
-		m_icon.onRollOut = Proxy.create(this, function() { this.CloseTooltip(); } );
+		m_icon.onPress = Delegate.create(this, function() { this.HideHover(); this.CloseTooltip(); this.TryButtonPress(); } );
+		m_icon.onRollOver = Delegate.create(this, function() { this.ShowHover(); this.ShowTooltip(); } );
+		m_icon.onRollOut = Delegate.create(this, function() { this.HideHover(); this.CloseTooltip(); } );
 	}
 	
-	private function loadIcon(name:String, iconPath:String, parent:MovieClip):Void
+	private function loadIcon(name:String, parent:MovieClip):Void
 	{
-		if (iconPath != null)
+		if (m_iconPath != null)
 		{
-			if (iconPath.indexOf(":") < 0)
+			if (m_iconPath.indexOf(":") < 0)
 			{
-				var icon:MovieClip = parent.attachMovie(iconPath, name + "_icon", parent.getNextHighestDepth());
-				onLoadInit(icon);
+				var icon:MovieClip = parent.attachMovie(m_iconPath, name + "_icon", parent.getNextHighestDepth());
+				onAttachInit(icon);
 			}
 			else
 			{
 				var icon:MovieClip = parent.createEmptyMovieClip(name + "_icon", parent.getNextHighestDepth());
-				m_loader.loadClip(iconPath, icon);
+				m_loader.loadClip(m_iconPath, icon);
 			}
 		}
 	}
@@ -400,8 +405,25 @@ class com.boobuildscommon.IconButton
 	{
 		icon._x = m_frameWidth / 2;
 		icon._y = m_frameWidth / 2;
-		icon._xscale = m_buttonWidth-(icon._x*2);
-		icon._yscale = m_buttonHeight-(icon._y*2);
+		icon._xscale = m_buttonWidth-m_frameWidth;
+		icon._yscale = m_buttonHeight-m_frameWidth;
+		
+		SetPips(icon._name, icon);		
+	}
+	
+	private function onAttachInit(icon:MovieClip):Void
+	{
+		icon._x = m_frameWidth / 2;
+		icon._y = m_frameWidth / 2;
+		var scale:Number = (m_buttonWidth - m_frameWidth) / icon._width;
+		var scaleY:Number = (m_buttonHeight - m_frameWidth) / icon._height;
+		if (scaleY < scale)
+		{
+			scale = scaleY;
+		}
+		
+		icon._xscale = scale * 100;
+		icon._yscale = scale * 100;
 		
 		SetPips(icon._name, icon);		
 	}
@@ -409,6 +431,36 @@ class com.boobuildscommon.IconButton
 	private function onLoadError(target_mc:MovieClip, errorCode:String):Void
 	{
 		DebugWindow.Log(DebugWindow.Debug, "Failed to load icon " + errorCode);
+	}
+	
+	private function ShowHover():Void
+	{
+		if (m_enabled == true)
+		{
+			if (m_callback != null && m_icon != null)
+			{
+				if (m_iconHover == null)
+				{
+					m_iconHover = m_icon.createEmptyMovieClip("IconHover", m_icon.getNextHighestDepth());
+					Graphics.DrawFilledRoundedRectangle(m_iconHover, 0x000000, 0, 0xFFFFFF, 70, 0, 0, m_icon._width, m_icon._height);
+					m_iconHover._x = 0;
+					m_iconHover._y = 0;
+					m_iconHover._alpha = 0;
+				}
+				
+				m_iconHover._alpha = 0;
+				Tweener.addTween(m_iconHover, { _alpha:40, time:0.5, transition:"linear" } );
+			}
+		}
+	}
+	
+	private function HideHover():Void
+	{
+		if (m_iconHover != null)
+		{
+			Tweener.removeTweens(m_iconHover);
+			m_iconHover._alpha = 0;
+		}
 	}
 	
 	private function TryButtonPress():Void

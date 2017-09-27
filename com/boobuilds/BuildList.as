@@ -535,7 +535,7 @@ class com.boobuilds.BuildList implements ITabPane
 				{
 					m_currentBuild.SetUseGearManager(useGearManager);
 					Build.RenameBuild(m_currentBuild, newName);
-					m_currentBuild.UpdateFromCurrent();
+					Build.UpdateBuild(m_currentBuild);
 					
 					if (m_currentBuild.GetUseGearManager() != true)
 					{

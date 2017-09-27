@@ -41,7 +41,6 @@
     <compile path="com\boobuilds\BIcon.as" />
     <compile path="com\boobuilds\Localisation.as" />
     <compile path="com\boobuilds\GearItem.as" />
-    <compile path="com\boobuilds\SkillMenu.as" />
     <compile path="com\boobuilds\BuildWindow.as" />
     <compile path="com\boobuilds\Build.as" />
     <compile path="com\boobuilds\BuildList.as" />
@@ -64,6 +63,11 @@
     <compile path="com\boobuilds\EditQuickBuildDialog.as" />
     <compile path="com\boobuilds\QuickBuildList.as" />
     <compile path="com\boobuilds\QuickSwitchIcons.as" />
+    <compile path="com\boobuilds\FavouriteBar.as" />
+    <compile path="com\boobuilds\Favourite.as" />
+    <compile path="com\boobuilds\FavouriteTab.as" />
+    <compile path="com\boobuilds\EditFavouriteDialog.as" />
+    <compile path="com\boobuilds\EditIconDialog.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

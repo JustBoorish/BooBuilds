@@ -61,6 +61,19 @@ class com.boobuildscommon.ScrollPane
 		return m_frame;
 	}
 	
+	public function Unload():Void
+	{
+		if (m_mask != null)
+		{
+			m_mask.removeMovieClip();
+		}
+		
+		if (m_frame != null)
+		{
+			m_frame.removeMovieClip();
+		}
+	}
+	
 	public function SetContent(content:MovieClip, contentHeight:Number):Void
 	{
 		if (m_mask != null)

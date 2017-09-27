@@ -1,9 +1,9 @@
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
-import org.sitedaniel.utils.Proxy;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
 import flash.geom.Matrix;
+import mx.utils.Delegate;
 /**
  * There is no copyright on this code
  *
@@ -163,8 +163,8 @@ class com.boobuildscommon.TabStrip
 		tabText.setNewTextFormat(m_textFormat);
 		tabText.text = m_values[indx];
 		
-		tabCell.onRollOver = Proxy.create(this, function() { if (this.m_selectedTab != indx) { tabSelected._alpha = 0; Tweener.addTween(tabSelected, { _alpha:40, time:0.5, transition:"linear" } ); } } );
-		tabCell.onRollOut = Proxy.create(this, function() { if (this.m_selectedTab != indx) { Tweener.removeTweens(tabSelected); tabSelected._alpha = 0; } } );
-		tabCell.onPress = Proxy.create(this, function() { for (var i:Number = 0; i < this.m_selected.length; ++i) { this.m_selected[i]._alpha = 0; } Tweener.removeTweens(tabSelected); tabSelected._alpha = 60; var oldTab:Number = this.m_selectedTab;  this.m_selectedTab = indx; this.m_callback(indx, oldTab); } );
+		tabCell.onRollOver = Delegate.create(this, function() { if (this.m_selectedTab != indx) { tabSelected._alpha = 0; Tweener.addTween(tabSelected, { _alpha:40, time:0.5, transition:"linear" } ); } } );
+		tabCell.onRollOut = Delegate.create(this, function() { if (this.m_selectedTab != indx) { Tweener.removeTweens(tabSelected); tabSelected._alpha = 0; } } );
+		tabCell.onPress = Delegate.create(this, function() { for (var i:Number = 0; i < this.m_selected.length; ++i) { this.m_selected[i]._alpha = 0; } Tweener.removeTweens(tabSelected); tabSelected._alpha = 60; var oldTab:Number = this.m_selectedTab;  this.m_selectedTab = indx; this.m_callback(indx, oldTab); } );
 	}
 }

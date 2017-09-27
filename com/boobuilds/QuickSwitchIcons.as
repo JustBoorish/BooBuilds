@@ -5,8 +5,8 @@ import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
 import com.boobuildscommon.IntervalCounter;
 import com.boobuildscommon.MenuPanel;
+import com.boobuildscommon.Proxy;
 import caurina.transitions.Tweener;
-import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -227,7 +227,7 @@ class com.boobuilds.QuickSwitchIcons
 			m_dragFrame = m_frame.createEmptyMovieClip("DragFrame", m_frame.getNextHighestDepth());
 			Graphics.DrawFilledRoundedRectangle(m_dragFrame, 0xFFFFFF, 0, 0xFFFFFF, 30, 0, 0, m_dpsIcon._x + m_dpsIcon._width, m_dpsIcon._height);
 			
-			m_dragFrame.onMouseDown = Delegate.create(this, DragStarted);
+			m_dragFrame.onPress = Delegate.create(this, DragStarted);
 			m_dragFrame.onRelease = Delegate.create(this, DragStopped);
 		}
 	}

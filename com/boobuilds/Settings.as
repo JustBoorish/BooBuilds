@@ -48,6 +48,8 @@ class com.boobuilds.Settings
 	private static var PREV_TOGGLE_ID:String = "PREV_TOGGLE_ID";
 	private static var CURRENT_TOGGLE_ID:String = "CURRENT_TOGGLE_ID";
 	private static var RIGHT_CLICK_OUTFIT:String = "RIGHT_CLICK_OUTFIT";
+	private static var FAVOURITE_BAR_ENABLED:String = "FAV_ENABLED";
+	private static var FAVOURITE_ICONS_PER_ROW:String = "FAV_ICONS_ROW";
 
 	private static var m_version:String = null;
 	private static var m_archive:Archive = null;
@@ -211,7 +213,7 @@ class com.boobuilds.Settings
 		
 		for (var prop in settings)
 		{
-			if (prop != undefined && settings[prop] != undefined && settings[prop] != null && settings[prop] != "null" && settings[prop] != defaults[prop])
+			if (prop != undefined && settings[prop] != undefined && settings[prop] != null && String(settings[prop]) != "null" && settings[prop] != defaults[prop])
 			{
 				var entryName:String = GetFullName(prefix, prop);
 				m_archive.DeleteEntry(entryName);
@@ -365,4 +367,50 @@ class com.boobuilds.Settings
 			}
 		}
 	}	
+	
+	public static function GetFavouriteBarEnabled(settings:Object, indx:Number):Boolean
+	{
+		if (settings != null)
+		{
+			if (settings[FAVOURITE_BAR_ENABLED + indx] == 1)
+			{
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	public static function SetFavouriteBarEnabled(settings:Object, indx:Number, newValue:Boolean):Void
+	{
+		if (settings != null)
+		{
+			if (newValue == true)
+			{
+				settings[FAVOURITE_BAR_ENABLED + indx] = 1;
+			}
+			else
+			{
+				settings[FAVOURITE_BAR_ENABLED + indx] = 0;
+			}
+		}
+	}		
+	
+	public static function GetFavouriteIconsPerRow(settings:Object, indx:Number):Number
+	{
+		if (settings != null)
+		{
+			return settings[FAVOURITE_ICONS_PER_ROW + indx];
+		}
+		
+		return 1;
+	}
+	
+	public static function SetFavouriteIconsPerRow(settings:Object, indx:Number, newValue:Number):Void
+	{
+		if (settings != null)
+		{
+			settings[FAVOURITE_ICONS_PER_ROW + indx] = newValue;
+		}
+	}		
 }

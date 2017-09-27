@@ -457,7 +457,7 @@ class com.boobuilds.QuickBuildList implements ITabPane
 		m_currentBuild = m_quickBuilds[buildID];
 		if (m_currentBuild != null)
 		{
-			Build.DeleteBuild(m_builds, m_currentBuild);
+			Build.DeleteBuild(m_quickBuilds, m_currentBuild);
 			DrawList();
 		}
 	}

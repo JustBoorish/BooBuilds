@@ -1,5 +1,5 @@
 import caurina.transitions.Tweener;
-import org.sitedaniel.utils.Proxy;
+import mx.utils.Delegate;
 /**
  * There is no copyright on this code
  *
@@ -140,9 +140,9 @@ class com.boobuildscommon.TreeCheck
 		uncheckedHover._alpha = 0;
 		m_uncheckedHover = uncheckedHover;
 		
-		unchecked.onRollOver = Proxy.create(this, StartHover);
-		unchecked.onRollOut = Proxy.create(this, StopHover);
-		unchecked.onPress = Proxy.create(this, function() { this.StopHover(); this.Toggle(); } );
+		unchecked.onRollOver = Delegate.create(this, StartHover);
+		unchecked.onRollOut = Delegate.create(this, StopHover);
+		unchecked.onPress = Delegate.create(this, function() { this.StopHover(); this.Toggle(); } );
 		
 		var checked:MovieClip = m_frame.createEmptyMovieClip(m_name + "Checked", m_frame.getNextHighestDepth());
 		checked.lineStyle(1, 0xFFFFFF, 100, true, "none", "square", "round");
@@ -162,9 +162,9 @@ class com.boobuildscommon.TreeCheck
 		checkedHover.endFill();
 		m_checkedHover = checkedHover;
 		
-		checkedHover.onRollOver = Proxy.create(this, StartHover);
-		checkedHover.onRollOut = Proxy.create(this, StopHover);
-		checkedHover.onPress = Proxy.create(this, function() { this.StopHover(); this.Toggle(); } );
+		checkedHover.onRollOver = Delegate.create(this, StartHover);
+		checkedHover.onRollOut = Delegate.create(this, StopHover);
+		checkedHover.onPress = Delegate.create(this, function() { this.StopHover(); this.Toggle(); } );
 		
 		SetChecked(m_isChecked);
 	}

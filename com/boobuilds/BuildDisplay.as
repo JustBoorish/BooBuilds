@@ -13,8 +13,8 @@ import com.boobuilds.GearItem;
 import com.boobuildscommon.Checkbox;
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.IconButton;
+import com.boobuildscommon.Proxy;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 /**
  * There is no copyright on this code
  *

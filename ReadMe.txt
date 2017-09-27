@@ -26,7 +26,9 @@ Change Log
 Version 2.0
 Fix bug in outfits causing certain items not to load
 Place unloaded weapons in same bag slot as new weapons when loading a build
-Add a use GearManager build option
+Fix weapon bag placement in additional inventory bags
+Add a use GearManager build option to utilise the in-game GearManager
+Add a new favourites bar to quickly choose your favourite builds or outfits
 
 Version 1.9
 Make build and outfit selector display upwards if icon on lower part of screen

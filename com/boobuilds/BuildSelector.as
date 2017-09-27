@@ -2,7 +2,7 @@ import com.boobuilds.Build;
 import com.boobuilds.BuildGroup;
 import com.boobuildscommon.Colours;
 import com.boobuildscommon.MenuPanel;
-import org.sitedaniel.utils.Proxy;
+import com.boobuildscommon.Proxy;
 
 /**
  * There is no copyright on this code

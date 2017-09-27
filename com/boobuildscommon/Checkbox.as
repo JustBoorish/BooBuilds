@@ -1,5 +1,5 @@
 import caurina.transitions.Tweener;
-import org.sitedaniel.utils.Proxy;
+import mx.utils.Delegate;
 /**
  * There is no copyright on this code
  *
@@ -104,9 +104,9 @@ class com.boobuildscommon.Checkbox
 		buttonHover.endFill();
 		buttonHover._alpha = 0;
 		
-		buttonBack.onRollOver = Proxy.create(this, function() { buttonHover._alpha = 0; Tweener.addTween(buttonHover, { _alpha:60, time:0.5, transition:"linear" } ); } );
-		buttonBack.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(buttonHover); buttonHover._alpha = 0; } );
-		buttonBack.onPress = Proxy.create(this, function() { Tweener.removeTweens(buttonHover); buttonHover._alpha = 0; this.Toggle(); } );
+		buttonBack.onRollOver = Delegate.create(this, function() { buttonHover._alpha = 0; Tweener.addTween(buttonHover, { _alpha:60, time:0.5, transition:"linear" } ); } );
+		buttonBack.onRollOut = Delegate.create(this, function() { Tweener.removeTweens(buttonHover); buttonHover._alpha = 0; } );
+		buttonBack.onPress = Delegate.create(this, function() { Tweener.removeTweens(buttonHover); buttonHover._alpha = 0; this.Toggle(); } );
 		
 		var cross:MovieClip = buttonBack.createEmptyMovieClip(m_name + "ButtonCross", buttonBack.getNextHighestDepth());
 		cross.lineStyle(2, 0xFFFFFF, 100, true, "none", "square", "round");

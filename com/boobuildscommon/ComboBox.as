@@ -1,9 +1,9 @@
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
+import com.boobuildscommon.Proxy;
 import com.boobuildscommon.ScrollPane;
 import com.Utils.Text;
 import caurina.transitions.Tweener;
-import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -24,6 +24,7 @@ import mx.utils.Delegate;
 class com.boobuildscommon.ComboBox
 {
 	private var m_parent:MovieClip;
+	private var m_addonMC:MovieClip;
 	private var m_combo:MovieClip;
 	private var m_list:MovieClip;
 	private var m_button:MovieClip;
@@ -57,10 +58,10 @@ class com.boobuildscommon.ComboBox
 		
 		m_name = name;
 		m_parent = parent;
+		m_addonMC = addonMC;
 		m_entryHeight = entryHeight;
 		m_selectedName = selectedName;
 		m_combo = m_parent.createEmptyMovieClip("ComboBox_" + m_name, m_parent.getNextHighestDepth());
-		m_list = addonMC.createEmptyMovieClip("ComboBoxPopup_" + m_name, addonMC.getNextHighestDepth());
 		m_combo._x = x;
 		m_combo._y = y;
 
@@ -80,6 +81,12 @@ class com.boobuildscommon.ComboBox
 	public function GetSelectedEntry():String
 	{
 		return m_selectedName;
+	}
+	
+	public function SetSelectedEntry(newValue:String):Void
+	{
+		m_selectedName = newValue;
+		ChangeButtonText(m_selectedName);
 	}
 	
 	public function SetChangedCallback(changed:Function):Void
@@ -115,6 +122,22 @@ class com.boobuildscommon.ComboBox
 	{
 		SetTextExtents();
 		DrawButton(m_selectedName);
+	}
+	
+	private function DrawList():Void
+	{
+		if (m_scroll != null)
+		{
+			m_scroll.Unload();
+		}
+		
+		if (m_list != null)
+		{
+			m_list.removeMovieClip();
+			m_list = null;
+		}
+		
+		m_list = m_addonMC.createEmptyMovieClip("ComboBoxPopup_" + m_name, m_addonMC.getNextHighestDepth());
 		
 		for (var indx:Number = 0; indx < m_names.length; ++indx)
 		{
@@ -172,8 +195,8 @@ class com.boobuildscommon.ComboBox
 		var labelExtents:Object = Text.GetTextExtent(name, m_textFormat, menuCell);
 		Graphics.DrawText(name + "MenuText", menuCell, name, m_textFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);
 		
-		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); } );
-		menuCell.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; } );
+		menuCell.onRollOver = Delegate.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); } );
+		menuCell.onRollOut = Delegate.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; } );
 		menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; this.CellPressed(i); }, indx);
 		
 		m_cells.push(menuCell);
@@ -227,25 +250,43 @@ class com.boobuildscommon.ComboBox
 	
 	private function ChangeButtonText(text:String):Void
 	{
-		if (m_buttonText != null)
+		var oldButton:TextField = m_buttonText;
+		
+		if (oldButton != null)
 		{
-			m_buttonText.removeTextField();
+			oldButton._name = "OldButtonText";
 		}
 		
 		var labelExtents:Object = Text.GetTextExtent(text, m_textFormat, m_button);
 		m_buttonText = Graphics.DrawText(text + "ButtonText", m_button, text, m_textFormat, m_leftMargin, Math.round(m_elementHeight / 2 - labelExtents.height / 2), labelExtents.width, labelExtents.height);		
+		
+		if (oldButton != null)
+		{
+			oldButton.swapDepths(m_buttonText);
+			oldButton.removeTextField();
+		}
 	}
 	
 	private function ButtonPressed():Void
 	{
-		if (m_scroll.GetVisible() == false)
+		if (m_scroll == null || m_scroll.GetVisible() == false)
 		{
-			m_scroll.Resize(m_list._height);
+			if (m_scroll == null)
+			{
+				DrawList();
+			}
+			else
+			{
+				m_scroll.Resize(m_list._height);
+			}
+			
 			m_scroll.SetVisible(true);
 		}
 		else
 		{
 			m_scroll.SetVisible(false);
+			m_scroll.Unload();
+			m_scroll = null;
 		}
 	}
 }

@@ -288,6 +288,19 @@ class com.boobuilds.Build
 		}
 	}
 	
+	public static function UpdateBuild(thisBuild:Build):Void
+	{
+		if (thisBuild != null)
+		{
+			thisBuild.UpdateFromCurrent();
+			if (thisBuild.GetUseGearManager() == true)
+			{
+				GearManager.DeleteBuild(thisBuild.GetName());
+				GearManager.CreateBuild(thisBuild.GetName(), undefined);
+			}
+		}
+	}
+	
 	public static function DeleteBuild(builds:Object, thisBuild:Build):Void
 	{
 		if (builds != null && thisBuild != null)

@@ -1,11 +1,11 @@
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
+import com.boobuildscommon.Proxy;
 import caurina.transitions.Tweener;
 import com.Utils.Colors;
 import com.Utils.ID32;
 import com.Utils.Text;
 import mx.utils.Delegate;
-import org.sitedaniel.utils.Proxy;
 
 /**
  * There is no copyright on this code

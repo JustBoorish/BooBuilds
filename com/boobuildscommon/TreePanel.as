@@ -7,7 +7,6 @@ import com.GameInterface.Tooltip.TooltipData;
 import com.GameInterface.Tooltip.TooltipInterface;
 import com.GameInterface.Tooltip.TooltipManager;
 import com.Utils.Text;
-import org.sitedaniel.utils.Proxy;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -407,9 +406,8 @@ class com.boobuildscommon.TreePanel
 			treeCheck = new TreeCheck("TreeCheck" + indx, menuCell, m_margin, m_elementHeight / 2 - checkSize / 2, checkSize, null, false);
 		}
 		
-		menuCell.onRollOver = Proxy.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); if (treeCheck != null) { treeCheck.StartHover(); } this.ShowTooltip(indx); } );
-		menuCell.onRollOut = Proxy.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; if (treeCheck != null) { treeCheck.StopHover(); } this.CloseTooltip(); } );
-		//menuCell.onPress = Proxy.create(this, function(i:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; if (treeCheck != null) { treeCheck.StopHover(); } this.CellPressed(i); }, indx);
+		menuCell.onRollOver = Delegate.create(this, function() { menuHover._alpha = 0; Tweener.addTween(menuHover, { _alpha:40, time:0.5, transition:"linear" } ); if (treeCheck != null) { treeCheck.StartHover(); } this.ShowTooltip(indx); } );
+		menuCell.onRollOut = Delegate.create(this, function() { Tweener.removeTweens(menuHover); menuHover._alpha = 0; if (treeCheck != null) { treeCheck.StopHover(); } this.CloseTooltip(); } );
 		menuCell.onMousePress = Delegate.create(this, function(buttonIndx:Number) { Tweener.removeTweens(menuHover); menuHover._alpha = 0; if (treeCheck != null) { treeCheck.StopHover(); } this.CellPressed(indx, buttonIndx); });
 		
 		m_treeChecks.push(treeCheck);

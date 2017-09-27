@@ -12,6 +12,27 @@
 			<clip id="BooBuildsDPS" import="DPS.png"/>
 			<clip id="BooBuildsHeals" import="Heals.png"/>
 			<clip id="BooBuildsHelp" import="questionButton.png"/>
+			<clip id="BooBuildsBlood" import="Blood.png"/>
+			<clip id="BooBuildsChaos" import="Chaos.png"/>
+			<clip id="BooBuildsEle" import="Elementalism.png"/>
+			<clip id="BooBuildsFist" import="Fist.png"/>
+			<clip id="BooBuildsHammer" import="Hammer.png"/>
+			<clip id="BooBuildsPistol" import="Pistol.png"/>
+			<clip id="BooBuildsRifle" import="Rifle.png"/>
+			<clip id="BooBuildsShotgun" import="Shotgun.png"/>
+			<clip id="BooBuildsSword" import="Sword.png"/>
+			<clip id="BooBuildsOne" import="One.png"/>
+			<clip id="BooBuildsTwo" import="Two.png"/>
+			<clip id="BooBuildsThree" import="Three.png"/>
+			<clip id="BooBuildsFour" import="Four.png"/>
+			<clip id="BooBuildsFive" import="Five.png"/>
+			<clip id="BooBuildsSix" import="Six.png"/>
+			<clip id="BooBuildsSeven" import="Seven.png"/>
+			<clip id="BooBuildsEight" import="Eight.png"/>
+			<clip id="BooBuildsNine" import="Nine.png"/>
+			<clip id="BooBuildsTen" import="Ten.png"/>
+			<clip id="BooBuildsEleven" import="Eleven.png"/>
+			<clip id="BooBuildsTwelve" import="Twelve.png"/>
 			<font id="tahoma" import="fonts/tahoma.ttf" name="Tahoma "/>
 		</library>
 		<place id="appBuilds" name="appBuilds" depth="100" />

@@ -12,6 +12,9 @@ import com.boobuilds.BuildGroup;
 import com.boobuilds.BuildList;
 import com.boobuilds.BuildSelector;
 import com.boobuilds.Controller;
+import com.boobuilds.Favourite;
+import com.boobuilds.FavouriteBar;
+import com.boobuilds.FavouriteTab;
 import com.boobuilds.Localisation;
 import com.boobuilds.OptionsTab;
 import com.boobuilds.Outfit;
@@ -24,6 +27,7 @@ import com.boobuildscommon.Colours;
 import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.IconButton;
 import com.boobuildscommon.InfoWindow;
+import com.boobuildscommon.Proxy;
 import com.boobuildscommon.TabWindow;
 import mx.utils.Delegate;
 
@@ -62,6 +66,8 @@ class com.boobuilds.Controller extends MovieClip
 	public static var MAX_GROUPS:Number = 50;
 	public static var MAX_BUILDS:Number = 300;
 	public static var MAX_OUTFITS:Number = 300;
+	public static var MAX_FAVOURITE_BARS:Number = 2;
+	public static var MAX_FAVOURITE_BUTTONS:Number = 16;
 	
 	private static var m_instance:Controller = null;
 	
@@ -81,6 +87,7 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_buildList:BuildList;
 	private var m_outfitList:OutfitList;
 	private var m_quickBuildList:QuickBuildList;
+	private var m_favouritesTab:FavouriteTab;
 	private var m_buildSelectorWindow:BuildSelector;
 	private var m_outfitSelectorWindow:OutfitSelector;
 	private var m_builds:Object;
@@ -95,6 +102,8 @@ class com.boobuilds.Controller extends MovieClip
 	private var m_loadQuickBuildDV:DistributedValue;
 	private var m_loadOutfitDV:DistributedValue;
 	private var m_quickSwitchIcons:QuickSwitchIcons;
+	private var m_favouriteIcons:Array;
+	private var m_favourites:Array;
 	
 	//On Load
 	function onLoad():Void
@@ -167,6 +176,7 @@ class com.boobuilds.Controller extends MovieClip
 			LoadQuickBuilds();
 			LoadOutfitGroups();
 			LoadOutfits();
+			LoadFavourites();
 			Build.SetCurrentBuildID(m_settings[Settings.CURRENT_BUILD]);
 			Build.SetCurrentToggleID(Settings.GetCurrentToggleID(m_settings));
 			Build.SetPrevToggleID(Settings.GetPrevToggleID(m_settings));
@@ -189,6 +199,7 @@ class com.boobuilds.Controller extends MovieClip
 			m_icon = new BIcon(m_mc, _root["boobuilds\\boobuilds"].BooBuildsIcon, VERSION, m_settings, Delegate.create(this, ToggleBuildSelectorVisible), Delegate.create(this, IconRightClick), Delegate.create(this, IconShiftLeftClick), Delegate.create(this, ToggleDebugVisible), m_settings[BIcon.ICON_X], m_settings[BIcon.ICON_Y]);
 			
 			SetQuickSwitchIcons(false);
+			SetFavouriteIcons();
 			
 			FeatInterface.BuildFeatList();
 		}
@@ -204,9 +215,6 @@ class com.boobuilds.Controller extends MovieClip
 		m_loadOutfitDV.SignalChanged.Disconnect(LoadOutfitCmd, this);
 		OverwriteSwapKey(false);
 		var ret:Archive = Settings.GetArchive();
-		
-		// remove obsolete settings
-		ret.DeleteEntry("USE_SECOND_DUPLICATE");
 		
 		//DebugWindow.Log("BooBuilds OnModuleDeactivated: " + ret.toString());
 		return ret;
@@ -225,6 +233,22 @@ class com.boobuilds.Controller extends MovieClip
 		m_defaults[Settings.CURRENT_OUTFIT] = "";
 		m_defaults[QuickSwitchIcons.X] = -1;
 		m_defaults[QuickSwitchIcons.Y] = -1;
+		
+		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+		{
+			m_defaults[FavouriteBar.X + indx] = 100;
+			m_defaults[FavouriteBar.Y + indx] = 100 * (indx + 1);
+			Settings.SetFavouriteIconsPerRow(m_defaults, indx, MAX_BUTTONS);
+			if (indx == 0)
+			{
+				Settings.SetFavouriteBarEnabled(m_defaults, indx, true);
+			}
+			else
+			{
+				Settings.SetFavouriteBarEnabled(m_defaults, indx, false);
+			}
+		}
+		
 		Settings.SetOverrideKey(m_defaults, true);
 		Settings.SetPrevToggleID(m_defaults, "");
 		Settings.SetRightClickOutfit(m_defaults, false);
@@ -372,6 +396,105 @@ class com.boobuilds.Controller extends MovieClip
 		}
 	}
 	
+	private function SaveFavourites():Void
+	{
+		var archive:Archive = Settings.GetArchive();
+		var favNumber:Number = 0;
+		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+		{
+			var favourites:Array = m_favourites[indx];
+			var favPrefix:String = Favourite.FAVOURITE + "_" + indx;
+			for (var i:Number = 0; i < MAX_FAVOURITE_BUTTONS; ++i)
+			{
+				Favourite.ClearArchive(favPrefix, archive, i);
+				
+				var thisFav:Favourite = favourites[i];
+				if (thisFav != null)
+				{
+					thisFav.Save(favPrefix, archive, i);
+				}
+			}
+		}
+	}
+	
+	private function LoadFavourites():Void
+	{
+		m_favourites = new Array();
+		var archive:Archive = Settings.GetArchive();
+		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+		{
+			var favourites:Array = new Array();
+			var favPrefix:String = Favourite.FAVOURITE + "_" + indx;
+			for (var i:Number = 0; i < MAX_FAVOURITE_BUTTONS; ++i)
+			{
+				var thisFav:Favourite = Favourite.FromArchive(favPrefix, archive, i);
+				favourites.push(thisFav);
+			}
+			
+			m_favourites.push(favourites);
+		}
+	}
+	
+	private function UpdateFavouriteNames():Void
+	{
+		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+		{
+			var favourites:Array = m_favourites[indx];
+			if (favourites != null)
+			{
+				for (var i:Number = 0; i < MAX_FAVOURITE_BUTTONS; ++i)
+				{
+					var thisFav:Favourite = favourites[i];
+					if (thisFav != null)
+					{
+						var deleteFavourite:Boolean = false;
+						if (thisFav.GetType() == Favourite.BUILD)
+						{
+							var thisBuild:Build = m_builds[thisFav.GetID()];
+							if (thisBuild == null)
+							{
+								deleteFavourite = true;
+							}
+							else
+							{
+								thisFav.SetName(thisBuild.GetName());
+							}
+						}
+						else if (thisFav.GetType() == Favourite.OUTFIT)
+						{
+							var thisOutfit:Outfit = m_outfits[thisFav.GetID()];
+							if (thisOutfit == null)
+							{
+								deleteFavourite = true;
+							}
+							else
+							{
+								thisFav.SetName(thisOutfit.GetName());
+							}
+						}
+						else if (thisFav.GetType() == Favourite.BUILD)
+						{
+							var thisBuild:Build = m_quickBuilds[thisFav.GetID()];
+							if (thisBuild == null)
+							{
+								deleteFavourite = true;
+							}
+							else
+							{
+								thisFav.SetName(thisBuild.GetName());
+							}
+						}
+						
+						if (deleteFavourite == true)
+						{
+							favourites[i] = null;
+						}
+					}
+				}
+			}
+		}
+	}
+	
 	private function SaveOutfitGroups():Void
 	{
 		var archive:Archive = Settings.GetArchive();
@@ -491,12 +614,14 @@ class com.boobuilds.Controller extends MovieClip
 		SaveQuickBuilds();
 		SaveOutfitGroups();
 		SaveOutfits();
+		SaveFavourites();
 	}
 	
 	private function ConfigClosed():Void
 	{
 		SaveSettings();
 		SetQuickSwitchIcons(false);
+		SetFavouriteIcons();
 		OverwriteSwapKey(Settings.GetOverrideKey(m_settings));
 	}
 	
@@ -534,6 +659,80 @@ class com.boobuilds.Controller extends MovieClip
 		m_settings[QuickSwitchIcons.X] = x;
 		m_settings[QuickSwitchIcons.Y] = y;
 		SetQuickSwitchIcons(false);
+	}
+	
+	private function SetFavouriteIcons():Void
+	{
+		if (m_favouriteIcons != null)
+		{
+			for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+			{
+				if (m_favouriteIcons[indx] != null)
+				{
+					m_favouriteIcons[indx].Unload();
+				}
+			}
+		}
+		
+		UpdateFavouriteNames();
+		
+		m_favouriteIcons = new Array();
+		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
+		{
+			var x:Number = m_settings[FavouriteBar.X + indx];
+			var y:Number = m_settings[FavouriteBar.Y + indx];
+			var iconsPerRow:Number = Settings.GetFavouriteIconsPerRow(m_settings, indx);
+			var enabled:Boolean = Settings.GetFavouriteBarEnabled(m_settings, indx);
+			var favBar:FavouriteBar = new FavouriteBar("FavouritesBar" + indx, m_mc, x, y, 18, MAX_FAVOURITE_BUTTONS, iconsPerRow, false, m_favourites[indx], Delegate.create(this, FavouritePressed));
+			m_favouriteIcons.push(favBar);
+			favBar.SetVisible(enabled);
+		}
+	}
+	
+	public function FavouriteDragStart(barNumber:Number):Void
+	{
+		m_favouriteIcons[barNumber].EnableDrag(Proxy.createTwoArgs(this, FavouriteDragStopped, barNumber));
+	}
+	
+	private function FavouriteDragStopped(x:Number, y:Number, barNumber:Number):Void
+	{
+		m_settings[FavouriteBar.X + barNumber] = x;
+		m_settings[FavouriteBar.Y + barNumber] = y;
+		m_favouriteIcons[barNumber].DisableDrag();
+		
+		var enabled:Boolean = Settings.GetFavouriteBarEnabled(m_settings, barNumber);
+		m_favouriteIcons[barNumber].SetVisible(enabled);
+	}
+	
+	private function FavouritePressed(indx:Number, favourite:Favourite):Void
+	{
+		if (favourite != null)
+		{
+			if (favourite.GetType() == Favourite.BUILD)
+			{
+				var thisBuild:Build = m_builds[favourite.GetID()];
+				if (thisBuild != null)
+				{
+					thisBuild.Apply(m_outfits);
+				}
+			}
+			else if (favourite.GetType() == Favourite.OUTFIT)
+			{
+				var thisOutfit:Outfit = m_outfits[favourite.GetID()];
+				if (thisOutfit != null)
+				{
+					thisOutfit.Apply();
+				}
+			}
+			else if (favourite.GetType() == Favourite.QUICK)
+			{
+				var thisBuild:Build = m_quickBuilds[favourite.GetID()];
+				if (thisBuild != null)
+				{
+					thisBuild.Apply(m_outfits);
+				}
+			}
+		}
 	}
 	
 	private function ToggleBuildSelectorVisible():Void
@@ -675,11 +874,13 @@ class com.boobuilds.Controller extends MovieClip
 			m_buildList = new BuildList("BuildList", m_buildGroups, m_builds, m_settings, m_outfits, m_outfitGroups);
 			m_quickBuildList = new QuickBuildList("QuickBuildList", m_quickBuildGroups, m_quickBuilds, m_settings, m_builds, m_buildGroups, m_outfits);
 			m_outfitList = new OutfitList("OutfitList", m_outfitGroups, m_outfits, m_settings);
+			m_favouritesTab = new FavouriteTab("Faves", m_settings, m_favourites, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, Delegate.create(this, FavouriteDragStart));
 			m_optionsTab = new OptionsTab("Options", m_settings, m_buildGroups, m_builds, m_outfitGroups, m_outfits, m_quickBuildGroups, m_quickBuilds, m_buildList, m_outfitList, m_quickBuildList, Delegate.create(this, DragQuickButtons), Delegate.create(this, ApplyOverrideKey));
-			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 320, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp", "https://tswact.wordpress.com/boobuilds/");
+			m_configWindow = new TabWindow(m_mc, "BooBuilds", m_settings[Settings.X], m_settings[Settings.Y], 350, IconButton.BUTTON_HEIGHT * Controller.MAX_BUTTONS + 6 * (Controller.MAX_BUTTONS + 1), Delegate.create(this, ConfigClosed), "BooBuildsHelp", "https://tswact.wordpress.com/boobuilds/");
 			m_configWindow.AddTab("Builds", m_buildList);
 			m_configWindow.AddTab("Outfits", m_outfitList);
 			m_configWindow.AddTab("Quick", m_quickBuildList);
+			m_configWindow.AddTab("Fav's", m_favouritesTab);
 			m_configWindow.AddTab("Options", m_optionsTab);
 			m_configWindow.SetVisible(true);
 		}
