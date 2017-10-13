@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.1
+Move to SWL specific curse site
+
 Version 2.0.1
 Fixed bug where weapon temporarily disappeared from your bags! (reloadui to fix it)
 
