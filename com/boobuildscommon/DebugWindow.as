@@ -1,6 +1,6 @@
+import com.boobuildscommon.DebugWindow;
 import com.boobuildscommon.Graphics;
 import com.Utils.Text;
-import com.Utils.Signal;
 import caurina.transitions.Tweener;
 import mx.utils.Delegate;
 /**
@@ -21,7 +21,7 @@ import mx.utils.Delegate;
  */
 class com.boobuildscommon.DebugWindow
 {
-	private static var NAME:String = "boodebug2";
+	private static var m_instance:DebugWindow = null;
 	
 	private var m_debug:MovieClip;
 	private var m_textArea:TextField;
@@ -29,74 +29,77 @@ class com.boobuildscommon.DebugWindow
 	private var m_logLevel:Number;
 	private var m_text:String;
 	
-	public var SignalLog:Signal;
 	public static var Trace:Number = 1;
 	public static var Debug:Number = 2;
 	public static var Info:Number = 3;
 	public static var Warning:Number = 4;
 	public static var Error:Number = 5;
 	
-	public function DebugWindow(parent, logLevel:Number) 
+	private function DebugWindow(parent:MovieClip, logLevel:Number, inName:String) 
 	{
-		if (_global[NAME] == undefined)
+		var name:String = inName;
+		if (name == null)
 		{
-			m_logLevel = logLevel;
-			
-			m_debug = parent.createEmptyMovieClip(NAME, parent.getNextHighestDepth());
-			m_debug._visible = false;
-			m_debug._x = 0;
-			m_debug._y = 25;
-			m_debug._alpha = 60;
-			
-			m_text = "";
-			m_textFormat = Graphics.GetTextFormat();
-			var w:Number = 625;
-			var h:Number = 320;			
-			DrawFrame(w, h);
-			
-			SignalLog = new Signal();
-			SignalLog.Connect(SignalEmitted, this);
-			
-			var tempDebug:Object = new Object();
-			tempDebug.logsignal = SignalLog;
-			tempDebug.setvisible = Delegate.create(this, SetDebugVisible);
-			tempDebug.getvisible = Delegate.create(this, GetDebugVisible);
-			_global[NAME] = tempDebug;
+			name = "BooDebug3";
 		}
+		
+		m_logLevel = logLevel;
+		
+		m_debug = parent.createEmptyMovieClip(name, parent.getNextHighestDepth());
+		m_debug._visible = false;
+		m_debug._x = 0;
+		m_debug._y = 25;
+		m_debug._alpha = 60;
+		
+		m_text = "";
+		m_textFormat = Graphics.GetTextFormat();
+		var w:Number = 625;
+		var h:Number = 320;			
+		DrawFrame(name, w, h);		
 	}
 
+	public static function GetInstance(parent:MovieClip, logLevel:Number, inName:String):DebugWindow
+	{
+		if (m_instance == null)
+		{
+			m_instance = new DebugWindow(parent, logLevel, inName);
+		}
+		
+		return m_instance;
+	}
+	
 	public static function Log(level:Object, str:String):Void
 	{
-		if (_global[NAME] != undefined && _global[NAME]["logsignal"] != undefined)
+		if (m_instance != null)
 		{
 			if (typeof(level) == "number")
 			{
-				_global[NAME].logsignal.Emit(level, str);
+				m_instance.LogMsg(Number(level), str);
 			}
 			else
 			{
-				_global[NAME].logsignal.Emit(Debug, level);
+				m_instance.LogMsg(Debug, String(level));
 			}
 		}
 	}
 	
 	public static function SetVisible(visible:Boolean):Void
 	{
-		if (_global[NAME] != undefined && _global[NAME]["setvisible"] != undefined)
+		if (m_instance != null)
 		{
-			_global[NAME].setvisible(visible);
+			m_instance.SetDebugVisible(visible);
 		}
 	}
 	
 	public static function ToggleVisible():Void
 	{
-		if (_global[NAME] != undefined && _global[NAME]["setvisible"] != undefined)
+		if (m_instance != null)
 		{
-			_global[NAME].setvisible(!_global[NAME].getvisible());
+			m_instance.SetDebugVisible(!m_instance.GetDebugVisible());
 		}
 	}
 	
-	private function SignalEmitted(logLevel:Number, str:String):Void
+	private function LogMsg(logLevel:Number, str:String):Void
 	{
 		if (logLevel >= m_logLevel)
 		{
@@ -141,10 +144,10 @@ class com.boobuildscommon.DebugWindow
 		}
 	}
 	
-	private function DrawFrame(maxWidth:Number, maxHeight:Number):Void
+	private function DrawFrame(name:String, maxWidth:Number, maxHeight:Number):Void
 	{
 		var radius:Number = 8;		
-		var extents:Object = Text.GetTextExtent(NAME, m_textFormat, m_debug);
+		var extents:Object = Text.GetTextExtent(name, m_textFormat, m_debug);
 		
 		var configWindow:MovieClip = m_debug;
 		configWindow.lineStyle(0, 0x000000, 100, true, "none", "square", "round");
@@ -171,7 +174,7 @@ class com.boobuildscommon.DebugWindow
 		configWindow.curveTo(0, 0, radius, 0);
 		configWindow.endFill();
 		
-		var tabText:TextField = configWindow.createTextField(NAME + "Text", configWindow.getNextHighestDepth(), 20, (titleHeight - extents.height) / 2, extents.width, extents.height);
+		var tabText:TextField = configWindow.createTextField("DebugText", configWindow.getNextHighestDepth(), 20, (titleHeight - extents.height) / 2, extents.width, extents.height);
 		tabText.embedFonts = true;
 		tabText.selectable = false;
 		tabText.antiAliasType = "advanced";
@@ -179,9 +182,9 @@ class com.boobuildscommon.DebugWindow
 		tabText.border = false;
 		tabText.background = false;
 		tabText.setNewTextFormat(m_textFormat);
-		tabText.text = NAME;
+		tabText.text = name;
 		
-		m_textArea = configWindow.createTextField(NAME + "TextArea", configWindow.getNextHighestDepth(), 10, titleHeight + 10, maxWidth - 20, maxHeight - 20 - titleHeight);
+		m_textArea = configWindow.createTextField("DebugTextArea", configWindow.getNextHighestDepth(), 10, titleHeight + 10, maxWidth - 20, maxHeight - 20 - titleHeight);
 		m_textArea.type = "input";
 		m_textArea.setNewTextFormat(m_textFormat);
 		m_textArea.setTextFormat(m_textFormat);
@@ -196,12 +199,12 @@ class com.boobuildscommon.DebugWindow
 		m_textArea.textColor = 0xFFFFFF;
 		
 		var buttonRadius:Number = 6.5;
-		var buttonBack:MovieClip = configWindow.createEmptyMovieClip(NAME + "ButtonBack", configWindow.getNextHighestDepth());
+		var buttonBack:MovieClip = configWindow.createEmptyMovieClip("DebugButtonBack", configWindow.getNextHighestDepth());
 		Graphics.DrawFilledCircle(buttonBack, buttonRadius, 0, 0, 0x848484, 100);
 		buttonBack._x = maxWidth - buttonRadius * 2 - 15;
 		buttonBack._y = titleHeight / 2 - buttonRadius;
 		
-		var buttonHover:MovieClip = buttonBack.createEmptyMovieClip(NAME + "ButtonHover", buttonBack.getNextHighestDepth());
+		var buttonHover:MovieClip = buttonBack.createEmptyMovieClip("DebugButtonHover", buttonBack.getNextHighestDepth());
 		Graphics.DrawFilledCircle(buttonHover, buttonRadius, 0, 0, 0xFE2E2E, 80);
 		buttonHover._alpha = 0;
 		
@@ -210,7 +213,7 @@ class com.boobuildscommon.DebugWindow
 		buttonBack.onPress = Delegate.create(this, function() { Tweener.removeTweens(buttonHover); buttonHover._alpha = 0; configWindow._visible = false; } );
 		
 		var crossRadius:Number = 3.5;
-		var cross:MovieClip = buttonBack.createEmptyMovieClip(NAME + "ButtonCross", buttonBack.getNextHighestDepth());
+		var cross:MovieClip = buttonBack.createEmptyMovieClip("DebugButtonCross", buttonBack.getNextHighestDepth());
 		cross.lineStyle(2, 0xFFFFFF, 100, true, "none", "square", "round");
 		cross.moveTo(buttonRadius - crossRadius, buttonRadius - crossRadius);
 		cross.lineTo(buttonRadius + crossRadius, buttonRadius + crossRadius);

@@ -49,7 +49,7 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "2.0.1";
+	public static var VERSION = "2.1";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -118,13 +118,9 @@ class com.boobuilds.Controller extends MovieClip
 		
 		if (m_debug == null)
 		{
-			if (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Boor" || m_clientCharacter.GetName() == "BoorGirl")
+			if (m_clientCharacter != null && (m_clientCharacter.GetName() == "Boorish" || m_clientCharacter.GetName() == "Boor" || m_clientCharacter.GetName() == "BoorGirl"))
 			{
-				m_debug = new DebugWindow(m_mc, DebugWindow.Debug);
-			}
-			else
-			{
-				m_debug = new DebugWindow(m_mc, DebugWindow.Info);
+				m_debug = DebugWindow.GetInstance(m_mc, DebugWindow.Debug, "BooBuildsDebug");
 			}
 		}
 		DebugWindow.Log(DebugWindow.Info, "BooBuilds Loaded");
