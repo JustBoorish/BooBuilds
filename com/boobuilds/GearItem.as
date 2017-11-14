@@ -235,19 +235,25 @@ class com.boobuilds.GearItem
 			return null;
 		}
 		
+		var bestRarity:Number = -1;
 		var bestXP:Number = -1;
 		var bestIndx:Number = null;
 		
 		for (var indx:Number = 0; indx < exactItems.length; ++indx)
 		{
 			var item:InventoryItem = exactItems[indx];
-			if (item.m_XP > bestXP)
+			if (item.m_Rarity > bestRarity)
+			{
+				bestRarity = item.m_Rarity;
+				bestXP = item.m_XP;
+				bestIndx = indx;
+			}
+			else if (item.m_Rarity == bestRarity && item.m_XP > bestXP)
 			{
 				bestXP = item.m_XP;
 				bestIndx = indx;
 			}
 		}
-		
 		
 		var ret:Object = null;
 		if (bestIndx != null)

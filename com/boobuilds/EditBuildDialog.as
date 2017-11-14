@@ -34,6 +34,7 @@ class com.boobuilds.EditBuildDialog
 	private var m_includeWeapons:Boolean;
 	private var m_includeTalismans:Boolean;
 	private var m_includeGadget:Boolean;
+	private var m_includeAnimaAllocation:Boolean;
 	private var m_useGearManager:Boolean;
 	private var m_callback:Function;
 	private var m_input:TextField;
@@ -42,6 +43,7 @@ class com.boobuilds.EditBuildDialog
 	private var m_includeWeaponsCheck:Checkbox;
 	private var m_includeTalismansCheck:Checkbox;
 	private var m_includeGadgetCheck:Checkbox;
+	private var m_includeAnimaAllocationCheck:Checkbox;
 	private var m_outfitID:String;
 	private var m_outfits:Object;
 	private var m_outfitGroups:Array;
@@ -53,7 +55,7 @@ class com.boobuilds.EditBuildDialog
 	private var m_checksFrame:MovieClip;
 	private var m_useGearManagerCheck:Checkbox;
 	
-	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, buildName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, outfitID:String, outfits:Object, outfitGroups:Array, useGearManager:Boolean)
+	public function EditBuildDialog(name:String, parent:MovieClip, addonMC:MovieClip, frameWidth:Number, frameHeight:Number, buildName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, includeAnimaAllocation:Boolean, outfitID:String, outfits:Object, outfitGroups:Array, useGearManager:Boolean)
 	{
 		m_addonMC = addonMC;
 		m_buildName = buildName;
@@ -62,6 +64,7 @@ class com.boobuilds.EditBuildDialog
 		m_includeWeapons = includeWeapons;
 		m_includeTalismans = includeTalismans;
 		m_includeGadget = includeGadget;
+		m_includeAnimaAllocation = includeAnimaAllocation;
 		m_useGearManager = useGearManager;
 		m_outfitID = outfitID;
 		m_outfits = outfits;
@@ -178,6 +181,12 @@ class com.boobuilds.EditBuildDialog
 		Graphics.DrawText("IncludeGadgetText", m_checksFrame, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
 		m_includeGadgetCheck = new Checkbox("IncludeGadgetCheck", m_checksFrame, 30, checkY, checkSize, null, false);
 		
+		checkY += 5 + labelExtents.height;
+		text = "Include Anima Allocation";
+		extents = Text.GetTextExtent(text, textFormat, m_checksFrame);
+		Graphics.DrawText("IncludeAnimaAllocationText", m_checksFrame, text, m_textFormat, 35 + checkSize, checkY + checkSize / 2 - extents.height / 2, extents.width, extents.height);
+		m_includeAnimaAllocationCheck = new Checkbox("IncludeAnimaAllocationCheck", m_checksFrame, 30, checkY, checkSize, null, false);
+		
 		m_outfitY = m_checksFrame._y + m_checksFrame._height;
 		text = "Outfit";
 		extents = Text.GetTextExtent(text, textFormat, modalMC);
@@ -191,6 +200,7 @@ class com.boobuilds.EditBuildDialog
 		m_includeWeaponsCheck.SetChecked(m_includeWeapons);
 		m_includeTalismansCheck.SetChecked(m_includeTalismans);
 		m_includeGadgetCheck.SetChecked(m_includeGadget);
+		m_includeAnimaAllocationCheck.SetChecked(m_includeAnimaAllocation);
 	}
 	
 	private function DrawOutfitButton(modalMC:MovieClip):Void
@@ -300,11 +310,11 @@ class com.boobuilds.EditBuildDialog
 		{
 			if (success)
 			{
-				m_callback(m_input.text, m_includeSkillsCheck.IsChecked(), m_includePassivesCheck.IsChecked(), m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_includeGadgetCheck.IsChecked(), m_useGearManagerCheck.IsChecked(), m_outfitID);
+				m_callback(m_input.text, m_includeSkillsCheck.IsChecked(), m_includePassivesCheck.IsChecked(), m_includeWeaponsCheck.IsChecked(), m_includeTalismansCheck.IsChecked(), m_includeGadgetCheck.IsChecked(), m_includeAnimaAllocationCheck.IsChecked(), m_useGearManagerCheck.IsChecked(), m_outfitID);
 			}
 			else
 			{
-				m_callback(null, false, false, false, false, false, null);
+				m_callback(null, false, false, false, false, false, false, null);
 			}
 		}
 	}

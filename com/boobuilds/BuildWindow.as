@@ -33,7 +33,7 @@ class com.boobuilds.BuildWindow
 		m_name = name;
 		m_parent = parent;
 		m_build = build;
-		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.97, frameHeight * 0.45);
+		m_modalBase = new ModalBase(name, parent, Delegate.create(this, DrawControls), frameWidth, frameHeight, frameWidth * 0.97, frameHeight * 0.55);
 		
 		var modalMC:MovieClip = m_modalBase.GetMovieClip();
 		var x:Number = modalMC._width / 2;
@@ -57,15 +57,23 @@ class com.boobuilds.BuildWindow
 	{
 		SetVisible(false);
 		m_modalBase.Unload();
+		m_display.Unload();
 	}
 	
 	private function DrawControls(modalMC:MovieClip, textFormat:TextFormat):Void
 	{
 		var boldTextFormat:TextFormat = Graphics.GetBoldTextFormat();
-		var extents:Object = Text.GetTextExtent(m_build.GetName(), textFormat, modalMC);
-		Graphics.DrawText("Title", modalMC, m_build.GetName(), textFormat, modalMC._width / 2 - extents.width / 2, 5, extents.width, extents.height);
+		var extents:Object = Text.GetTextExtent(m_build.GetName(), boldTextFormat, modalMC);
+		Graphics.DrawText("Title", modalMC, m_build.GetName(), boldTextFormat, modalMC._width / 2 - extents.width / 2, 5, extents.width, extents.height);
 		
-		m_display = new BuildDisplay("Inspect", modalMC, textFormat, 0, 30, false);
+		if (m_build.GetDamagePct() != null)
+		{
+			var aaString:String = "Damage: " + m_build.GetDamagePct() + "%  Health: " + m_build.GetHealthPct() + "%  Heal: " + m_build.GetHealPct() + "%";
+			var aaExtents:Object = Text.GetTextExtent(aaString, textFormat, modalMC);
+			Graphics.DrawText("AA", modalMC, aaString, textFormat, modalMC._width / 2 - aaExtents.width / 2, 15 + extents.height, aaExtents.width, aaExtents.height);
+		}
+		
+		m_display = new BuildDisplay("Inspect", modalMC, textFormat, 0, 40 + extents.height, false);
 		m_display.SetBuild(m_build);
 	}
 	

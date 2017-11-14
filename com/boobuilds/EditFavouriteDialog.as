@@ -85,7 +85,7 @@ class com.boobuilds.EditFavouriteDialog
 		m_frameWidth = frameWidth;
 		m_frameHeight = frameHeight;
 		
-		m_iconPaths = [ "BooBuildsTank", "BooBuildsDPS", "BooBuildsHeals", "BooBuildsBlood", "BooBuildsChaos", "BooBuildsEle", "BooBuildsFist", "BooBuildsHammer", "BooBuildsPistol",
+		m_iconPaths = [ "BooBuildsTank2", "BooBuildsDPS2", "BooBuildsHeals2", "BooBuildsBlood", "BooBuildsChaos", "BooBuildsEle", "BooBuildsFist", "BooBuildsHammer", "BooBuildsPistol",
 		"BooBuildsRifle", "BooBuildsShotgun", "BooBuildsSword", "BooBuildsNoSign", "BooBuildsHelp", "BooBuildsWarning", "BooBuildsOne", "BooBuildsTwo", "BooBuildsThree", "BooBuildsFour", 
 		"BooBuildsFive", "BooBuildsSix", "BooBuildsSeven", "BooBuildsEight", "BooBuildsNine", "BooBuildsTen", "BooBuildsEleven", "BooBuildsTwelve" ];
 
@@ -222,6 +222,7 @@ class com.boobuilds.EditFavouriteDialog
 	
 	private function RedrawControls():Void
 	{
+		ClearSelectors();
 		DrawControls(m_modalBase.GetMovieClip(), m_textFormat);
 	}
 
@@ -401,7 +402,7 @@ class com.boobuilds.EditFavouriteDialog
 					thisType = null;
 				}
 				
-				m_callback(true, m_type, m_id, m_iconPath, m_colour, GetIDName());
+				m_callback(true, thisType, m_id, m_iconPath, m_colour, GetIDName());
 			}
 			else
 			{

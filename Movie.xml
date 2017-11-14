@@ -11,6 +11,9 @@
 			<clip id="BooBuildsTank" import="Tank.png"/>
 			<clip id="BooBuildsDPS" import="DPS.png"/>
 			<clip id="BooBuildsHeals" import="Heals.png"/>
+			<clip id="BooBuildsTank2" import="Tank2.png"/>
+			<clip id="BooBuildsDPS2" import="DPS2.png"/>
+			<clip id="BooBuildsHeals2" import="Heals2.png"/>
 			<clip id="BooBuildsHelp" import="questionButton.png"/>
 			<clip id="BooBuildsBlood" import="Blood.png"/>
 			<clip id="BooBuildsChaos" import="Chaos.png"/>

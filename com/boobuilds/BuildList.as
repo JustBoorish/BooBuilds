@@ -505,12 +505,18 @@ class com.boobuilds.BuildList implements ITabPane
 				includeGadget = false;
 			}
 			
-			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild.GetName(), includeSkills, includePassives, includeWeapons, includeTalismans, includeGadget, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups, m_currentBuild.GetUseGearManager());
+			var includeAnimaAllocation:Boolean = true;
+			if (m_currentBuild.GetDamagePct() == null)
+			{
+				includeAnimaAllocation = false;
+			}
+			
+			m_editBuildDialog = new EditBuildDialog("UpdateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, m_currentBuild.GetName(), includeSkills, includePassives, includeWeapons, includeTalismans, includeGadget, includeAnimaAllocation, m_currentBuild.GetOutfitID(), m_outfits, m_outfitGroups, m_currentBuild.GetUseGearManager());
 			m_editBuildDialog.Show(Delegate.create(this, UpdateBuildCB));
 		}
 	}
 	
-	private function UpdateBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, useGearManager:Boolean, outfitID:String):Void
+	private function UpdateBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, includeAnimaAllocation:Boolean, useGearManager:Boolean, outfitID:String):Void
 	{
 		if (inName != null)
 		{
@@ -558,6 +564,10 @@ class com.boobuilds.BuildList implements ITabPane
 						if (includeGadget != true)
 						{
 							m_currentBuild.ClearGadget();
+						}
+						if (includeAnimaAllocation != true)
+						{
+							m_currentBuild.ClearAnimaAllocation();
 						}
 					}
 					
@@ -719,12 +729,12 @@ class com.boobuilds.BuildList implements ITabPane
 		{
 			UnloadDialogs();
 			
-			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, "", true, true, true, true, true, null, m_outfits, m_outfitGroups, false);
+			m_editBuildDialog = new EditBuildDialog("CreateBuild", m_parent, m_addonMC, m_parentWidth, m_parentHeight, "", true, true, true, true, true, true, null, m_outfits, m_outfitGroups, false);
 			m_editBuildDialog.Show(Delegate.create(this, CreateCurrentBuildCB));
 		}
 	}
 	
-	private function CreateCurrentBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, useGearManager:Boolean, outfitID:String):Void
+	private function CreateCurrentBuildCB(inName:String, includeSkills:Boolean, includePassives:Boolean, includeWeapons:Boolean, includeTalismans:Boolean, includeGadget:Boolean, includeAnimaAllocation:Boolean, useGearManager:Boolean, outfitID:String):Void
 	{
 		if (inName != null)
 		{
@@ -770,6 +780,10 @@ class com.boobuilds.BuildList implements ITabPane
 						if (includeGadget != true)
 						{
 							newBuild.ClearGadget();
+						}
+						if (includeAnimaAllocation != true)
+						{
+							newBuild.ClearAnimaAllocation();
 						}
 					}
 					

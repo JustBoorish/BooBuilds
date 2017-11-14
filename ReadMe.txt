@@ -23,6 +23,13 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.2
+Added support for anima assignment in saved builds
+Fixed bug where a rare talisman was being loaded instead of an epic talisman with the same name
+Changed full outfit loading to always equip the underlying outfit items 1st to allow glow effects to come through the outfit
+Fixed bug where you could not clear an icon from the favourites bar
+Fixed the Tank, DPS and Heals icons on the favourite bars to change background and not be offset
+
 Version 2.1
 Move to SWL specific curse site
 

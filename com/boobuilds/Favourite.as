@@ -101,6 +101,14 @@ class com.boobuilds.Favourite
 			var thisID:String = archive.FindEntry(keyPrefix + ID, null);
 			var thisIconPath:String = archive.FindEntry(keyPrefix + ICON_PATH, null);
 			var thisColour:String = archive.FindEntry(keyPrefix + COLOUR, null);
+			
+			if (thisIconPath != null)
+			{
+				if (thisIconPath == "BooBuildsTank") thisIconPath = "BooBuildsTank2";
+				if (thisIconPath == "BooBuildsDPS") thisIconPath = "BooBuildsDPS2";
+				if (thisIconPath == "BooBuildsHeals") thisIconPath = "BooBuildsHeals2";
+			}
+			
 			if (thisID != null && thisIconPath != null && thisColour != null)
 			{
 				ret = new Favourite(thisType, thisID, thisIconPath, thisColour);

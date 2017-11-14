@@ -10,6 +10,7 @@ import com.GameInterface.GearDataAbility;
 import com.GameInterface.GearDataItem;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
+import com.GameInterface.SkillsBase;
 import com.GameInterface.Spell;
 import com.GameInterface.SpellBase;
 import com.GameInterface.SpellData;
@@ -89,6 +90,9 @@ class com.boobuilds.Build
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_requiredBuildID:String;
 	private var m_useGearManager:Boolean;
+	private var m_healthPct:Number;
+	private var m_healPct:Number;
+	private var m_damagePct:Number;
 	private var m_unequipPassives:Array;
 	private var m_unequipSkillsInterval:IntervalCounter;
 	private var m_unequipPassivesInterval:IntervalCounter;
@@ -125,6 +129,7 @@ class com.boobuilds.Build
 		m_secondaryWeaponHidden = false;
 		m_useGearManager = false;
 		m_requiredBuildID = null;
+		ClearAnimaAllocation();
 		InitialiseArray(m_skills, MAX_SKILLS);
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
@@ -466,6 +471,21 @@ class com.boobuilds.Build
 		m_prevToggleID = newID;
 	}
 
+	public function GetDamagePct():Number
+	{
+		return m_damagePct;
+	}
+	
+	public function GetHealthPct():Number
+	{
+		return m_healthPct;
+	}
+	
+	public function GetHealPct():Number
+	{
+		return m_healPct;
+	}
+	
 	public function ClearSkills():Void
 	{
 		for (var i:Number = 0; i < MAX_SKILLS; ++i)
@@ -507,6 +527,13 @@ class com.boobuilds.Build
 		
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
+	}
+	
+	public function ClearAnimaAllocation():Void
+	{
+		m_damagePct = null;
+		m_healthPct = null;
+		m_healPct = null;
 	}
 	
 	public function SetSkill(indx:Number, skillId:Number):Void
@@ -777,6 +804,13 @@ class com.boobuilds.Build
 		ret = ret + GetArrayGearItemString("WP", m_weapons);
 		var tempArray:Array = [ String(m_primaryWeaponHidden), String(m_secondaryWeaponHidden) ];
 		ret = ret + GetArrayString("WV", tempArray);
+		
+		if (m_damagePct != null)
+		{
+			var aaArray:Array = [ String(m_healthPct), String(m_healPct) ];
+			ret = ret + GetArrayString("AA", aaArray);
+		}
+		
 		if (m_requiredBuildID != null)
 		{
 			ret = ret + GetArrayString("RB", [ m_requiredBuildID ]);
@@ -940,6 +974,40 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function SetAnimaAllocationFromArray(offset:Number, buildItems:Array):Void
+	{
+		ClearAnimaAllocation();
+		
+		var primaryIndx:Number = 0 + offset;
+		if (primaryIndx < buildItems.length && buildItems[primaryIndx] != "undefined")
+		{
+			var item:Number = Number(buildItems[primaryIndx]);
+			if (!isNaN(item))
+			{
+				m_healthPct = item
+			}
+		}
+		
+		var secondaryIndx:Number = 1 + offset;
+		if (secondaryIndx < buildItems.length && buildItems[secondaryIndx] != "undefined")
+		{
+			var item:Number = Number(buildItems[secondaryIndx]);
+			if (!isNaN(item))
+			{
+				m_healPct = item;
+			}
+		}
+		
+		if (m_healPct != null && m_healthPct != null)
+		{
+			m_damagePct = 100 - m_healPct - m_healthPct;
+		}
+		else
+		{
+			ClearAnimaAllocation();
+		}
+	}
+	
 	private function SetRequiredBuildFromArray(offset:Number, buildItems:Array):Void
 	{
 		var indx:Number = 0 + offset;
@@ -990,6 +1058,10 @@ class com.boobuilds.Build
 				case "WV":
 					ret.SetWeaponHiddenFromArray(i + 1, buildItems);
 					i += MAX_WEAPONS + 1;
+					break;
+				case "AA":
+					ret.SetAnimaAllocationFromArray(i + 1, buildItems);
+					i += 2 + 1;
 					break;
 				case "RB":
 					ret.SetRequiredBuildFromArray(i + 1, buildItems);
@@ -1059,6 +1131,15 @@ class com.boobuilds.Build
 		}
 		
 		return null;
+	}
+	
+	public function SetCurrentAnimaAllocation():Void
+	{
+		var character:Character = Character.GetClientCharacter();
+		m_healPct = character.GetStat(_global.Enums.Stat.e_TriangleHealingRatio, 2);
+		m_healthPct = character.GetStat(_global.Enums.Stat.e_TriangleHealthRatio, 2);
+		m_damagePct = 100 - m_healPct - m_healthPct;
+		
 	}
 	
 	public function SetCurrentSkills():Void
@@ -1193,6 +1274,7 @@ class com.boobuilds.Build
 		SetCurrentPassives();
 		SetCurrentGear();
 		SetCurrentWeapons();
+		SetCurrentAnimaAllocation();
 	}
 	
 	public static function FromCurrent(id:String, name:String, order:Number, groupID:String):Build
@@ -1287,6 +1369,11 @@ class com.boobuilds.Build
 		if (talismanCount < 1)
 		{
 			doTalismans = false;
+		}
+		
+		if (m_damagePct != null && m_healthPct !=null && m_healPct != null)
+		{
+			SkillsBase.SetCombatTriangle(m_damagePct, m_healthPct, m_healPct);
 		}
 		
 		m_buildApplyQueue = new Array();

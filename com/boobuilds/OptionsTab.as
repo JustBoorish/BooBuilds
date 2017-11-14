@@ -377,6 +377,7 @@ class com.boobuilds.OptionsTab implements ITabPane
 		UnloadDialogs();
 		
 		var backupString:String = CreateBackupString();
+		backupString = Outfit.DumpNode(null, 0);
 		m_exportDialog = new ExportDialog("Backup", m_parent, m_parentWidth, m_parentHeight, "Backup builds and outfits", backupString);
 		m_exportDialog.Show();
 	}

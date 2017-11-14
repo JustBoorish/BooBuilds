@@ -359,7 +359,7 @@ class com.boobuilds.Outfit
 		var inventoryID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var inventory:Inventory = new Inventory(inventoryID);
 
-		var fullOutfitItem:InventoryItem = inventory.GetItemAt(GetFullOutfitSlotID(0));
+		var fullOutfitItem:InventoryItem = inventory.GetItemAt(GetFullOutfitOutfitSlotID());
 		if (fullOutfitItem != null)
 		{
 			m_outfit = new Array();
@@ -429,19 +429,24 @@ class com.boobuilds.Outfit
 	
 	private function GetFullOutfitSlotID(indx:Number):Number
 	{
-		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_FullOutfit,
-								_global.Enums.ItemEquipLocation.e_Wear_Hat, _global.Enums.ItemEquipLocation.e_Wear_Face,
+		var positions:Array = [_global.Enums.ItemEquipLocation.e_Wear_Hat, _global.Enums.ItemEquipLocation.e_Wear_Face,
 								_global.Enums.ItemEquipLocation.e_Wear_Neck, _global.Enums.ItemEquipLocation.e_Wear_Back,
 								_global.Enums.ItemEquipLocation.e_Wear_Chest, _global.Enums.ItemEquipLocation.e_Wear_Hands,
 								_global.Enums.ItemEquipLocation.e_Wear_Legs, _global.Enums.ItemEquipLocation.e_Wear_Feet,
 								_global.Enums.ItemEquipLocation.e_Ring_1, _global.Enums.ItemEquipLocation.e_Ring_2,
-								_global.Enums.ItemEquipLocation.e_HeadAccessory];
+								_global.Enums.ItemEquipLocation.e_HeadAccessory,
+								_global.Enums.ItemEquipLocation.e_Wear_FullOutfit];
 		return positions[indx];
+	}
+	
+	private function GetFullOutfitOutfitSlotID():Number
+	{
+		return _global.Enums.ItemEquipLocation.e_Wear_FullOutfit;
 	}
 	
 	private function GetFullOutfitNodeID(indx:Number):Number
 	{
-		var positions:Array = [54, 4, 5, 26, 45, 1, 51, 52, 53, null, null, 125];
+		var positions:Array = [4, 5, 26, 45, 1, 51, 52, 53, null, null, 125, 54];
 		return positions[indx];
 	}
 
@@ -484,7 +489,7 @@ class com.boobuilds.Outfit
 		var ret:String = "CS" + Build.SEPARATOR + "-" + Build.SEPARATOR + "VER" + Build.SEPARATOR + "-" + Build.SEPARATOR + "1.0" + Build.SEPARATOR;
 		if (IsFullOutfit() == true)
 		{
-			ret = ret + Build.GetArrayString("FL", m_outfit);
+			ret = ret + Build.GetArrayString("F2", m_outfit);
 		}
 		else
 		{
@@ -542,11 +547,16 @@ class com.boobuilds.Outfit
 					ret.SetOutfitFromArray(i + 1, items, NORMAL_OUTFIT_SIZE);
 					i += NORMAL_OUTFIT_SIZE + 1;
 					break;
-				case "FO":
+				case "FO": // Initial full outfit without other items
 					ret.SetOutfitFromFOArray(i + 1, items);
 					i += 4 + 1;
 					break;
-				case "FL":
+				case "FL": // 2nd iteration full outfit where full part was 1st
+					ret.SetOutfitFromArray(i + 1, items, FULL_OUTFIT_SIZE);
+					ret.m_outfit.push(ret.m_outfit.shift());
+					i += FULL_OUTFIT_SIZE + 1;
+					break;
+				case "F2": // Latest full outfit
 					ret.SetOutfitFromArray(i + 1, items, FULL_OUTFIT_SIZE);
 					i += FULL_OUTFIT_SIZE + 1;
 					break;
@@ -592,8 +602,7 @@ class com.boobuilds.Outfit
 			}
 		}
 	}
-	
-	
+		
 	private function SetOutfitFromArray(offset:Number, items:Array, size:Number):Void
 	{
 		m_outfit = new Array();
@@ -763,7 +772,7 @@ class com.boobuilds.Outfit
 			
 			if (!IsFullOutfit())
 			{
-				PreviewSlot(0, GetFullOutfitSlotID(0), null, wearInv, wardrobeInv);
+				PreviewSlot(0, GetFullOutfitOutfitSlotID(), null, wearInv, wardrobeInv);
 			}
 		}
 	}
@@ -835,7 +844,7 @@ class com.boobuilds.Outfit
 		m_outfitErrorCount = 0;
 		
 		m_equipOutfitSlot = -1;
-		OutfitSlotCompletionCallback();
+		StartFullOutfitUnequip();
 		
 		if (AreWeaponsSet() == true)
 		{
@@ -927,7 +936,7 @@ class com.boobuilds.Outfit
 		}
 		else
 		{
-			m_inventoryThrottle = new InventoryThrottle("Unequip full outfit", Delegate.create(this, UnequipFullOutfitSlot), Delegate.create(this, UnequipFullOutfitSlotCheckCallback), Delegate.create(this, UnequipFullOutfitSlotCompletionCallback), Delegate.create(this, UnequipFullOutfitSlotErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
+			EndOutfitApply();
 		}
 	}
 	
@@ -970,6 +979,12 @@ class com.boobuilds.Outfit
 		return ret;
 	}
 	
+	private function StartFullOutfitUnequip():Void
+	{
+		ClearInventoryThrottle();
+		m_inventoryThrottle = new InventoryThrottle("Unequip full outfit", Delegate.create(this, UnequipFullOutfitSlot), Delegate.create(this, UnequipFullOutfitSlotCheckCallback), Delegate.create(this, UnequipFullOutfitSlotCompletionCallback), Delegate.create(this, UnequipFullOutfitSlotErrorCallback), IntervalCounter.COMPLETE_ON_ERROR);
+	}
+	
 	private function UnequipFullOutfitSlot():Boolean
 	{
 		var moveOn:Boolean = true;
@@ -977,7 +992,7 @@ class com.boobuilds.Outfit
 		{
 			var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 			var wearInv:Inventory = new Inventory(wearInvID);
-			var slotID:Number = GetFullOutfitSlotID(0);
+			var slotID:Number = GetFullOutfitOutfitSlotID();
 			var empty:Boolean = IsSlotEmpty(wearInv, slotID);			
 			if (empty == false)
 			{
@@ -997,7 +1012,7 @@ class com.boobuilds.Outfit
 		var moveOn:Boolean = false;
 		var wearInvID:ID32 = new ID32(_global.Enums.InvType.e_Type_GC_WearInventory, Character.GetClientCharID().GetInstance());
 		var wearInv:Inventory = new Inventory(wearInvID);
-		var slotID:Number = GetFullOutfitSlotID(0);
+		var slotID:Number = GetFullOutfitOutfitSlotID();
 		var empty:Boolean = IsSlotEmpty(wearInv, slotID);
 		if (empty == true)
 		{
@@ -1009,7 +1024,8 @@ class com.boobuilds.Outfit
 	
 	private function UnequipFullOutfitSlotCompletionCallback():Void
 	{
-		EndOutfitApply();
+		m_equipOutfitSlot = -1;
+		OutfitSlotCompletionCallback();
 	}
 	
 	private function UnequipFullOutfitSlotErrorCallback():Void
@@ -1294,7 +1310,7 @@ class com.boobuilds.Outfit
 			}
 			else
 			{
-				if (DressingRoom.NodeEquipped(parentNodeID) == true)
+				if (DressingRoom.NodeEquipped(parentNodeID) == true && DressingRoom.NodeOwned(parentNodeID) == true)
 				{
 					ret = parentNodeID;
 				}
@@ -1328,7 +1344,7 @@ class com.boobuilds.Outfit
 			}
 			else
 			{
-				if (parentNode != null && parentNode.m_Name == nodeName)
+				if (parentNode != null && parentNode.m_Name == nodeName && DressingRoom.NodeOwned(parentNodeID) == true)
 				{
 					ret = parentNodeID;
 				}
@@ -1393,7 +1409,7 @@ class com.boobuilds.Outfit
 		
 		for (var indx:Number = 0; indx < level; ++indx)
 		{
-			ret = ret + "  ";
+			ret = ret + "__";
 		}
 
 		var topLevel:Array;

@@ -75,18 +75,26 @@ class com.boobuilds.BIcon
 		m_ctrlToggleVisibleFunc = ctrlToggleVisibleFunc;
 		m_dragging = false;
 		
-		if (x < 0 || x > Stage.width - 18)
+		if (x < -2)
 		{
-			m_x = -1;
+			m_x = -2;
+		}
+		else if (x > Stage.width - 16)
+		{
+			m_x = Stage.width - 16;
 		}
 		else
 		{
 			m_x = x;
 		}
 		
-		if (y < 0 || y > Stage.height - 18)
+		if (y < -2)
 		{
-			m_y = -1;
+			m_y = -2;
+		}
+		else if (y > Stage.height - 16)
+		{
+			m_y = Stage.height - 16;
 		}
 		else
 		{
@@ -136,7 +144,7 @@ class com.boobuilds.BIcon
 		
 		if (m_x == -1 || m_y == -1)
 		{
-			m_CompassCheckTimer = new IntervalCounter("IconPosition", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, PositionIcon), Delegate.create(this, PositionOnCompassMissing), null, IntervalCounter.COMPLETE_ON_ERROR);
+			RepositionIcon();
 		}
 		else
 		{
@@ -227,6 +235,16 @@ class com.boobuilds.BIcon
 		if (m_tooltip != undefined)	m_tooltip.Close();
 	}
 
+	public function RepositionIcon():Void
+	{
+		if (m_CompassCheckTimer != null)
+		{
+			m_CompassCheckTimer.Stop();
+		}
+		
+		m_CompassCheckTimer = new IntervalCounter("IconPosition", IntervalCounter.WAIT_MILLIS, IntervalCounter.MAX_ITERATIONS, Delegate.create(this, PositionIcon), Delegate.create(this, PositionOnCompassMissing), null, IntervalCounter.COMPLETE_ON_ERROR);
+	}
+	
 	// The compass check function.
 	private function PositionIcon():Boolean
 	{
