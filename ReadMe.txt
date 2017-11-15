@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.3
+Fixed backup functionality
+
 Version 2.2
 Added support for anima assignment in saved builds
 Fixed bug where a rare talisman was being loaded instead of an epic talisman with the same name
