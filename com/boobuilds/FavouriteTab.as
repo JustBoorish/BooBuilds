@@ -54,6 +54,8 @@ class com.boobuilds.FavouriteTab implements ITabPane
 	private var m_editFavouriteDialog:EditFavouriteDialog;
 	private var m_iconsPerRow1Combo:ComboBox;
 	private var m_iconsPerRow2Combo:ComboBox;
+	private var m_iconSize1Combo:ComboBox;
+	private var m_iconSize2Combo:ComboBox;
 	private var m_barX:Number;
 	private var m_bar1Y:Number;
 	private var m_bar2Y:Number;
@@ -117,6 +119,8 @@ class com.boobuilds.FavouriteTab implements ITabPane
 			Settings.SetFavouriteBarEnabled(m_settings, 1, m_bar2Check.IsChecked());
 			Settings.SetFavouriteIconsPerRow(m_settings, 0, Number(m_iconsPerRow1Combo.GetSelectedEntry()));
 			Settings.SetFavouriteIconsPerRow(m_settings, 1, Number(m_iconsPerRow2Combo.GetSelectedEntry()));
+			Settings.SetFavouriteIconSize(m_settings, 0, Number(m_iconSize1Combo.GetSelectedEntry()));
+			Settings.SetFavouriteIconSize(m_settings, 1, Number(m_iconSize2Combo.GetSelectedEntry()));
 			ApplyOptions(m_settings);
 		}
 	}
@@ -157,6 +161,7 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		var largeTextFormat:TextFormat = Graphics.GetLargeBoldTextFormat();
 		var textFormat:TextFormat = Graphics.GetTextFormat();
 		var iconsPerRowNames = [ "1", "2", "3", "4", "6", "12" ];
+		var iconSizeNames = [ "16", "18", "24", "32", "40", "48" ];
 
 		var favourites:Array = new Array();
 		for (var indx:Number = 0; indx < 12; ++indx)
@@ -178,22 +183,29 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		
 		m_bar1Frame = m_frame.createEmptyMovieClip("Bar1Frame", m_frame.getNextHighestDepth());
 		
-		y += 40;
+		var spacing:Number = 35;
+		y += spacing;
 		m_barX = 7;
 		m_bar1Y = y;
 		
-		y += 40;
+		y += spacing;
 		text = "Icons per row";
 		extents = Text.GetTextExtent(text, textFormat, m_bar1Frame);
 		Graphics.DrawText("IconsPerRowLabel1", m_bar1Frame, text, textFormat, 25, y, extents.width, extents.height);
 		m_iconsPerRow1Combo = new ComboBox(m_bar1Frame, "IconsPerRowCombo1", m_addonMC, 35 + extents.width, y - 5, null, null, iconsPerRowNames.length, "12", iconsPerRowNames);
 		
-		y += 40;
+		y += spacing;
+		text = "Icon Size";
+		extents = Text.GetTextExtent(text, textFormat, m_bar1Frame);
+		Graphics.DrawText("IconSizeLabel1", m_bar1Frame, text, textFormat, 25, y, extents.width, extents.height);
+		m_iconSize1Combo = new ComboBox(m_bar1Frame, "IconSizeCombo1", m_addonMC, 35 + extents.width, y - 5, null, null, iconSizeNames.length, "18", iconSizeNames);
+		
+		y += spacing;
 		text = "Drag Bar 1";
 		extents = Text.GetTextExtent(text, textFormat, m_bar1Frame);
 		Graphics.DrawButton("Bar1Drag", m_bar1Frame, text, textFormat, 25, y, extents.width, null, Delegate.create(this, Bar1Drag));
 		
-		y += 70;
+		y += spacing;
 		text = "Favourite Bar 2";
 		extents = Text.GetTextExtent(text, largeTextFormat, m_frame);
 		Graphics.DrawText("BarTitle2", m_frame, text, largeTextFormat, 25, y, extents.width, extents.height);
@@ -207,16 +219,22 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		
 		m_bar2Frame = m_frame.createEmptyMovieClip("Bar2Frame", m_frame.getNextHighestDepth());
 		
-		y += 40;
+		y += spacing;
 		m_bar2Y = y;
 		
-		y += 40;
+		y += spacing;
 		text = "Icons per row";
 		extents = Text.GetTextExtent(text, textFormat, m_bar2Frame);
 		Graphics.DrawText("IconsPerRowLabel2", m_bar2Frame, text, textFormat, 25, y, extents.width, extents.height);
 		m_iconsPerRow2Combo = new ComboBox(m_bar2Frame, "IconsPerRowCombo2", m_addonMC, 35 + extents.width, y - 5, null, null, iconsPerRowNames.length, "12", iconsPerRowNames);
 		
-		y += 40;
+		y += spacing;
+		text = "Icon Size";
+		extents = Text.GetTextExtent(text, textFormat, m_bar2Frame);
+		Graphics.DrawText("IconSizeLabel2", m_bar2Frame, text, textFormat, 25, y, extents.width, extents.height);
+		m_iconSize2Combo = new ComboBox(m_bar2Frame, "IconSizeCombo2", m_addonMC, 35 + extents.width, y - 5, null, null, iconSizeNames.length, "18", iconSizeNames);
+		
+		y += spacing;
 		text = "Drag Bar 2";
 		extents = Text.GetTextExtent(text, textFormat, m_bar2Frame);
 		Graphics.DrawButton("Bar2Drag", m_bar2Frame, text, textFormat, 25, y, extents.width, null, Delegate.create(this, Bar2Drag));
@@ -234,6 +252,8 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		
 		m_iconsPerRow1Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 0)));
 		m_iconsPerRow2Combo.SetSelectedEntry(String(Settings.GetFavouriteIconsPerRow(m_settings, 1)));
+		m_iconSize1Combo.SetSelectedEntry(String(Settings.GetFavouriteIconSize(m_settings, 0)));
+		m_iconSize2Combo.SetSelectedEntry(String(Settings.GetFavouriteIconSize(m_settings, 1)));
 	}
 	
 	private function Enable1Changed(newValue:Boolean):Void
@@ -241,6 +261,7 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		m_favouriteBar1.SetVisible(newValue);
 		m_bar1Frame._visible = newValue;
 		m_iconsPerRow1Combo.SetVisible(newValue);
+		m_iconSize1Combo.SetVisible(newValue);
 	}
 	
 	private function Enable2Changed(newValue:Boolean):Void
@@ -248,6 +269,7 @@ class com.boobuilds.FavouriteTab implements ITabPane
 		m_favouriteBar2.SetVisible(newValue);
 		m_bar2Frame._visible = newValue;
 		m_iconsPerRow2Combo.SetVisible(newValue);
+		m_iconSize2Combo.SetVisible(newValue);
 	}
 	
 	private function Bar1Drag():Void

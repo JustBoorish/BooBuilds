@@ -50,6 +50,7 @@ class com.boobuilds.Settings
 	private static var RIGHT_CLICK_OUTFIT:String = "RIGHT_CLICK_OUTFIT";
 	private static var FAVOURITE_BAR_ENABLED:String = "FAV_ENABLED";
 	private static var FAVOURITE_ICONS_PER_ROW:String = "FAV_ICONS_ROW";
+	private static var FAVOURITE_ICON_SIZE:String = "FAV_ICON_SIZE";
 
 	private static var m_version:String = null;
 	private static var m_archive:Archive = null;
@@ -411,6 +412,24 @@ class com.boobuilds.Settings
 		if (settings != null)
 		{
 			settings[FAVOURITE_ICONS_PER_ROW + indx] = newValue;
+		}
+	}		
+	
+	public static function GetFavouriteIconSize(settings:Object, indx:Number):Number
+	{
+		if (settings != null)
+		{
+			return settings[FAVOURITE_ICON_SIZE + indx];
+		}
+		
+		return 18;
+	}
+	
+	public static function SetFavouriteIconSize(settings:Object, indx:Number, newValue:Number):Void
+	{
+		if (settings != null)
+		{
+			settings[FAVOURITE_ICON_SIZE + indx] = newValue;
 		}
 	}		
 }

@@ -49,7 +49,7 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "2.3";
+	public static var VERSION = "2.4";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -232,6 +232,7 @@ class com.boobuilds.Controller extends MovieClip
 		
 		for (var indx:Number = 0; indx < MAX_FAVOURITE_BARS; ++indx)
 		{
+			Settings.SetFavouriteIconSize(m_defaults, indx, 18);
 			m_defaults[FavouriteBar.X + indx] = 100;
 			m_defaults[FavouriteBar.Y + indx] = 100 * (indx + 1);
 			Settings.SetFavouriteIconsPerRow(m_defaults, indx, MAX_BUTTONS);
@@ -678,8 +679,9 @@ class com.boobuilds.Controller extends MovieClip
 			var x:Number = m_settings[FavouriteBar.X + indx];
 			var y:Number = m_settings[FavouriteBar.Y + indx];
 			var iconsPerRow:Number = Settings.GetFavouriteIconsPerRow(m_settings, indx);
+			var iconSize:Number = Settings.GetFavouriteIconSize(m_settings, indx);
 			var enabled:Boolean = Settings.GetFavouriteBarEnabled(m_settings, indx);
-			var favBar:FavouriteBar = new FavouriteBar("FavouritesBar" + indx, m_mc, x, y, 18, MAX_FAVOURITE_BUTTONS, iconsPerRow, false, m_favourites[indx], Delegate.create(this, FavouritePressed));
+			var favBar:FavouriteBar = new FavouriteBar("FavouritesBar" + indx, m_mc, x, y, iconSize, MAX_FAVOURITE_BUTTONS, iconsPerRow, false, m_favourites[indx], Delegate.create(this, FavouritePressed));
 			m_favouriteIcons.push(favBar);
 			favBar.SetVisible(enabled);
 		}

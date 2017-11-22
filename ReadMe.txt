@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.4
+Make the favourite bar icon size configurable
+
 Version 2.3
 Fixed backup functionality
 
