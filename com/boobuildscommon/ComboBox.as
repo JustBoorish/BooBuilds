@@ -98,6 +98,7 @@ class com.boobuildscommon.ComboBox
 	{
 		m_scroll.SetVisible(false);
 	}
+	
 	public function SetVisible(visible:Boolean):Void
 	{
 		HidePopup();
@@ -128,7 +129,9 @@ class com.boobuildscommon.ComboBox
 	{
 		if (m_scroll != null)
 		{
+			m_scroll.SetVisible(false);
 			m_scroll.Unload();
+			m_scroll = null;
 		}
 		
 		if (m_list != null)
@@ -269,24 +272,16 @@ class com.boobuildscommon.ComboBox
 	
 	private function ButtonPressed():Void
 	{
-		if (m_scroll == null || m_scroll.GetVisible() == false)
-		{
-			if (m_scroll == null)
-			{
-				DrawList();
-			}
-			else
-			{
-				m_scroll.Resize(m_list._height);
-			}
-			
-			m_scroll.SetVisible(true);
-		}
-		else
+		if (m_scroll != null && m_scroll.GetVisible() == true)
 		{
 			m_scroll.SetVisible(false);
 			m_scroll.Unload();
 			m_scroll = null;
+		}
+		else
+		{
+			DrawList();
+			m_scroll.SetVisible(true);
 		}
 	}
 }
