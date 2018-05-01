@@ -438,6 +438,9 @@ class com.boobuilds.QuickBuildList implements ITabPane
 						}
 					}
 					
+					m_currentBuild.ClearAnimaAllocation();
+					m_currentBuild.ClearAgents();
+					
 					m_currentBuild.SetRequiredBuildID(requiredBuild);					
 					m_quickBuilds[m_currentBuild.GetID()] = m_currentBuild;
 					DrawList();
@@ -596,6 +599,9 @@ class com.boobuilds.QuickBuildList implements ITabPane
 							m_currentBuild.SetGear(indx, null);
 						}
 					}
+					
+					m_currentBuild.ClearAnimaAllocation();
+					m_currentBuild.ClearAgents();
 					
 					m_currentBuild.SetRequiredBuildID(requiredBuild);
 					Build.AddBuild(m_quickBuilds, m_currentBuild);

@@ -68,6 +68,7 @@
     <compile path="com\boobuilds\FavouriteTab.as" />
     <compile path="com\boobuilds\EditFavouriteDialog.as" />
     <compile path="com\boobuilds\EditIconDialog.as" />
+    <compile path="com\boobuilds\BuildGearManager.as" />
   </compileTargets>
   <!-- Assets to embed into the output SWF -->
   <library>

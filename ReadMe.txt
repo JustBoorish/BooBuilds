@@ -23,6 +23,10 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.5
+Add agent support
+Removed anima allocation from quick builds
+
 Version 2.4
 Make the favourite bar icon size configurable
 

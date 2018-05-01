@@ -24,6 +24,7 @@ class com.boobuildscommon.SubArchive extends Archive
 {
 	private static var TAG:String = "~SUBARC~";
 	private static var SEPARATOR:String = "|";
+	private static var SEPARATOR2:String = "%";
 	
 	private var m_id:String;
 	
@@ -101,4 +102,89 @@ class com.boobuildscommon.SubArchive extends Archive
 		
 		return items;
 	}
+	
+	public static function SetArchiveEntry(prefix:String, archive:Archive, key:String, value:String):Void
+	{
+		var keyName:String = prefix + "_" + key;
+		archive.DeleteEntry(keyName);
+		if (value != null && value != "null")
+		{
+			archive.AddEntry(keyName, value);
+		}
+	}
+	
+	public static function DeleteArchiveEntry(prefix:String, archive:Archive, key:String):Void
+	{
+		var keyName:String = prefix + "_" + key;
+		archive.DeleteEntry(keyName);
+	}
+	
+	public static function GetArrayString(prefix:String, array:Array):String
+	{
+		return GetArrayStringInternal(prefix, array, true);
+	}
+	
+	public static function GetArrayStringInternal(prefix:String, array:Array, ignoreEmpty:Boolean):String
+	{
+		var ret:String = "";
+		if (prefix != null)
+		{
+			ret = "-" + SEPARATOR2 + prefix + SEPARATOR2;
+		}
+		
+		var found:Boolean = false;
+		for (var i:Number = 0; i < array.length; ++i)
+		{
+			if (array[i] == null)
+			{
+				ret = ret + "-" + SEPARATOR2 + "undefined" + SEPARATOR2;
+			}
+			else
+			{
+				found = true;
+				ret = ret + "-" + SEPARATOR2 + array[i] + SEPARATOR2;
+			}
+		}
+		
+		if (found == true || ignoreEmpty == false)
+		{
+			return ret;
+		}
+		else
+		{
+			return "";
+		}
+	}
+	
+	public static function GetArrayGearItemString(prefix:String, array:Array):String
+	{
+		var ret:String = "";
+		if (prefix != null)
+		{
+			ret = "-" + SEPARATOR2 + prefix + SEPARATOR2;
+		}
+		
+		var found:Boolean = false;
+		for (var i:Number = 0; i < array.length; ++i)
+		{
+			if (array[i] == null)
+			{
+				ret = ret + "-" + SEPARATOR2 + "undefined" + SEPARATOR2;
+			}
+			else
+			{
+				found = true;
+				ret = ret + "-" + SEPARATOR2 + array[i].toString() + SEPARATOR2;
+			}
+		}
+		
+		if (found == true)
+		{
+			return ret;
+		}
+		else
+		{
+			return "";
+		}
+	}	
 }

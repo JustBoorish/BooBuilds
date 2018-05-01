@@ -1,3 +1,4 @@
+import com.GameInterface.AgentSystem;
 import com.GameInterface.CharacterData;
 import com.GameInterface.FeatData;
 import com.GameInterface.FeatInterface;
@@ -10,7 +11,7 @@ import com.GameInterface.GearDataAbility;
 import com.GameInterface.GearDataItem;
 import com.GameInterface.Inventory;
 import com.GameInterface.InventoryItem;
-import com.GameInterface.SkillsBase;
+import com.GameInterface.Skills;
 import com.GameInterface.Spell;
 import com.GameInterface.SpellBase;
 import com.GameInterface.SpellData;
@@ -21,6 +22,7 @@ import com.Utils.ID32;
 import com.Utils.StringUtils;
 import flash.geom.Point;
 import com.boobuilds.Build;
+import com.boobuilds.BuildGearManager;
 import com.boobuilds.GearItem;
 import com.boobuilds.Outfit;
 import com.boobuildscommon.DebugWindow;
@@ -28,6 +30,7 @@ import com.boobuildscommon.InfoWindow;
 import com.boobuildscommon.IntervalCounter;
 import com.boobuildscommon.InventoryThrottle;
 import com.boobuildscommon.MountHelper;
+import com.boobuildscommon.SubArchive;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -64,7 +67,8 @@ class com.boobuilds.Build
 	public static var MAX_PASSIVES:Number = 5;
 	public static var MAX_GEAR:Number = 8;
 	public static var MAX_WEAPONS:Number = 2;
-	public static var SEPARATOR = "%";
+	public static var MAX_AGENTS:Number = 3;
+	public static var SEPARATOR:String = "%";
 	
 	private static var CANT_UNEQUIP_ENG:String = "You cannot unequip abilities that are recharging";
 	private static var CANT_UNEQUIP_FR:String = "Vous ne pouvez pas vous déséquiper de pouvoirs en train de se recharger";
@@ -86,6 +90,7 @@ class com.boobuilds.Build
 	private var m_passives:Array;
 	private var m_gear:Array;
 	private var m_weapons:Array;
+	private var m_agents:Array;
 	private var m_primaryWeaponHidden:Boolean;
 	private var m_secondaryWeaponHidden:Boolean;
 	private var m_requiredBuildID:String;
@@ -124,6 +129,7 @@ class com.boobuilds.Build
 		m_passives = new Array();
 		m_gear = new Array();
 		m_weapons = new Array();
+		m_agents = new Array();
 		m_outfit = null;
 		m_primaryWeaponHidden = false;
 		m_secondaryWeaponHidden = false;
@@ -134,6 +140,7 @@ class com.boobuilds.Build
 		InitialiseArray(m_passives, MAX_PASSIVES);
 		InitialiseArray(m_gear, MAX_GEAR);
 		InitialiseArray(m_weapons, MAX_WEAPONS);
+		InitialiseArray(m_agents, MAX_AGENTS);
 	}
 
 	public static function GetNextID(builds:Object):String
@@ -536,6 +543,14 @@ class com.boobuilds.Build
 		m_healPct = null;
 	}
 	
+	public function ClearAgents():Void
+	{
+		for (var i:Number = 0; i < MAX_AGENTS; ++i)
+		{
+			SetAgent(i, null);
+		}
+	}
+	
 	public function SetSkill(indx:Number, skillId:Number):Void
 	{
 		if (indx >= 0 && indx < MAX_SKILLS)
@@ -565,6 +580,14 @@ class com.boobuilds.Build
 		if (indx >= 0 && indx < MAX_WEAPONS)
 		{
 			m_weapons[indx] = item;
+		}
+	}
+	
+	public function SetAgent(indx:Number, item:Number):Void
+	{
+		if (indx >= 0 && indx < MAX_AGENTS)
+		{
+			m_agents[indx] = item;
 		}
 	}
 	
@@ -614,6 +637,19 @@ class com.boobuilds.Build
 			if (m_weapons[indx] != null)
 			{
 				return m_weapons[indx];
+			}
+		}
+		
+		return null;
+	}
+	
+	public function GetAgent(indx:Number):Number
+	{
+		if (indx >= 0 && indx < MAX_AGENTS)
+		{
+			if (m_agents[indx] != null && m_agents[indx] != 0)
+			{
+				return m_agents[indx];
 			}
 		}
 		
@@ -720,147 +756,89 @@ class com.boobuilds.Build
 		return true;
 	}
 	
-	public static function GetArrayString(prefix:String, array:Array):String
+	public function IsAgentSet(indx:Number):Boolean
 	{
-		return GetArrayStringInternal(prefix, array, true);
+		if (indx >= 0 && indx < MAX_AGENTS)
+		{
+			return m_agents[indx] != null;
+		}
+		
+		return false;
 	}
 	
-	public static function GetArrayStringInternal(prefix:String, array:Array, ignoreEmpty:Boolean):String
+	public function AreAgentsEmpty():Boolean
 	{
-		var ret:String = "";
-		if (prefix != null)
+		for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
 		{
-			ret = "-" + SEPARATOR + prefix + SEPARATOR;
-		}
-		
-		var found:Boolean = false;
-		for (var i:Number = 0; i < array.length; ++i)
-		{
-			if (array[i] == null)
+			if (m_agents[indx] != null)
 			{
-				ret = ret + "-" + SEPARATOR + "undefined" + SEPARATOR;
-			}
-			else
-			{
-				found = true;
-				ret = ret + "-" + SEPARATOR + array[i] + SEPARATOR;
+				return false;
 			}
 		}
 		
-		if (found == true || ignoreEmpty == false)
-		{
-			return ret;
-		}
-		else
-		{
-			return "";
-		}
-	}
-	
-	public static function GetArrayGearItemString(prefix:String, array:Array):String
-	{
-		var ret:String = "";
-		if (prefix != null)
-		{
-			ret = "-" + SEPARATOR + prefix + SEPARATOR;
-		}
-		
-		var found:Boolean = false;
-		for (var i:Number = 0; i < array.length; ++i)
-		{
-			if (array[i] == null)
-			{
-				ret = ret + "-" + SEPARATOR + "undefined" + SEPARATOR;
-			}
-			else
-			{
-				found = true;
-				ret = ret + "-" + SEPARATOR + array[i].toString() + SEPARATOR;
-			}
-		}
-		
-		if (found == true)
-		{
-			return ret;
-		}
-		else
-		{
-			return "";
-		}
+		return true;
 	}
 	
 	public function toExportString():String
 	{
 		var ret:String = "BD" + SEPARATOR + "-" + SEPARATOR + "VER" + SEPARATOR + "-" + SEPARATOR + "1.0" + SEPARATOR;
-		ret = ret + GetArrayString("SK", m_skills);
-		ret = ret + GetArrayString("PS", m_passives);
+		ret = ret + SubArchive.GetArrayString("SK", m_skills);
+		ret = ret + SubArchive.GetArrayString("PS", m_passives);
 		return ret;
 	}
 	
 	public function toString():String
 	{
 		var ret:String = toExportString();
-		ret = ret + GetArrayGearItemString("GR", m_gear);
-		ret = ret + GetArrayGearItemString("WP", m_weapons);
+		ret = ret + SubArchive.GetArrayGearItemString("GR", m_gear);
+		ret = ret + SubArchive.GetArrayGearItemString("WP", m_weapons);
 		var tempArray:Array = [ String(m_primaryWeaponHidden), String(m_secondaryWeaponHidden) ];
-		ret = ret + GetArrayString("WV", tempArray);
+		ret = ret + SubArchive.GetArrayString("WV", tempArray);
 		
 		if (m_damagePct != null)
 		{
 			var aaArray:Array = [ String(m_healthPct), String(m_healPct) ];
-			ret = ret + GetArrayString("AA", aaArray);
+			ret = ret + SubArchive.GetArrayString("AA", aaArray);
 		}
 		
 		if (m_requiredBuildID != null)
 		{
-			ret = ret + GetArrayString("RB", [ m_requiredBuildID ]);
+			ret = ret + SubArchive.GetArrayString("RB", [ m_requiredBuildID ]);
 		}
 		if (m_useGearManager == true)
 		{
-			ret = ret + GetArrayString("GM", [ true ]);
+			ret = ret + SubArchive.GetArrayString("GM", [ true ]);
+		}
+		if (AreAgentsEmpty() != true)
+		{
+			ret = ret + SubArchive.GetArrayString("AG", m_agents);
 		}
 		return ret;
-	}
-	
-	private static function SetArchiveEntry(prefix:String, archive:Archive, key:String, value:String):Void
-	{
-		var keyName:String = prefix + "_" + key;
-		archive.DeleteEntry(keyName);
-		if (value != null && value != "null")
-		{
-			archive.AddEntry(keyName, value);
-		}
-	}
-	
-	private static function DeleteArchiveEntry(prefix:String, archive:Archive, key:String):Void
-	{
-		var keyName:String = prefix + "_" + key;
-		archive.DeleteEntry(keyName);
 	}
 	
 	public function Save(prefix:String, archive:Archive, buildNumber:Number):Void
 	{
 		var key:String = prefix + buildNumber;
-		SetArchiveEntry(key, archive, ID_PREFIX, m_id);
-		SetArchiveEntry(key, archive, NAME_PREFIX, m_name);		
-		SetArchiveEntry(key, archive, GROUP_PREFIX, m_group);
-		SetArchiveEntry(key, archive, ORDER_PREFIX, String(m_order));
-		SetArchiveEntry(key, archive, OUTFIT_PREFIX, m_outfit);
+		SubArchive.SetArchiveEntry(key, archive, ID_PREFIX, m_id);
+		SubArchive.SetArchiveEntry(key, archive, NAME_PREFIX, m_name);		
+		SubArchive.SetArchiveEntry(key, archive, GROUP_PREFIX, m_group);
+		SubArchive.SetArchiveEntry(key, archive, ORDER_PREFIX, String(m_order));
+		SubArchive.SetArchiveEntry(key, archive, OUTFIT_PREFIX, m_outfit);
 		
 		var bdString:String = toString();
-		SetArchiveEntry(key, archive, BUILD_PREFIX, bdString);
+		SubArchive.SetArchiveEntry(key, archive, BUILD_PREFIX, bdString);
 	}
 	
 	public static function ClearArchive(prefix:String, archive:Archive, buildNumber:Number):Void
 	{
 		var key:String = prefix + buildNumber;
-		DeleteArchiveEntry(key, archive, ID_PREFIX);
-		DeleteArchiveEntry(key, archive, NAME_PREFIX);
-		DeleteArchiveEntry(key, archive, PARENT_PREFIX);
-		DeleteArchiveEntry(key, archive, GROUP_PREFIX);
-		DeleteArchiveEntry(key, archive, ORDER_PREFIX);
-		DeleteArchiveEntry(key, archive, OUTFIT_PREFIX);
-		DeleteArchiveEntry(key, archive, BUILD_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, ID_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, NAME_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, PARENT_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, GROUP_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, ORDER_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, OUTFIT_PREFIX);
+		SubArchive.DeleteArchiveEntry(key, archive, BUILD_PREFIX);
 	}
 	
 	public static function SplitArrayString(buildString:String):Array
@@ -1026,6 +1004,22 @@ class com.boobuilds.Build
 		}
 	}
 	
+	private function SetAgentsFromArray(offset:Number, buildItems:Array):Void
+	{
+		for (var i:Number = 0; i < MAX_AGENTS; ++i)
+		{
+			var indx:Number = i + offset;
+			if (indx < buildItems.length && buildItems[indx] != "undefined")
+			{
+				var item:Number = Number(buildItems[indx]);
+				if (!isNaN(item))
+				{
+					SetAgent(i, item);
+				}
+			}
+		}
+	}
+	
 	private static function FromBDArray(id:String, name:String, order:Number, groupID:String, buildItems:Array):Build
 	{
 		var ret:Build = new Build(id, name, order, groupID);
@@ -1070,6 +1064,10 @@ class com.boobuilds.Build
 				case "GM":
 					ret.SetUseGearManagerFromArray(i + 1, buildItems);
 					i += 1;
+					break;
+				case "AG":
+					ret.SetAgentsFromArray(i + 1, buildItems);
+					i += MAX_AGENTS + 1;
 					break;
 				default:
 					i += 1;
@@ -1140,6 +1138,20 @@ class com.boobuilds.Build
 		m_healthPct = character.GetStat(_global.Enums.Stat.e_TriangleHealthRatio, 2);
 		m_damagePct = 100 - m_healPct - m_healthPct;
 		
+	}
+	
+	public function SetCurrentAgents():Void
+	{
+		for (var i:Number = 0; i < MAX_AGENTS; ++i)
+		{
+			var passive:Number = AgentSystem.GetPassiveInSlot(i);
+			if (passive == 0)
+			{
+				passive = null;
+			}
+			
+			m_agents[i] = passive;
+		}
 	}
 	
 	public function SetCurrentSkills():Void
@@ -1275,6 +1287,7 @@ class com.boobuilds.Build
 		SetCurrentGear();
 		SetCurrentWeapons();
 		SetCurrentAnimaAllocation();
+		SetCurrentAgents();
 	}
 	
 	public static function FromCurrent(id:String, name:String, order:Number, groupID:String):Build
@@ -1371,10 +1384,12 @@ class com.boobuilds.Build
 			doTalismans = false;
 		}
 		
-		if (m_damagePct != null && m_healthPct !=null && m_healPct != null)
+		if (m_damagePct != null && m_healthPct != null && m_healPct != null)
 		{
-			SkillsBase.SetCombatTriangle(m_damagePct, m_healthPct, m_healPct);
+			Skills.SetCombatTriangle(m_damagePct, m_healthPct, m_healPct);
 		}
+		
+		ApplyAgents();
 		
 		m_buildApplyQueue = new Array();
 		ClearInventoryThrottle();			
@@ -1734,6 +1749,25 @@ class com.boobuilds.Build
 					var skillName:String = featData.m_Name;
 					
 					Spell.EquipPassiveAbility(indx, spellId);
+				}
+			}
+		}
+	}
+	
+	private function ApplyAgents():Void
+	{
+		if (AreAgentsEmpty() != true)
+		{
+			for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
+			{
+				AgentSystem.UnequipPassive(indx);
+			}
+			
+			for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
+			{
+				if (IsAgentSet(indx) == true)
+				{
+					AgentSystem.EquipPassive(GetAgent(indx), indx);
 				}
 			}
 		}
@@ -2215,69 +2249,15 @@ class com.boobuilds.Build
 
 	private function CheckGearManagerLoad():Boolean
 	{
-		var thisBuild:GearData = GearManager.GetCurrentCharacterBuild();
-		if ((thisBuild.m_AbilityArray == null && m_destinationBuild.m_AbilityArray != null) || (thisBuild.m_AbilityArray != null && m_destinationBuild.m_AbilityArray == null))
-		{
-			return false;
-		}
-		if ((thisBuild.m_ItemArray == null && m_destinationBuild.m_ItemArray != null) || (thisBuild.m_ItemArray != null && m_destinationBuild.m_ItemArray == null))
-		{
-			return false;
-		}
-		
-		if (thisBuild.m_AbilityArray != null)
-		{
-			if (thisBuild.m_AbilityArray.length != m_destinationBuild.m_AbilityArray.length)
-			{
-				return false;
-			}
-			
-			var abilities:Object = new Object();
-			for (var indx:Number = 0; indx < thisBuild.m_AbilityArray.length; ++indx)
-			{
-				abilities[thisBuild.m_AbilityArray[indx].m_Position] = thisBuild.m_AbilityArray[indx].m_SpellData;
-			}
-
-			for (var indx in m_destinationAbilities)
-			{
-				if (CompareGearAbility(abilities[indx], m_destinationAbilities[indx]) == false)
-				{
-					return false;
-				}
-			}
-		}
-		
-		if (thisBuild.m_ItemArray != null)
-		{
-			if (thisBuild.m_ItemArray.length != m_destinationBuild.m_ItemArray.length)
-			{
-				return false;
-			}
-			
-			var items:Object = new Object();
-			for (var indx:Number = 0; indx < thisBuild.m_ItemArray.length; ++indx)
-			{
-				items[thisBuild.m_ItemArray[indx].m_Position] = thisBuild.m_ItemArray[indx].m_InventoryItem;
-			}
-			
-			for (var indx in m_destinationItems)
-			{
-				if (CompareGearItem(items[indx], m_destinationItems[indx]) == false)
-				{
-					return false;
-				}
-			}
-		}
-		
-		return true;
+		return BuildGearManager.CheckGearManagerLoad(m_destinationBuild, m_destinationAbilities, m_destinationItems);
 	}
-	
+
 	private function GearManagerLoadComplete():Void
 	{
 		PostGearManagerLoad();
 	}
 	
-	private function CompareGearAbility(ability1:SpellData, ability2:SpellData):Boolean
+	/*private function CompareGearAbility(ability1:SpellData, ability2:SpellData):Boolean
 	{
 		
 		if (ability1 == null && ability2 == null)
@@ -2318,7 +2298,7 @@ class com.boobuilds.Build
 		
 		//DebugWindow.Log(DebugWindow.Debug, "Items different " + item1.m_Name + " " + item1.m_Pips + " " + item2.m_Name + " " + item2.m_Pips);
 		return false;
-	}
+	}*/
 
 	private function GetPreloadWeaponLocations():Void
 	{

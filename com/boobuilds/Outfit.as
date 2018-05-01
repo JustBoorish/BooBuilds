@@ -17,6 +17,7 @@ import com.boobuildscommon.InfoWindow;
 import com.boobuildscommon.IntervalCounter;
 import com.boobuildscommon.InventoryThrottle;
 import com.boobuildscommon.MountHelper;
+import com.boobuildscommon.SubArchive;
 import mx.utils.Delegate;
 /**
  * There is no copyright on this code
@@ -489,17 +490,17 @@ class com.boobuilds.Outfit
 		var ret:String = "CS" + Build.SEPARATOR + "-" + Build.SEPARATOR + "VER" + Build.SEPARATOR + "-" + Build.SEPARATOR + "1.0" + Build.SEPARATOR;
 		if (IsFullOutfit() == true)
 		{
-			ret = ret + Build.GetArrayString("F2", m_outfit);
+			ret = ret + SubArchive.GetArrayString("F2", m_outfit);
 		}
 		else
 		{
-			ret = ret + Build.GetArrayString("OU", m_outfit);
+			ret = ret + SubArchive.GetArrayString("OU", m_outfit);
 		}
 
 		
-		ret = ret + Build.GetArrayString("WV", [ m_primaryWeaponHidden, m_secondaryWeaponHidden ]);
-		ret = ret + Build.GetArrayStringInternal("SP", [ m_sprintTag ], false);
-		ret = ret + Build.GetArrayStringInternal("PT", [ m_petTag ], false);
+		ret = ret + SubArchive.GetArrayString("WV", [ m_primaryWeaponHidden, m_secondaryWeaponHidden ]);
+		ret = ret + SubArchive.GetArrayStringInternal("SP", [ m_sprintTag ], false);
+		ret = ret + SubArchive.GetArrayStringInternal("PT", [ m_petTag ], false);
 		if (m_weaponSkins != null)
 		{
 			var tempArray:Array = new Array();
@@ -509,7 +510,7 @@ class com.boobuilds.Outfit
 				tempArray.push(m_weaponSkins[indx]);
 			}
 			
-			ret = ret + Build.GetArrayStringInternal("WS", tempArray, false);
+			ret = ret + SubArchive.GetArrayStringInternal("WS", tempArray, false);
 		}
 		
 		return ret;
