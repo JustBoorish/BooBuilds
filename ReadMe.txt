@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.5.1
+Fix agent loading
+
 Version 2.5
 Add agent support
 Removed anima allocation from quick builds

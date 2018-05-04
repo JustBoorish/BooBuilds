@@ -1,4 +1,5 @@
 import com.GameInterface.AgentSystem;
+import com.GameInterface.AgentSystemAgent;
 import com.GameInterface.CharacterData;
 import com.GameInterface.FeatData;
 import com.GameInterface.FeatInterface;
@@ -1144,10 +1145,15 @@ class com.boobuilds.Build
 	{
 		for (var i:Number = 0; i < MAX_AGENTS; ++i)
 		{
-			var passive:Number = AgentSystem.GetPassiveInSlot(i);
-			if (passive == 0)
+			var passive:Number = null;
+			var spellId:Number = AgentSystem.GetPassiveInSlot(i);
+			if (spellId != 0)
 			{
-				passive = null;
+				var agent:AgentSystemAgent = AgentSystem.GetAgentForPassiveSlot(i);
+				if (agent != null)
+				{
+					passive = agent.m_AgentId;
+				}
 			}
 			
 			m_agents[i] = passive;
@@ -1756,18 +1762,21 @@ class com.boobuilds.Build
 	
 	private function ApplyAgents():Void
 	{
-		if (AreAgentsEmpty() != true)
+		if (m_useGearManager != true || GearManagerBuildExists(m_name) != true)
 		{
-			for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
+			if (AreAgentsEmpty() != true)
 			{
-				AgentSystem.UnequipPassive(indx);
-			}
-			
-			for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
-			{
-				if (IsAgentSet(indx) == true)
+				for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
 				{
-					AgentSystem.EquipPassive(GetAgent(indx), indx);
+					AgentSystem.UnequipPassive(indx);
+				}
+				
+				for (var indx:Number = 0; indx < MAX_AGENTS; ++indx)
+				{
+					if (IsAgentSet(indx) == true)
+					{
+						AgentSystem.EquipPassive(GetAgent(indx), indx);
+					}
 				}
 			}
 		}

@@ -49,7 +49,7 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "2.5";
+	public static var VERSION = "2.5.1";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
