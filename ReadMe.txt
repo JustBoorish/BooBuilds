@@ -23,6 +23,10 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.6
+Make anima allocation and agents optional for quick builds
+Support duplicate talismans with different signets/glyphs
+
 Version 2.5.1
 Fix agent loading
 

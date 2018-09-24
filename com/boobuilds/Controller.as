@@ -49,7 +49,7 @@ import mx.utils.Delegate;
  */
 class com.boobuilds.Controller extends MovieClip
 {
-	public static var VERSION = "2.5.1";
+	public static var VERSION = "2.6";
 	public static var SKILL_ID:String = "SkillId";
 	public static var AUGMENT_ID:String = "AugmentId";
 	public static var PASSIVE_ID:String = "PassiveId";
@@ -257,6 +257,7 @@ class com.boobuilds.Controller extends MovieClip
 		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "DPS", Colours.RED));
 		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Heals", Colours.GREEN));
 		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "Tank", Colours.BLUE));
+		m_buildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_buildGroups), "PVP", Colours.GREY));
 	}
 	
 	private function SetDefaultOutfitGroups():Void
@@ -305,6 +306,8 @@ class com.boobuilds.Controller extends MovieClip
 		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "DPS", Colours.RED));
 		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Heals", Colours.GREEN));
 		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Tank", Colours.BLUE));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "Solo", Colours.PURPLE));
+		m_quickBuildGroups.push(new BuildGroup(BuildGroup.GetNextID(m_quickBuildGroups), "PVP", Colours.GREY));
 	}
 	
 	private function SaveBuilds():Void

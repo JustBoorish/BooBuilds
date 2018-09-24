@@ -53,6 +53,16 @@ class com.boobuilds.GearItem
 		return m_Name;
 	}
 	
+	public function GetPrefix():String
+	{
+		return m_prefix;
+	}
+	
+	public function GetSuffix():String
+	{
+		return m_suffix;
+	}
+	
 	public function GetIconPath():String
 	{
 		return m_iconPath;
@@ -81,16 +91,6 @@ class com.boobuilds.GearItem
 		}
 		
 		return ret;
-	}
-	
-	public function isMatch(item:InventoryItem):Boolean
-	{
-		if (item != null && item.m_Name == m_Name && item.m_Pips == m_numPips && DefaultPositionMatches(item.m_DefaultPosition, m_defaultPosition))
-		{
-			return true;
-		}
-		
-		return false;
 	}
 	
 	public static function GetGearItem(item:InventoryItem, tooltip:TooltipData, defaultIconPath:String):GearItem
@@ -219,7 +219,24 @@ class com.boobuilds.GearItem
 		var ret:Boolean = false;
 		if (item != null && (dontCheckBound == true || item.m_IsBoundToPlayer == true))
 		{
-			if (item.m_Name == inItem.GetName() && item.m_Pips == inItem.GetNumPips())
+			var glyph = com.Utils.LDBFormat.LDBGetText(50200,item.m_ACGItem.m_TemplateID1);//Glyph Name
+			var signet = "";
+			if(item.m_DefaultPosition != 6 && item.m_ACGItem.m_TemplateID2)
+			{
+				signet = com.Utils.LDBFormat.LDBGetText(50200,item.m_ACGItem.m_TemplateID2);//Signet Name
+			}
+			
+			if (glyph == null)
+			{
+				glyph = "";
+			}
+			
+			if (signet == null)
+			{
+				signet = "";
+			}
+			 
+			if (item.m_Name == inItem.GetName() && inItem.GetPrefix() == glyph && inItem.GetSuffix() == signet && item.m_Pips == inItem.GetNumPips())
 			{
 				ret = true;
 			}
