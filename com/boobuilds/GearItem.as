@@ -127,12 +127,21 @@ class com.boobuilds.GearItem
 		if (tooltip.m_PrefixData != null)
 		{
 			var glyphStr:String = tooltip.m_PrefixData.m_Title;
-			if (glyphStr.lastIndexOf(Localisation.Glyph) == glyphStr.length - Localisation.Glyph.length)
+			if (Localisation.GetLocalisation() != "fr")
 			{
-				ret.m_Prefix = glyphStr;
+				if (glyphStr.lastIndexOf(Localisation.Glyph) == glyphStr.length - Localisation.Glyph.length)
+				{
+					ret.m_Prefix = glyphStr;
+				}
+			}
+			else
+			{
+				if (glyphStr.indexOf(Localisation.Glyph) == 0)
+				{
+					ret.m_Prefix = glyphStr;
+				}
 			}
 		}
-		
 		return new GearItem(ret.m_Name, ret.m_defaultPosition, ret.m_Prefix, ret.m_Suffix, ret.m_numPips, ret.m_iconPath);
 	}
 	
