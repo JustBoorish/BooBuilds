@@ -23,6 +23,9 @@ https://tswact.wordpress.com/boobuilds/
 
 Change Log
 
+Version 2.7
+Support duplicate talismans with different signets/glyphs in French clients
+
 Version 2.6
 Make anima allocation and agents optional for quick builds
 Support duplicate talismans with different signets/glyphs
