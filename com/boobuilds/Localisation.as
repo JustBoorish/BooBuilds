@@ -46,7 +46,7 @@ class com.boobuilds.Localisation
 	private static var DeleteIconTooltipMisc_English:String = "";
 
 	// French
-	private static var Signet_French:String = "Sceau";
+	private static var Signet_French:String = "Insigne";
 	private static var Glyph_French:String = "Glyphe";
 	private static var Skills_French:String = "Compétences";
 	private static var Passives_French:String = "Passives";
@@ -61,7 +61,7 @@ class com.boobuilds.Localisation
 
 	// German
 	private static var Signet_German:String = "Siegel";
-	private static var Glyph_German:String = "Glyph";
+	private static var Glyph_German:String = "Glyphe";
 	private static var Skills_German:String = "Fähigkeiten";
 	private static var Passives_German:String = "Passives";
 	private static var Augments_German:String = "Augmente";
@@ -73,6 +73,11 @@ class com.boobuilds.Localisation
 	private static var DeleteIconTooltipDesc_German:String = "Wählen Sie diesen Knopf aus, um die ausgewählte Einzelheit zu klären";
 	private static var DeleteIconTooltipMisc_German:String = "";
 
+	public static function GetLocalisation():String
+	{
+		return LDBFormat.GetCurrentLanguageCode();
+	}
+	
 	public static function SetLocalisation():Void
 	{
 		var lang:String = LDBFormat.GetCurrentLanguageCode();
